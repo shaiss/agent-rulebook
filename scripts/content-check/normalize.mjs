@@ -1,9 +1,11 @@
 /**
  * Shared normalization for hashed private terms and regex prep.
+ * Used by content-check.mjs and hash-terms.mjs.
  */
 
 export const MAX_TERM_WORDS = 4
 export const MIN_SALT_HEX_LENGTH = 32
+const MAX_ENTITY_PASSES = 32
 
 const ZERO_WIDTH = /[\u200B-\u200F\u2060\uFEFF\u00AD]/g
 const COMBINING_MARKS = /\p{M}/gu
@@ -17,12 +19,11 @@ const NAMED_ENTITIES = {
   nbsp: ' ',
 }
 
+/** Decode HTML entities until stable, bounded to avoid pathological input. */
 export function decodeHtmlEntities(input) {
   let s = input
-  let prev
-  do {
-    prev = s
-    s = s.replace(/&(#x[0-9a-fA-F]+|#\d+|[a-zA-Z][a-zA-Z0-9]+);/g, (match, ent) => {
+  for (let pass = 0; pass < MAX_ENTITY_PASSES; pass++) {
+    const next = s.replace(/&(#x[0-9a-fA-F]+|#\d+|[a-zA-Z][a-zA-Z0-9]+);/g, (match, ent) => {
       if (ent[0] === '#') {
         const code =
           ent[1] === 'x' || ent[1] === 'X'
@@ -37,15 +38,21 @@ export function decodeHtmlEntities(input) {
       }
       return NAMED_ENTITIES[ent.toLowerCase()] ?? match
     })
-  } while (s !== prev)
+    if (next === s) return s
+    s = next
+  }
   return s
 }
 
-/** Fold diacritics / zero-width / entities, then lowercase word-split. */
+/**
+ * Shared pipeline:
+ * decode entities (bounded) -> NFKC -> NFKD -> strip combining marks ->
+ * strip zero-width/format -> lowercase -> tokenize
+ */
 export function normalizeTerm(input) {
-  let t = input.normalize('NFKD').replace(COMBINING_MARKS, '')
-  t = t.replace(ZERO_WIDTH, '')
-  t = decodeHtmlEntities(t)
+  let t = decodeHtmlEntities(input)
+  t = t.normalize('NFKC')
+  t = t.normalize('NFKD').replace(COMBINING_MARKS, '')
   t = t.replace(ZERO_WIDTH, '')
   t = t.toLowerCase()
   return t.split(/[^a-z0-9]+/).filter(Boolean).join(' ')
@@ -65,11 +72,14 @@ export function isValidSaltHex(saltHex) {
   )
 }
 
-/** Normalization before regex matching (keeps punctuation for phones/emails). */
+/**
+ * Same decode/fold/strip pipeline as normalizeTerm, without lowercasing/tokenize
+ * (punctuation kept for phones/emails; regexes are case-insensitive).
+ */
 export function normalizeForRegex(input) {
-  let t = input.normalize('NFKD').replace(COMBINING_MARKS, '')
-  t = t.replace(ZERO_WIDTH, '')
-  t = decodeHtmlEntities(t)
+  let t = decodeHtmlEntities(input)
+  t = t.normalize('NFKC')
+  t = t.normalize('NFKD').replace(COMBINING_MARKS, '')
   t = t.replace(ZERO_WIDTH, '')
   return t
 }

@@ -523,84 +523,112 @@ function buildGif({ comment = false, xmp = false, lzwPoison = false, truncate = 
   return full
 }
 
+function selfTestFail(message) {
+  console.error(message)
+  process.exitCode = 1
+  throw new Error(message)
+}
+
 async function runSelfTest() {
   const saltHex = '0123456789abcdef0123456789abcdef'
-  if (!isValidSaltHex(saltHex)) {
-    console.error('content-check self-test failed: synthetic salt is invalid')
-    process.exit(1)
-  }
-
-  // Normalization smoke: entity-hidden ZW and diacritics fold identically
-  if (normalizeTerm('Ga&#8203;rin') !== 'garin' || normalizeTerm('Garín') !== 'garin') {
-    console.error('content-check self-test failed: normalization mismatch')
-    process.exit(1)
-  }
-
-  const privateTerms = ['zz-test-term', 'fakeorg/secretdir']
-  const hashes = new Set(
-    privateTerms.map((term) => hashNormalized(saltHex, normalizeTerm(term))),
-  )
-
-  const plantedPath = join(FIXTURES_DIR, 'planted-leaks.md')
-  const cleanPath = join(FIXTURES_DIR, 'clean.md')
-  const dirtyPngPath = join(FIXTURES_DIR, 'planted-meta.png')
-
-  await mkdir(FIXTURES_DIR, { recursive: true })
-  await writeFile(
-    plantedPath,
-    [
-      '# planted fixture (excluded from published scan)',
-      'uuid: 123e4567-e89b-12d3-a456-426614174000',
-      'cloud: prj_ExampleTestId01',
-      'email: agent@example.com',
-      'phone: 555-010-0199 and +1 202 555 0123',
-      'path: /workspace/example',
-      'token: ghp_abcdefghijklmnopqrstuvwx',
-      'private: zz-test-term near fakeorg/secretdir',
-      '',
-    ].join('\n'),
-    'utf8',
-  )
-  await writeFile(
-    cleanPath,
-    ['# clean fixture', '', 'This documentation page has no planted leaks.', ''].join('\n'),
-    'utf8',
-  )
-  await writeFile(dirtyPngPath, buildPngWithTextChunk())
-
-  const required = [
-    'uuid',
-    'vercel/cloud id',
-    'email',
-    'phone',
-    'internal path',
-    'token/key',
-    'private term',
-    'image metadata',
-    'symlink',
-    'unknown binary',
-    'utf-8 decode',
-  ]
-
-  const plantedBuf = await readFile(plantedPath)
-  const textHits = await scanTextBuffer(
-    'scripts/content-check/fixtures/planted-leaks.md',
-    plantedBuf,
-    saltHex,
-    hashes,
-  )
-  const imageHits = await scanTarget(
-    {
-      full: dirtyPngPath,
-      rel: 'scripts/content-check/fixtures/planted-meta.png',
-      kind: 'file',
-    },
-    saltHex,
-    hashes,
-  )
-
-  const tmpRoot = await mkdtemp(join(tmpdir(), 'content-check-'))
+  let tmpRoot = null
   try {
+    if (!isValidSaltHex(saltHex)) {
+      selfTestFail('content-check self-test failed: synthetic salt is invalid')
+    }
+
+    // Normalization: entity-encoded accents/marks/ZW and double-encoding fold to garin
+    const garinVariants = [
+      'Garín',
+      'Ga&#8203;rin',
+      'Gar&#237;n',
+      'Gari&#769;n',
+      'Gar&amp;#237;n',
+      'Gar&#x200B;ín',
+    ]
+    for (const variant of garinVariants) {
+      if (normalizeTerm(variant) !== 'garin') {
+        selfTestFail('content-check self-test failed: normalization mismatch')
+      }
+    }
+
+    // Plain ASCII term hashing is unchanged (NFKC/NFKD/entity order is a no-op on ASCII).
+    const asciiGolden = {
+      'zz-test-term': '5e325c0a5da6a8d6b32abc20d6173a97230b2d0608f03c1ff92248b5d81d8c66',
+      'fakeorg/secretdir': '9e7ccafc227062a073abc99d69bacbb547f7faf684a26bffcad59606abcd1a3c',
+    }
+    for (const [term, expected] of Object.entries(asciiGolden)) {
+      const actual = hashNormalized(saltHex, normalizeTerm(term))
+      if (actual !== expected) {
+        selfTestFail('content-check self-test failed: ASCII term hash changed')
+      }
+    }
+
+    const privateTerms = ['zz-test-term', 'fakeorg/secretdir', 'garin']
+    const hashes = new Set(
+      privateTerms.map((term) => hashNormalized(saltHex, normalizeTerm(term))),
+    )
+
+    const plantedPath = join(FIXTURES_DIR, 'planted-leaks.md')
+    const cleanPath = join(FIXTURES_DIR, 'clean.md')
+    const dirtyPngPath = join(FIXTURES_DIR, 'planted-meta.png')
+
+    await mkdir(FIXTURES_DIR, { recursive: true })
+    await writeFile(
+      plantedPath,
+      [
+        '# planted fixture (excluded from published scan)',
+        'uuid: 123e4567-e89b-12d3-a456-426614174000',
+        'cloud: prj_ExampleTestId01',
+        'email: agent@example.com',
+        'phone: 555-010-0199 and +1 202 555 0123',
+        'path: /workspace/example',
+        'token: ghp_abcdefghijklmnopqrstuvwx',
+        'private: zz-test-term near fakeorg/secretdir',
+        'entity: Gar&#237;n and Gari&#769;n and Gar&amp;#237;n and Ga&#8203;rin',
+        '',
+      ].join('\n'),
+      'utf8',
+    )
+    await writeFile(
+      cleanPath,
+      ['# clean fixture', '', 'This documentation page has no planted leaks.', ''].join('\n'),
+      'utf8',
+    )
+    await writeFile(dirtyPngPath, buildPngWithTextChunk())
+
+    const required = [
+      'uuid',
+      'vercel/cloud id',
+      'email',
+      'phone',
+      'internal path',
+      'token/key',
+      'private term',
+      'image metadata',
+      'symlink',
+      'unknown binary',
+      'utf-8 decode',
+    ]
+
+    const plantedBuf = await readFile(plantedPath)
+    const textHits = await scanTextBuffer(
+      'scripts/content-check/fixtures/planted-leaks.md',
+      plantedBuf,
+      saltHex,
+      hashes,
+    )
+    const imageHits = await scanTarget(
+      {
+        full: dirtyPngPath,
+        rel: 'scripts/content-check/fixtures/planted-meta.png',
+        kind: 'file',
+      },
+      saltHex,
+      hashes,
+    )
+
+    tmpRoot = await mkdtemp(join(tmpdir(), 'content-check-'))
     const targetMd = join(tmpRoot, 'target.md')
     const linkMd = join(tmpRoot, 'link.md')
     const unknownBin = join(tmpRoot, 'blob.bin')
@@ -612,8 +640,7 @@ async function runSelfTest() {
 
     const linkStat = await lstat(linkMd)
     if (!linkStat.isSymbolicLink()) {
-      console.error('content-check self-test failed: temp path is not a symlink')
-      process.exit(1)
+      selfTestFail('content-check self-test failed: temp path is not a symlink')
     }
     const symlinkHits = await scanTarget(
       { full: linkMd, rel: 'tmp/link.md', kind: 'symlink' },
@@ -647,10 +674,9 @@ async function runSelfTest() {
       hashes,
     )
     if (cleanGifHits.length !== 0) {
-      console.error(
-        `content-check self-test failed: clean GIF with 0x21 0xFE in LZW data had findings`,
+      selfTestFail(
+        'content-check self-test failed: clean GIF with 0x21 0xFE in LZW data had findings',
       )
-      process.exit(1)
     }
     const commentGifHits = await scanTarget(
       { full: commentGifPath, rel: 'tmp/comment.gif', kind: 'file' },
@@ -668,16 +694,24 @@ async function runSelfTest() {
       hashes,
     )
     if (!commentGifHits.some((h) => h.category === 'image metadata')) {
-      console.error('content-check self-test failed: GIF comment extension not detected')
-      process.exit(1)
+      selfTestFail('content-check self-test failed: GIF comment extension not detected')
     }
     if (!xmpGifHits.some((h) => h.category === 'image metadata')) {
-      console.error('content-check self-test failed: GIF XMP application extension not detected')
-      process.exit(1)
+      selfTestFail('content-check self-test failed: GIF XMP application extension not detected')
     }
     if (!truncGifHits.some((h) => h.category === 'image metadata: unparseable gif')) {
-      console.error('content-check self-test failed: truncated GIF not reported as unparseable')
-      process.exit(1)
+      selfTestFail('content-check self-test failed: truncated GIF not reported as unparseable')
+    }
+
+    // Entity-encoded private term variants must hash-match "garin"
+    const entityHits = await scanTextBuffer(
+      'scripts/content-check/fixtures/planted-leaks.md',
+      plantedBuf,
+      saltHex,
+      hashes,
+    )
+    if (!entityHits.some((h) => h.category === 'private term' && h.line >= 8)) {
+      selfTestFail('content-check self-test failed: entity-encoded private term not detected')
     }
 
     const allHits = [
@@ -689,14 +723,14 @@ async function runSelfTest() {
       ...commentGifHits,
       ...xmpGifHits,
       ...truncGifHits,
+      ...entityHits,
     ]
     const categories = new Set(allHits.map((h) => h.category))
     const missing = required.filter((c) => !categories.has(c))
     if (missing.length > 0) {
-      console.error(
+      selfTestFail(
         `content-check self-test failed: missing ${missing.join(', ')}; got ${[...categories].sort().join(', ') || '(none)'}`,
       )
-      process.exit(1)
     }
 
     const cleanBuf = await readFile(cleanPath)
@@ -707,10 +741,9 @@ async function runSelfTest() {
       hashes,
     )
     if (cleanHits.length !== 0) {
-      console.error(
+      selfTestFail(
         `content-check self-test failed: clean fixture had ${cleanHits.length} finding(s)`,
       )
-      process.exit(1)
     }
 
     // Fail-closed parse checks via child processes (parseHashedTerms exits)
@@ -724,8 +757,7 @@ async function runSelfTest() {
         encoding: 'utf8',
       })
       if (result.status === 0) {
-        console.error('content-check self-test failed: expected fail-closed for bad secret')
-        process.exit(1)
+        selfTestFail('content-check self-test failed: expected fail-closed for bad secret')
       }
     }
 
@@ -739,21 +771,28 @@ async function runSelfTest() {
       },
     )
     if (longTerm.status === 0 || /one two three four five/i.test(longTerm.stderr + longTerm.stdout)) {
-      console.error('content-check self-test failed: expected rejection of >4-word terms')
-      process.exit(1)
+      selfTestFail('content-check self-test failed: expected rejection of >4-word terms')
     }
 
     console.log(
-      `content-check self-test passed: detected ${[...categories].sort().join(', ')}; clean fixture clean`,
+      `content-check self-test passed: detected ${[...categories].sort().join(', ')}; clean fixture clean; ASCII hashes unchanged`,
     )
+  } catch (err) {
+    if (process.exitCode == null || process.exitCode === 0) {
+      process.exitCode = 1
+      if (err && err.message && !String(err.message).startsWith('content-check self-test failed')) {
+        console.error(err.message)
+      }
+    }
   } finally {
-    await rm(tmpRoot, { recursive: true, force: true })
+    if (tmpRoot) await rm(tmpRoot, { recursive: true, force: true })
   }
 }
 
 const mode = process.argv[2]
 if (mode === '--self-test') {
   await runSelfTest()
+  if (process.exitCode && process.exitCode !== 0) process.exit(process.exitCode)
 } else if (mode === undefined) {
   await runScan()
 } else {

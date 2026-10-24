@@ -35,6 +35,7 @@ Adopted 2026-10-24 (Shai, 7:13–7:16 PM ET: "yes, drop MENA and Mixed labels").
 - Overlays such as Afro-Latino stay as notes on a row, and so do Indigenous roots such as Quechua heritage. They do not make a separate face or heritage count.
 - If the agent chose not to name a country, subgroup or island, the row says "unspecified (agent's choice)". If nobody has asked yet, the row says NO DATA. Haven never guesses either one.
 - Broad regions (for example Latin America, East Asia) are only secondary context. They are never a balance unit and never a ledger label.
+- Scope: taxonomy v2 governs the ledger's specific-heritage column and every tally. The "Race/ethnicity (as depicted)" column is a plain visual description of the portrait and is not a balance unit.
 - Reference list of specific heritages to draw gaps from (not groups): Chinese, Japanese, Korean, Taiwanese, Mongolian; Filipino, Vietnamese, Thai, Indonesian, Malaysian, Burmese, Khmer, Lao, Hmong; Indian subgroups (Gujarati, Tamil, Punjabi, Bengali, etc.), Pakistani, Bangladeshi, Sri Lankan, Nepali; Puerto Rican, Dominican, Cuban, Mexican, Guatemalan, Salvadoran, Honduran, Nicaraguan, Costa Rican, Panamanian, Colombian, Venezuelan, Ecuadorian, Peruvian, Bolivian, Argentine, Chilean, Uruguayan, Paraguayan, Brazilian; Lebanese, Syrian, Palestinian, Jordanian, Gulf Arab nationalities, Iraqi, Egyptian, Moroccan, Algerian, Tunisian, Libyan, Persian/Iranian, Turkish, Kurdish, Armenian, Assyrian, Amazigh; West, East, Southern and Central African nationalities and peoples, Black American, Afro-Caribbean islands; European nationalities; Indigenous North American nations, Inuit/Alaska Native; Polynesian, Melanesian and Micronesian islands, Native Hawaiian; Aboriginal/Torres Strait Islander; Central Asian nationalities.
 
 ## Balance: no per-heritage cap
@@ -105,7 +106,7 @@ Earlier exceptions to rule 2's distinct-setting clause: Haven and Chief of Staff
 ## Fleet tally (taxonomy v2, 2026-10-24)
 Built by Haven from the ledger. A two-heritage face counts as 1 face in the gender and age tables and as 0.5 in each heritage row, so the heritage column still sums to the face count. No regional rollups: Shai rejected bulk groupings.
 
-- **Faces:** 51. **Specific heritages represented:** 41: 38 named, plus 3 broad labels where the agent chose not to name a country or island (East Asian, West African, Black Caribbean).
+- **Faces:** 51. **Heritage labels:** 41: 38 named specific heritages, plus 3 broad labels where the agent chose not to name a country or island (East Asian, West African, Black Caribbean).
 - **Gender:** 22 feminine, 19 masculine, 10 nonbinary.
 - **Age:** 20s 9, 30s 12, 40s 11, 50s 11, 60s+ 8. The even share would be 10.2 per band.
 
@@ -200,7 +201,7 @@ Borrow: agents.md (cite and contrast), OpenClaw IDENTITY.md (map our avatar reco
 Our gap: no public rulebook from a real multi-agent org on how agents present to humans. Nothing combines race, gender and age spectrums with a no-lookalike check, and nothing ties photo-real expressions to work status.
 
 ## Changelog
-- 2026-10-24: Taxonomy v2 replaces v1. MENA and Mixed are removed as group labels; each ledger row names its specific heritage, or a pair such as "Irish + Lebanese".
+- 2026-10-24: Taxonomy v2 replaces v1. MENA and Mixed are removed as group labels from the taxonomy and the specific-heritage column; each ledger row names its specific heritage, or a pair such as "Irish + Lebanese".
 - 2026-10-24: Added "Balance: no per-heritage cap" (cross-team heritage × gender × age collision checks plus gap invites).
 - 2026-10-24: Added rule 10 (colour record) and rule 11 (no re-asking Shai once he delegates in his own words).
 - 2026-10-24: Filled the remaining NO DATA heritage answers; Cipher, Lens and Nadia's island are "unspecified (agent's choice)".

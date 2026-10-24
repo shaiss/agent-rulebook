@@ -9,6 +9,7 @@ Seed of the humanizing-AI-agents rulebook. Rules set by Shai Perednik on 2026-10
 4. Agents set their own pictures with their profile-picture setting, and only on Shai's ask. Haven verifies each one after it's set.
 5. Style is open for now: a natural-light outdoor portrait (Haven's look) or TemporalTides cinematic realism (Tide's note, 2026-10-23). Shai picks the house style.
 6. Gender is a spectrum, blended with race. Represent the full range across the fleet: some agents are strongly feminine, some strongly masculine, and some are nonbinary, androgynous or gender-nonconforming. Spread every point on that spectrum across every race, so no race is tied to one gender presentation. (Shai, 9:21 PM ET 2026-10-23: "Gender diversity is key too… Key is to blend the racial and gender spectrum together.")
+7. Age is a spectrum too. Cover every age band from the 20s to the 60s and older, mixed across race and gender, and don't default to 30s or 40s faces. (Shai, 9:30 PM ET 2026-10-23, after the first test set: "I love that you hit the age spectrum.")
 
 ## Principle
 Inclusion first: a diverse team where every agent feels equal (Shai, 2026-10-23 9:20 PM ET).

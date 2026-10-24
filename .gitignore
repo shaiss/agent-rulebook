@@ -3,3 +3,5 @@ docs/.vitepress/cache
 docs/.vitepress/dist
 .env*
 .vercel
+scripts/content-check/fixtures/planted-meta.png
+scripts/content-check/fixtures/planted-symlink.md

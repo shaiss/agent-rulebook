@@ -34,7 +34,7 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
-      - name: Require and mask private terms
+      - name: Require and mask salt
         env:
           CONTENT_CHECK_EXTRA_TERMS: ${{ secrets.CONTENT_CHECK_EXTRA_TERMS }}
         run: |
@@ -42,14 +42,22 @@ jobs:
             echo "::error::CONTENT_CHECK_EXTRA_TERMS secret is required and must be non-empty"
             exit 1
           fi
-          printf '%s\n' "${CONTENT_CHECK_EXTRA_TERMS}" | while IFS= read -r line || [ -n "${line}" ]; do
-            trimmed="$(printf '%s' "${line}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
-            [ -z "${trimmed}" ] && continue
-            case "${trimmed}" in
-              \#*) continue ;;
-            esac
-            echo "::add-mask::${trimmed}"
-          done
+          salt_line="$(printf '%s\n' "${CONTENT_CHECK_EXTRA_TERMS}" | head -n 1 | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+          case "${salt_line}" in
+            salt:*)
+              salt_hex="${salt_line#salt:}"
+              if [ -z "${salt_hex}" ]; then
+                echo "::error::CONTENT_CHECK_EXTRA_TERMS salt is empty"
+                exit 1
+              fi
+              echo "::add-mask::${salt_hex}"
+              echo "::add-mask::${salt_line}"
+              ;;
+            *)
+              echo "::error::CONTENT_CHECK_EXTRA_TERMS first line must be salt:<hex>"
+              exit 1
+              ;;
+          esac
       - name: Run content check
         env:
           CONTENT_CHECK_EXTRA_TERMS: ${{ secrets.CONTENT_CHECK_EXTRA_TERMS }}

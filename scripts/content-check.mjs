@@ -14,7 +14,8 @@ const IMAGE_EXTS = new Set(['.png', '.jpg', '.jpeg', '.webp'])
 
 const PATTERNS = [
   { category: 'uuid', source: String.raw`\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b` },
-  { category: 'vercel/cloud id', source: String.raw`\b(prj|team|dpl|bc)[-_][A-Za-z0-9]{8,}` },
+  // Underscore form for Vercel prj_/team_/dpl_; hyphen form for bc- cloud-agent ids
+  { category: 'vercel/cloud id', source: String.raw`\b((prj|team|dpl)_[A-Za-z0-9]{8,}|bc-[A-Za-z0-9-]{8,})` },
   { category: 'email', source: String.raw`[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}` },
   // E.164 and common US formats; avoids ISO dates like 2026-10-23
   { category: 'phone', source: String.raw`(\+\d{10,15}\b|\(\d{3}\)\s?\d{3}[-.\s]\d{4}|\b\d{3}[-.]\d{3}[-.]\d{4}\b)` },
@@ -22,7 +23,8 @@ const PATTERNS = [
   { category: 'tool name', source: String.raw`\b(UpdateAvatar|SendToAgent|CloudAgent|PLAN\.json)\b` },
   {
     category: 'token/key',
-    source: String.raw`(\b(ghp|gho|ghs|ghu|ghr)_[A-Za-z0-9]{20,}|\bgithub_pat_[A-Za-z0-9_]{20,}|\bsk-[A-Za-z0-9]{20,}|\bAKIA[0-9A-Z]{16}\b|\bxox[baprs]-[A-Za-z0-9-]{10,}|-----BEGIN [A-Z ]*PRIVATE KEY-----)`,
+    // Allow hyphenated sk- prefixes (e.g. sk-proj-...)
+    source: String.raw`(\b(ghp|gho|ghs|ghu|ghr)_[A-Za-z0-9]{20,}|\bgithub_pat_[A-Za-z0-9_]{20,}|\bsk-[A-Za-z0-9-]{20,}|\bAKIA[0-9A-Z]{16}\b|\bxox[baprs]-[A-Za-z0-9-]{10,}|-----BEGIN [A-Z ]*PRIVATE KEY-----)`,
   },
 ]
 

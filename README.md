@@ -16,6 +16,10 @@ npm run docs:build
 npm run docs:preview
 ```
 
+## Access
+
+The Vercel project is protected by Vercel Authentication (Deployment Protection) on all deployments, including production. That setting lives in the Vercel project settings, not in `vercel.json`. Removing the protection is part of the gated go-public step and needs owner approval.
+
 ## Publishing
 
 This repository is private. Publishing the site or attaching a custom domain requires explicit owner approval.

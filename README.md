@@ -18,8 +18,8 @@ npm run docs:preview
 
 ## Access
 
-Site deployments on Vercel are protected by Vercel Authentication (Deployment Protection) on all deployments, including production, until the owner-approved go-public step. That setting lives in the Vercel project settings, not in `vercel.json`.
+Preview deployments stay behind Vercel Authentication (Deployment Protection). Production stays behind it until the owner-approved go-public step; after that, production is intentionally public because this is a public docs site. Protection is set in the Vercel project settings, not in `vercel.json`.
 
 ## Publishing
 
-Publishing changes — including removing Deployment Protection or attaching a custom domain — requires owner approval.
+The owner-approved go-public step (opening production) and attaching a custom domain require owner approval.

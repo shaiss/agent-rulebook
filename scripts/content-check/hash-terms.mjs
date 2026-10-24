@@ -6,49 +6,15 @@
 import { createHash, randomBytes } from 'node:crypto'
 import { createInterface } from 'node:readline'
 import { pathToFileURL } from 'node:url'
+import {
+  isValidSaltHex,
+  MAX_TERM_WORDS,
+  MIN_SALT_HEX_LENGTH,
+  normalizeTerm,
+  wordCount,
+} from './normalize.mjs'
 
-const ZERO_WIDTH = /[\u200B-\u200F\u2060\uFEFF\u00AD]/g
-
-const NAMED_ENTITIES = {
-  amp: '&',
-  lt: '<',
-  gt: '>',
-  quot: '"',
-  apos: "'",
-  nbsp: ' ',
-}
-
-function decodeHtmlEntities(input) {
-  let s = input
-  let prev
-  do {
-    prev = s
-    s = s.replace(/&(#x[0-9a-fA-F]+|#\d+|[a-zA-Z][a-zA-Z0-9]+);/g, (match, ent) => {
-      if (ent[0] === '#') {
-        const code =
-          ent[1] === 'x' || ent[1] === 'X'
-            ? Number.parseInt(ent.slice(2), 16)
-            : Number.parseInt(ent.slice(1), 10)
-        if (!Number.isFinite(code)) return match
-        try {
-          return String.fromCodePoint(code)
-        } catch {
-          return match
-        }
-      }
-      return NAMED_ENTITIES[ent.toLowerCase()] ?? match
-    })
-  } while (s !== prev)
-  return s
-}
-
-export function normalizeTerm(input) {
-  let t = input.normalize('NFKC')
-  t = t.replace(ZERO_WIDTH, '')
-  t = decodeHtmlEntities(t)
-  t = t.toLowerCase()
-  return t.split(/[^a-z0-9]+/).filter(Boolean).join(' ')
-}
+export { normalizeTerm } from './normalize.mjs'
 
 export function hashNormalized(saltHex, normalized) {
   return createHash('sha256').update(saltHex + normalized, 'utf8').digest('hex')
@@ -59,8 +25,10 @@ function parseArgs(argv) {
   for (let i = 0; i < argv.length; i++) {
     if (argv[i] === '--salt') {
       saltHex = argv[++i]
-      if (!saltHex || !/^[0-9a-fA-F]+$/.test(saltHex)) {
-        console.error('hash-terms: --salt requires hex')
+      if (!isValidSaltHex(saltHex)) {
+        console.error(
+          `hash-terms: --salt requires even-length hex with at least ${MIN_SALT_HEX_LENGTH} characters`,
+        )
         process.exit(2)
       }
       saltHex = saltHex.toLowerCase()
@@ -80,6 +48,13 @@ async function readTerms() {
     if (!trimmed || trimmed.startsWith('#')) continue
     const normalized = normalizeTerm(trimmed)
     if (!normalized) continue
+    const words = wordCount(normalized)
+    if (words > MAX_TERM_WORDS) {
+      console.error(
+        `hash-terms: term has ${words} normalized words; maximum is ${MAX_TERM_WORDS}`,
+      )
+      process.exit(1)
+    }
     terms.push(normalized)
   }
   return terms
@@ -87,7 +62,7 @@ async function readTerms() {
 
 async function main() {
   const { saltHex: argSalt } = parseArgs(process.argv.slice(2))
-  const saltHex = argSalt ?? randomBytes(16).toString('hex')
+  const saltHex = argSalt ?? randomBytes(MIN_SALT_HEX_LENGTH / 2).toString('hex')
   const terms = await readTerms()
   if (terms.length === 0) {
     console.error('hash-terms: no terms on stdin')

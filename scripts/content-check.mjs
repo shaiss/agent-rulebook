@@ -3,16 +3,22 @@
  * Fail if published docs content leaks internal details.
  * Prints file:line and category only — never the matched text.
  */
-import { lstat, readdir, readFile, symlink, writeFile, mkdir } from 'node:fs/promises'
+import { lstat, mkdtemp, readdir, readFile, rm, symlink, writeFile, mkdir } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
 import { join, relative, resolve, extname } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { normalizeTerm, hashNormalized } from './content-check/hash-terms.mjs'
+import { hashNormalized } from './content-check/hash-terms.mjs'
+import {
+  isValidSaltHex,
+  MAX_TERM_WORDS,
+  normalizeForRegex,
+  normalizeTerm,
+} from './content-check/normalize.mjs'
 
 const SCRIPT_DIR = fileURLToPath(new URL('.', import.meta.url))
 const ROOT = resolve(SCRIPT_DIR, '..')
 const FIXTURES_DIR = join(ROOT, 'scripts/content-check/fixtures')
 const UTF8 = new TextDecoder('utf-8', { fatal: true })
-const ZERO_WIDTH = /[\u200B-\u200F\u2060\uFEFF\u00AD]/g
 
 const TEXT_EXTS = new Set([
   '.md',
@@ -29,15 +35,6 @@ const TEXT_EXTS = new Set([
   '.yaml',
 ])
 const IMAGE_EXTS = new Set(['.png', '.jpg', '.jpeg', '.webp', '.gif', '.avif'])
-
-const NAMED_ENTITIES = {
-  amp: '&',
-  lt: '<',
-  gt: '>',
-  quot: '"',
-  apos: "'",
-  nbsp: ' ',
-}
 
 const PATTERNS = [
   { category: 'uuid', source: String.raw`\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b` },
@@ -60,38 +57,6 @@ const COMPILED = PATTERNS.map(({ category, source }) => ({
   re: new RegExp(source, 'i'),
 }))
 
-function decodeHtmlEntities(input) {
-  let s = input
-  let prev
-  do {
-    prev = s
-    s = s.replace(/&(#x[0-9a-fA-F]+|#\d+|[a-zA-Z][a-zA-Z0-9]+);/g, (match, ent) => {
-      if (ent[0] === '#') {
-        const code =
-          ent[1] === 'x' || ent[1] === 'X'
-            ? Number.parseInt(ent.slice(2), 16)
-            : Number.parseInt(ent.slice(1), 10)
-        if (!Number.isFinite(code)) return match
-        try {
-          return String.fromCodePoint(code)
-        } catch {
-          return match
-        }
-      }
-      return NAMED_ENTITIES[ent.toLowerCase()] ?? match
-    })
-  } while (s !== prev)
-  return s
-}
-
-/** Normalization applied before regex matching (keeps punctuation for phones/emails). */
-function normalizeForRegex(input) {
-  let t = input.normalize('NFKC')
-  t = t.replace(ZERO_WIDTH, '')
-  t = decodeHtmlEntities(t)
-  return t
-}
-
 function parseHashedTerms(raw) {
   if (raw == null || String(raw).trim() === '') {
     console.error('content-check failed: CONTENT_CHECK_EXTRA_TERMS is empty or missing')
@@ -113,7 +78,7 @@ function parseHashedTerms(raw) {
         process.exit(1)
       }
       saltHex = match[1].toLowerCase()
-      if (saltHex.length < 32 || saltHex.length % 2 !== 0) {
+      if (!isValidSaltHex(saltHex)) {
         console.error('content-check failed: malformed salt')
         process.exit(1)
       }
@@ -153,7 +118,7 @@ function privateTermHitsOnLine(line, saltHex, hashes) {
   const normalized = normalizeTerm(line)
   if (!normalized) return false
   const words = normalized.split(' ').filter(Boolean)
-  for (const gram of ngrams(words, 4)) {
+  for (const gram of ngrams(words, MAX_TERM_WORDS)) {
     if (hashes.has(hashNormalized(saltHex, gram))) return true
   }
   return false
@@ -406,6 +371,17 @@ function buildPngWithTextChunk() {
 
 async function runSelfTest() {
   const saltHex = '0123456789abcdef0123456789abcdef'
+  if (!isValidSaltHex(saltHex)) {
+    console.error('content-check self-test failed: synthetic salt is invalid')
+    process.exit(1)
+  }
+
+  // Normalization smoke: entity-hidden ZW and diacritics fold identically
+  if (normalizeTerm('Ga&#8203;rin') !== 'garin' || normalizeTerm('Garín') !== 'garin') {
+    console.error('content-check self-test failed: normalization mismatch')
+    process.exit(1)
+  }
+
   const privateTerms = ['zz-test-term', 'fakeorg/secretdir']
   const hashes = new Set(
     privateTerms.map((term) => hashNormalized(saltHex, normalizeTerm(term))),
@@ -413,7 +389,6 @@ async function runSelfTest() {
 
   const plantedPath = join(FIXTURES_DIR, 'planted-leaks.md')
   const cleanPath = join(FIXTURES_DIR, 'clean.md')
-  const symlinkPath = join(FIXTURES_DIR, 'planted-symlink.md')
   const dirtyPngPath = join(FIXTURES_DIR, 'planted-meta.png')
 
   await mkdir(FIXTURES_DIR, { recursive: true })
@@ -424,7 +399,7 @@ async function runSelfTest() {
       'uuid: 123e4567-e89b-12d3-a456-426614174000',
       'cloud: prj_ExampleTestId01',
       'email: agent@example.com',
-      'phone: 555-010-0199 and +1 267 555 0123',
+      'phone: 555-010-0199 and +1 202 555 0123',
       'path: /workspace/example',
       'token: ghp_abcdefghijklmnopqrstuvwx',
       'private: zz-test-term near fakeorg/secretdir',
@@ -439,12 +414,6 @@ async function runSelfTest() {
   )
   await writeFile(dirtyPngPath, buildPngWithTextChunk())
 
-  try {
-    await symlink('planted-leaks.md', symlinkPath)
-  } catch (err) {
-    if (!err || err.code !== 'EEXIST') throw err
-  }
-
   const required = [
     'uuid',
     'vercel/cloud id',
@@ -455,6 +424,8 @@ async function runSelfTest() {
     'private term',
     'image metadata',
     'symlink',
+    'unknown binary',
+    'utf-8 decode',
   ]
 
   const plantedBuf = await readFile(plantedPath)
@@ -464,56 +435,108 @@ async function runSelfTest() {
     saltHex,
     hashes,
   )
-  const imageHits = (await scanImageMetadata(await readFile(dirtyPngPath), '.png'))
-    ? [{ file: 'scripts/content-check/fixtures/planted-meta.png', line: 1, category: 'image metadata' }]
-    : []
-  const symlinkHits = [
-    { file: 'scripts/content-check/fixtures/planted-symlink.md', line: 1, category: 'symlink' },
-  ]
-
-  const allHits = [...textHits, ...imageHits, ...symlinkHits]
-  const categories = new Set(allHits.map((h) => h.category))
-  const missing = required.filter((c) => !categories.has(c))
-  if (missing.length > 0) {
-    console.error(
-      `content-check self-test failed: missing ${missing.join(', ')}; got ${[...categories].sort().join(', ') || '(none)'}`,
-    )
-    process.exit(1)
-  }
-
-  const cleanBuf = await readFile(cleanPath)
-  const cleanHits = await scanTextBuffer(
-    'scripts/content-check/fixtures/clean.md',
-    cleanBuf,
+  const imageHits = await scanTarget(
+    {
+      full: dirtyPngPath,
+      rel: 'scripts/content-check/fixtures/planted-meta.png',
+      kind: 'file',
+    },
     saltHex,
     hashes,
   )
-  if (cleanHits.length !== 0) {
-    console.error(
-      `content-check self-test failed: clean fixture had ${cleanHits.length} finding(s)`,
-    )
-    process.exit(1)
-  }
 
-  // Fail-closed parse checks via child processes (parseHashedTerms exits)
-  const { spawnSync } = await import('node:child_process')
-  for (const bad of [undefined, '', 'nope', 'salt:zz\nab', `salt:${saltHex}`]) {
-    const env = { ...process.env }
-    if (bad === undefined) delete env.CONTENT_CHECK_EXTRA_TERMS
-    else env.CONTENT_CHECK_EXTRA_TERMS = bad
-    const result = spawnSync(process.execPath, [fileURLToPath(import.meta.url)], {
-      env,
-      encoding: 'utf8',
-    })
-    if (result.status === 0) {
-      console.error('content-check self-test failed: expected fail-closed for bad secret')
+  const tmpRoot = await mkdtemp(join(tmpdir(), 'content-check-'))
+  try {
+    const targetMd = join(tmpRoot, 'target.md')
+    const linkMd = join(tmpRoot, 'link.md')
+    const unknownBin = join(tmpRoot, 'blob.bin')
+    const badUtf8 = join(tmpRoot, 'bad.md')
+    await writeFile(targetMd, 'ok\n', 'utf8')
+    await symlink('target.md', linkMd)
+    await writeFile(unknownBin, Buffer.from([0x00, 0x01, 0x02, 0xff]))
+    await writeFile(badUtf8, Buffer.from([0xe2, 0x28, 0xa1])) // invalid UTF-8
+
+    const linkStat = await lstat(linkMd)
+    if (!linkStat.isSymbolicLink()) {
+      console.error('content-check self-test failed: temp path is not a symlink')
       process.exit(1)
     }
-  }
+    const symlinkHits = await scanTarget(
+      { full: linkMd, rel: 'tmp/link.md', kind: 'symlink' },
+      saltHex,
+      hashes,
+    )
+    const unknownHits = await scanTarget(
+      { full: unknownBin, rel: 'tmp/blob.bin', kind: 'file' },
+      saltHex,
+      hashes,
+    )
+    const utf8Hits = await scanTarget(
+      { full: badUtf8, rel: 'tmp/bad.md', kind: 'file' },
+      saltHex,
+      hashes,
+    )
 
-  console.log(
-    `content-check self-test passed: detected ${[...categories].sort().join(', ')}; clean fixture clean`,
-  )
+    const allHits = [...textHits, ...imageHits, ...symlinkHits, ...unknownHits, ...utf8Hits]
+    const categories = new Set(allHits.map((h) => h.category))
+    const missing = required.filter((c) => !categories.has(c))
+    if (missing.length > 0) {
+      console.error(
+        `content-check self-test failed: missing ${missing.join(', ')}; got ${[...categories].sort().join(', ') || '(none)'}`,
+      )
+      process.exit(1)
+    }
+
+    const cleanBuf = await readFile(cleanPath)
+    const cleanHits = await scanTextBuffer(
+      'scripts/content-check/fixtures/clean.md',
+      cleanBuf,
+      saltHex,
+      hashes,
+    )
+    if (cleanHits.length !== 0) {
+      console.error(
+        `content-check self-test failed: clean fixture had ${cleanHits.length} finding(s)`,
+      )
+      process.exit(1)
+    }
+
+    // Fail-closed parse checks via child processes (parseHashedTerms exits)
+    const { spawnSync } = await import('node:child_process')
+    for (const bad of [undefined, '', 'nope', 'salt:zz\nab', `salt:${saltHex}`]) {
+      const env = { ...process.env }
+      if (bad === undefined) delete env.CONTENT_CHECK_EXTRA_TERMS
+      else env.CONTENT_CHECK_EXTRA_TERMS = bad
+      const result = spawnSync(process.execPath, [fileURLToPath(import.meta.url)], {
+        env,
+        encoding: 'utf8',
+      })
+      if (result.status === 0) {
+        console.error('content-check self-test failed: expected fail-closed for bad secret')
+        process.exit(1)
+      }
+    }
+
+    // Reject oversized terms at hash time without echoing them
+    const longTerm = spawnSync(
+      process.execPath,
+      [join(SCRIPT_DIR, 'content-check/hash-terms.mjs'), '--salt', saltHex],
+      {
+        input: 'one two three four five\n',
+        encoding: 'utf8',
+      },
+    )
+    if (longTerm.status === 0 || /one two three four five/i.test(longTerm.stderr + longTerm.stdout)) {
+      console.error('content-check self-test failed: expected rejection of >4-word terms')
+      process.exit(1)
+    }
+
+    console.log(
+      `content-check self-test passed: detected ${[...categories].sort().join(', ')}; clean fixture clean`,
+    )
+  } finally {
+    await rm(tmpRoot, { recursive: true, force: true })
+  }
 }
 
 const mode = process.argv[2]

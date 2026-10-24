@@ -2,42 +2,21 @@
  * Shared normalization for hashed private terms and regex prep.
  * Used by content-check.mjs and hash-terms.mjs.
  */
+import { decodeHTML } from 'entities'
 
 export const MAX_TERM_WORDS = 4
 export const MIN_SALT_HEX_LENGTH = 32
 const MAX_ENTITY_PASSES = 32
 
-const ZERO_WIDTH = /[\u200B-\u200F\u2060\uFEFF\u00AD]/g
+// Includes U+2061–2064 and U+180E per hardening
+const ZERO_WIDTH = /[\u200B-\u200F\u2060-\u2064\uFEFF\u00AD\u180E]/g
 const COMBINING_MARKS = /\p{M}/gu
 
-const NAMED_ENTITIES = {
-  amp: '&',
-  lt: '<',
-  gt: '>',
-  quot: '"',
-  apos: "'",
-  nbsp: ' ',
-}
-
-/** Decode HTML entities until stable, bounded to avoid pathological input. */
+/** Decode HTML5 named + numeric entities until stable, bounded. */
 export function decodeHtmlEntities(input) {
   let s = input
   for (let pass = 0; pass < MAX_ENTITY_PASSES; pass++) {
-    const next = s.replace(/&(#x[0-9a-fA-F]+|#\d+|[a-zA-Z][a-zA-Z0-9]+);/g, (match, ent) => {
-      if (ent[0] === '#') {
-        const code =
-          ent[1] === 'x' || ent[1] === 'X'
-            ? Number.parseInt(ent.slice(2), 16)
-            : Number.parseInt(ent.slice(1), 10)
-        if (!Number.isFinite(code)) return match
-        try {
-          return String.fromCodePoint(code)
-        } catch {
-          return match
-        }
-      }
-      return NAMED_ENTITIES[ent.toLowerCase()] ?? match
-    })
+    const next = decodeHTML(s)
     if (next === s) return s
     s = next
   }

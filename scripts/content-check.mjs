@@ -259,14 +259,118 @@ function scanWebpMetadata(buf) {
   return false
 }
 
+function skipGifSubBlocks(buf, offset) {
+  while (offset < buf.length) {
+    const size = buf[offset]
+    offset += 1
+    if (size === 0) return offset
+    if (offset + size > buf.length) return -1
+    offset += size
+  }
+  return -1
+}
+
+/**
+ * Walk GIF blocks. Returns false (clean/not a GIF), or a finding category string.
+ * Never silently passes truncated/malformed GIFs.
+ */
 function scanGifMetadata(buf) {
   if (buf.length < 6) return false
   const head = buf.toString('ascii', 0, 6)
   if (head !== 'GIF87a' && head !== 'GIF89a') return false
-  // Comment Extension
-  if (buf.includes(Buffer.from([0x21, 0xfe]))) return true
-  if (bufferIndexOf(buf, 'http://ns.adobe.com/xap') !== -1) return true
-  return false
+
+  // Logical Screen Descriptor (7 bytes)
+  if (buf.length < 13) return 'image metadata: unparseable gif'
+  let offset = 6
+  offset += 4 // width, height
+  const packed = buf[offset]
+  offset += 3 // packed + bg color + aspect
+
+  if (packed & 0x80) {
+    const gctBytes = 3 * 2 ** ((packed & 0x07) + 1)
+    if (offset + gctBytes > buf.length) return 'image metadata: unparseable gif'
+    offset += gctBytes
+  }
+
+  while (offset < buf.length) {
+    const introducer = buf[offset]
+    offset += 1
+
+    if (introducer === 0x3b) {
+      return false
+    }
+
+    if (introducer === 0x2c) {
+      // Image Descriptor: 9 bytes after introducer
+      if (offset + 9 > buf.length) return 'image metadata: unparseable gif'
+      offset += 8
+      const ipacked = buf[offset]
+      offset += 1
+      if (ipacked & 0x80) {
+        const lctBytes = 3 * 2 ** ((ipacked & 0x07) + 1)
+        if (offset + lctBytes > buf.length) return 'image metadata: unparseable gif'
+        offset += lctBytes
+      }
+      if (offset >= buf.length) return 'image metadata: unparseable gif'
+      offset += 1 // LZW minimum code size
+      const next = skipGifSubBlocks(buf, offset)
+      if (next < 0) return 'image metadata: unparseable gif'
+      offset = next
+      continue
+    }
+
+    if (introducer === 0x21) {
+      if (offset >= buf.length) return 'image metadata: unparseable gif'
+      const label = buf[offset]
+      offset += 1
+
+      if (label === 0xfe) {
+        return 'image metadata'
+      }
+
+      if (label === 0xff) {
+        if (offset >= buf.length) return 'image metadata: unparseable gif'
+        const appSize = buf[offset]
+        if (offset + 1 + appSize > buf.length) return 'image metadata: unparseable gif'
+        offset += 1
+        const appId = buf.toString('latin1', offset, offset + appSize)
+        offset += appSize
+
+        if (appId === 'XMP DataXMP') {
+          // XMP application extension counts as metadata; xap URI check stays inside this path only.
+          let dataOffset = offset
+          while (dataOffset < buf.length) {
+            const size = buf[dataOffset]
+            dataOffset += 1
+            if (size === 0) {
+              return 'image metadata'
+            }
+            if (dataOffset + size > buf.length) return 'image metadata: unparseable gif'
+            const chunk = buf.subarray(dataOffset, dataOffset + size)
+            if (chunk.includes(Buffer.from('http://ns.adobe.com/xap', 'latin1'))) {
+              return 'image metadata'
+            }
+            dataOffset += size
+          }
+          return 'image metadata: unparseable gif'
+        }
+
+        const next = skipGifSubBlocks(buf, offset)
+        if (next < 0) return 'image metadata: unparseable gif'
+        offset = next
+        continue
+      }
+
+      const next = skipGifSubBlocks(buf, offset)
+      if (next < 0) return 'image metadata: unparseable gif'
+      offset = next
+      continue
+    }
+
+    return 'image metadata: unparseable gif'
+  }
+
+  return 'image metadata: unparseable gif'
 }
 
 function scanAvifMetadata(buf) {
@@ -279,11 +383,11 @@ function scanAvifMetadata(buf) {
 }
 
 function scanImageMetadata(buf, ext) {
-  if (ext === '.jpg' || ext === '.jpeg') return scanJpegMetadata(buf)
-  if (ext === '.png') return scanPngMetadata(buf)
-  if (ext === '.webp') return scanWebpMetadata(buf)
   if (ext === '.gif') return scanGifMetadata(buf)
-  if (ext === '.avif') return scanAvifMetadata(buf)
+  if (ext === '.jpg' || ext === '.jpeg') return scanJpegMetadata(buf) ? 'image metadata' : false
+  if (ext === '.png') return scanPngMetadata(buf) ? 'image metadata' : false
+  if (ext === '.webp') return scanWebpMetadata(buf) ? 'image metadata' : false
+  if (ext === '.avif') return scanAvifMetadata(buf) ? 'image metadata' : false
   return false
 }
 
@@ -305,8 +409,9 @@ async function scanTarget(target, saltHex, hashes) {
 
   const buf = await readFile(target.full)
   if (kind === 'text') return scanTextBuffer(target.rel, buf, saltHex, hashes)
-  if (scanImageMetadata(buf, extname(target.rel).toLowerCase())) {
-    return [{ file: target.rel, line: 1, category: 'image metadata' }]
+  const meta = scanImageMetadata(buf, extname(target.rel).toLowerCase())
+  if (meta) {
+    return [{ file: target.rel, line: 1, category: meta }]
   }
   return []
 }
@@ -367,6 +472,55 @@ function buildPngWithTextChunk() {
     chunk('IDAT', idat),
     chunk('IEND', Buffer.alloc(0)),
   ])
+}
+
+/** Minimal GIF89a helpers for self-test (generated at runtime). */
+function buildGif({ comment = false, xmp = false, lzwPoison = false, truncate = false } = {}) {
+  const parts = []
+  parts.push(Buffer.from('GIF89a', 'ascii'))
+  // Logical screen: 1x1, no global color table
+  const lsd = Buffer.alloc(7)
+  lsd.writeUInt16LE(1, 0)
+  lsd.writeUInt16LE(1, 2)
+  parts.push(lsd)
+
+  if (comment) {
+    parts.push(Buffer.from([0x21, 0xfe, 0x03, 0x68, 0x69, 0x21, 0x00]))
+  }
+
+  if (xmp) {
+    parts.push(Buffer.from([0x21, 0xff, 0x0b]))
+    parts.push(Buffer.from('XMP DataXMP', 'ascii'))
+    const xap = Buffer.from('http://ns.adobe.com/xap/1.0/\0', 'ascii')
+    parts.push(Buffer.from([xap.length]))
+    parts.push(xap)
+    parts.push(Buffer.from([0x00]))
+  }
+
+  // Image descriptor, no local color table
+  const img = Buffer.alloc(10)
+  img[0] = 0x2c
+  img.writeUInt16LE(1, 5)
+  img.writeUInt16LE(1, 7)
+  parts.push(img)
+  parts.push(Buffer.from([0x02])) // LZW minimum code size
+
+  if (lzwPoison) {
+    // Sub-block whose payload contains 0x21 0xFE (must not be treated as a comment)
+    parts.push(Buffer.from([0x04, 0x00, 0x21, 0xfe, 0x01, 0x00]))
+  } else {
+    parts.push(Buffer.from([0x02, 0x4c, 0x01, 0x00]))
+  }
+
+  if (!truncate) {
+    parts.push(Buffer.from([0x3b]))
+  }
+
+  const full = Buffer.concat(parts)
+  if (truncate) {
+    return full.subarray(0, Math.max(10, full.length - 3))
+  }
+  return full
 }
 
 async function runSelfTest() {
@@ -477,7 +631,65 @@ async function runSelfTest() {
       hashes,
     )
 
-    const allHits = [...textHits, ...imageHits, ...symlinkHits, ...unknownHits, ...utf8Hits]
+    // GIF walker cases (runtime-generated fixtures)
+    const cleanGifPath = join(tmpRoot, 'clean-poison.gif')
+    const commentGifPath = join(tmpRoot, 'comment.gif')
+    const xmpGifPath = join(tmpRoot, 'xmp.gif')
+    const truncGifPath = join(tmpRoot, 'truncated.gif')
+    await writeFile(cleanGifPath, buildGif({ lzwPoison: true }))
+    await writeFile(commentGifPath, buildGif({ comment: true }))
+    await writeFile(xmpGifPath, buildGif({ xmp: true }))
+    await writeFile(truncGifPath, buildGif({ truncate: true }))
+
+    const cleanGifHits = await scanTarget(
+      { full: cleanGifPath, rel: 'tmp/clean-poison.gif', kind: 'file' },
+      saltHex,
+      hashes,
+    )
+    if (cleanGifHits.length !== 0) {
+      console.error(
+        `content-check self-test failed: clean GIF with 0x21 0xFE in LZW data had findings`,
+      )
+      process.exit(1)
+    }
+    const commentGifHits = await scanTarget(
+      { full: commentGifPath, rel: 'tmp/comment.gif', kind: 'file' },
+      saltHex,
+      hashes,
+    )
+    const xmpGifHits = await scanTarget(
+      { full: xmpGifPath, rel: 'tmp/xmp.gif', kind: 'file' },
+      saltHex,
+      hashes,
+    )
+    const truncGifHits = await scanTarget(
+      { full: truncGifPath, rel: 'tmp/truncated.gif', kind: 'file' },
+      saltHex,
+      hashes,
+    )
+    if (!commentGifHits.some((h) => h.category === 'image metadata')) {
+      console.error('content-check self-test failed: GIF comment extension not detected')
+      process.exit(1)
+    }
+    if (!xmpGifHits.some((h) => h.category === 'image metadata')) {
+      console.error('content-check self-test failed: GIF XMP application extension not detected')
+      process.exit(1)
+    }
+    if (!truncGifHits.some((h) => h.category === 'image metadata: unparseable gif')) {
+      console.error('content-check self-test failed: truncated GIF not reported as unparseable')
+      process.exit(1)
+    }
+
+    const allHits = [
+      ...textHits,
+      ...imageHits,
+      ...symlinkHits,
+      ...unknownHits,
+      ...utf8Hits,
+      ...commentGifHits,
+      ...xmpGifHits,
+      ...truncGifHits,
+    ]
     const categories = new Set(allHits.map((h) => h.category))
     const missing = required.filter((c) => !categories.has(c))
     if (missing.length > 0) {

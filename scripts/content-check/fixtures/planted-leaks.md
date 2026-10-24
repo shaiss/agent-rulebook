@@ -6,4 +6,4 @@ phone: 555-010-0199 and +1 202 555 0123
 path: /workspace/example
 token: ghp_abcdefghijklmnopqrstuvwx
 private: zz-test-term near fakeorg/secretdir
-entity: Gar&#237;n and Gari&#769;n and Gar&amp;#237;n and Ga&#8203;rin
+entity: Zorv&#237;k and Zorvi&#769;k and Zorv&amp;#237;k and Zo&#8203;rvik

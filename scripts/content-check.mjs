@@ -537,17 +537,17 @@ async function runSelfTest() {
       selfTestFail('content-check self-test failed: synthetic salt is invalid')
     }
 
-    // Normalization: entity-encoded accents/marks/ZW and double-encoding fold to garin
-    const garinVariants = [
-      'Garín',
-      'Ga&#8203;rin',
-      'Gar&#237;n',
-      'Gari&#769;n',
-      'Gar&amp;#237;n',
-      'Gar&#x200B;ín',
+    // Normalization: entity-encoded accents/marks/ZW and double-encoding fold to zorvik
+    const zorvikVariants = [
+      'Zorvík',
+      'Zo&#8203;rvik',
+      'Zorv&#237;k',
+      'Zorvi&#769;k',
+      'Zorv&amp;#237;k',
+      'Zorv&#x200B;ík',
     ]
-    for (const variant of garinVariants) {
-      if (normalizeTerm(variant) !== 'garin') {
+    for (const variant of zorvikVariants) {
+      if (normalizeTerm(variant) !== 'zorvik') {
         selfTestFail('content-check self-test failed: normalization mismatch')
       }
     }
@@ -564,7 +564,7 @@ async function runSelfTest() {
       }
     }
 
-    const privateTerms = ['zz-test-term', 'fakeorg/secretdir', 'garin']
+    const privateTerms = ['zz-test-term', 'fakeorg/secretdir', 'zorvik']
     const hashes = new Set(
       privateTerms.map((term) => hashNormalized(saltHex, normalizeTerm(term))),
     )
@@ -585,7 +585,7 @@ async function runSelfTest() {
         'path: /workspace/example',
         'token: ghp_abcdefghijklmnopqrstuvwx',
         'private: zz-test-term near fakeorg/secretdir',
-        'entity: Gar&#237;n and Gari&#769;n and Gar&amp;#237;n and Ga&#8203;rin',
+        'entity: Zorv&#237;k and Zorvi&#769;k and Zorv&amp;#237;k and Zo&#8203;rvik',
         '',
       ].join('\n'),
       'utf8',
@@ -703,7 +703,7 @@ async function runSelfTest() {
       selfTestFail('content-check self-test failed: truncated GIF not reported as unparseable')
     }
 
-    // Entity-encoded private term variants must hash-match "garin"
+    // Entity-encoded private term variants must hash-match "zorvik"
     const entityHits = await scanTextBuffer(
       'scripts/content-check/fixtures/planted-leaks.md',
       plantedBuf,

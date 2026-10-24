@@ -34,6 +34,22 @@ jobs:
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 22
+      - name: Require and mask private terms
+        env:
+          CONTENT_CHECK_EXTRA_TERMS: ${{ secrets.CONTENT_CHECK_EXTRA_TERMS }}
+        run: |
+          if [ -z "${CONTENT_CHECK_EXTRA_TERMS}" ]; then
+            echo "::error::CONTENT_CHECK_EXTRA_TERMS secret is required and must be non-empty"
+            exit 1
+          fi
+          printf '%s\n' "${CONTENT_CHECK_EXTRA_TERMS}" | while IFS= read -r line || [ -n "${line}" ]; do
+            trimmed="$(printf '%s' "${line}" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
+            [ -z "${trimmed}" ] && continue
+            case "${trimmed}" in
+              \#*) continue ;;
+            esac
+            echo "::add-mask::${trimmed}"
+          done
       - name: Run content check
         env:
           CONTENT_CHECK_EXTRA_TERMS: ${{ secrets.CONTENT_CHECK_EXTRA_TERMS }}

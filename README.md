@@ -26,4 +26,4 @@ The owner-approved go-public step (opening production) and attaching a custom do
 
 ## Content checks
 
-CI scans published docs for leaked internals (paths, emails, phones, cloud IDs, internal tool names, and optional private terms from a repo secret). Sync PRs are content-only and are never auto-merged.
+CI (`content-check`) fails the build if published docs leak internals (paths, emails, phones, cloud IDs, tokens/keys, image metadata, internal tool names, or private terms from the required `CONTENT_CHECK_EXTRA_TERMS` repo secret). Sync PRs are content-only and are never auto-merged.

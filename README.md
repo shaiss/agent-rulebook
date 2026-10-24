@@ -23,3 +23,7 @@ Preview deployments stay behind Vercel Authentication (Deployment Protection). P
 ## Publishing
 
 The owner-approved go-public step (opening production) and attaching a custom domain require owner approval.
+
+## Content checks
+
+CI scans published docs for leaked internals (paths, emails, phones, cloud IDs, internal tool names, and optional private terms from a repo secret). Sync PRs are content-only and are never auto-merged.

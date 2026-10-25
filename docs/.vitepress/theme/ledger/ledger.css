@@ -1,1 +1,269 @@
-/* Ledger page (docs/ledger.md) styles. Stub. */
+/* Ledger page (docs/ledger.md, LedgerRoster.vue): mockup 2b on the --ir-*
+   tokens. Everything is scoped under .ir-ledger. Portraits stay true colour
+   (no duotone), like everywhere else on the site. */
+
+.ir-ledger {
+  max-width: 1280px;
+  margin: 0 auto;
+  color: var(--ir-text);
+  font-family: var(--ir-font-body);
+  font-size: 15px;
+  line-height: 1.55;
+}
+:where(.ir-ledger) button { font: inherit; color: inherit; }
+.ir-ledger h1, .ir-ledger h2, .ir-ledger h3, .ir-ledger .ir-label {
+  font-family: var(--ir-font-heading);
+  font-weight: 600;
+  line-height: 1.12;
+  letter-spacing: -0.015em;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+/* Small uppercase labels; some are real headings (h3), some plain spans */
+.ir-ledger .ir-label {
+  font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--ir-accent-700);
+}
+.ir-ledger .ir-label-muted { color: var(--ir-neutral-700); }
+.ir-ledger p { margin: 0; }
+.ir-ledger a { color: var(--ir-accent-700); text-underline-offset: 3px; }
+.ir-ledger a:hover { color: var(--ir-accent-900); }
+.ir-ledger :focus-visible { outline: 2px solid var(--ir-accent); outline-offset: 2px; }
+.ir-ledger-empty { padding: 28px 40px; color: var(--ir-neutral-700); }
+
+/* ── Header ── */
+.ir-ledger-head {
+  padding: 36px 40px 24px;
+  display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 20px 24px;
+}
+.ir-ledger-head-copy { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.ir-ledger-crumbs ol {
+  display: flex; gap: 8px; margin: 0; padding: 0; list-style: none;
+  font-size: 12px; color: var(--ir-neutral-700);
+}
+.ir-ledger-crumbs li + li::before { content: '/'; content: '/' / ''; margin-right: 8px; }
+.ir-ledger-crumbs [aria-current] { color: var(--ir-text); }
+.ir-ledger .ir-ledger-title { font-size: 56px; line-height: 1; letter-spacing: -0.02em; }
+.ir-ledger-sub { font-size: 14px; color: var(--ir-neutral-700); }
+
+/* Gender filter: a segmented control of toggle buttons */
+.ir-ledger-seg { display: flex; border: 1px solid var(--ir-divider); }
+.ir-ledger-seg-btn {
+  position: relative;
+  display: flex; align-items: baseline; gap: 6px;
+  padding: 8px 14px; font-size: 13px; line-height: 1.3;
+  background: transparent;
+}
+.ir-ledger-seg-btn + .ir-ledger-seg-btn { border-left: 1px solid var(--ir-divider); }
+.ir-ledger-seg-btn:hover { background: color-mix(in srgb, var(--ir-text) 7%, transparent); }
+.ir-ledger-seg-btn:focus-visible { z-index: 1; }
+.ir-ledger-seg-n { font-size: 11px; color: var(--ir-neutral-700); }
+.ir-ledger .ir-ledger-seg-btn[aria-pressed='true'] { background: var(--ir-primary-fill); color: var(--ir-bg); }
+.ir-ledger .ir-ledger-seg-btn[aria-pressed='true']:hover { background: var(--ir-primary-fill-hover); }
+.ir-ledger-seg-btn[aria-pressed='true'] .ir-ledger-seg-n { color: var(--ir-bg); }
+
+/* ── Roster + entry ── */
+.ir-ledger-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 400px;
+  border-top: 1px solid var(--ir-divider);
+}
+.ir-ledger-roster { padding: 28px 40px 40px; border-right: 1px solid var(--ir-divider); min-width: 0; }
+.ir-ledger-grid {
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px 20px;
+  margin: 0; padding: 0; list-style: none;
+}
+.ir-ledger-grid > li { display: flex; min-width: 0; }
+
+.ir-ledger-card {
+  position: relative;
+  width: 100%;
+  display: flex; flex-direction: column; align-items: stretch;
+  text-align: left;
+  border: 1px solid var(--ir-divider);
+  background: transparent;
+  transition: background-color 0.15s;
+}
+.ir-ledger-card:hover { background: color-mix(in srgb, var(--ir-text) 5%, transparent); }
+/* Selected: a 2px accent frame drawn over the hairline (focus keeps its own outer ring) */
+.ir-ledger-card[aria-pressed='true']::after {
+  content: '';
+  position: absolute; inset: -1px;
+  border: 2px solid var(--ir-accent);
+  pointer-events: none;
+}
+.ir-ledger-card-img { display: block; border-bottom: 1px solid var(--ir-divider); }
+.ir-ledger-card-text { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px 12px; min-width: 0; }
+.ir-ledger-card-name {
+  font-family: var(--ir-font-heading); font-weight: 600; font-size: 19px; line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+.ir-ledger-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.ir-ledger-tags .ir-tag { line-height: 1.4; }
+.ir-ledger-card-heritage { font-size: 12px; line-height: 1.4; color: var(--ir-neutral-700); overflow-wrap: anywhere; }
+
+/* Entry: sticky beside the roster while it scrolls */
+.ir-ledger-entry {
+  min-width: 0;
+  padding: 28px 32px 40px;
+  display: flex; flex-direction: column; gap: 22px;
+  /* clears VitePress's 48px "Return to top" bar, fixed below 960px once scrolled */
+  scroll-margin-top: 64px;
+}
+@media (min-width: 960px) {
+  .ir-ledger-entry {
+    position: sticky;
+    top: var(--vp-nav-height);
+    align-self: start;
+    max-height: calc(100vh - var(--vp-nav-height));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    /* Scroll hints: an ink shadow shows at an edge only while more of the
+       entry lies past it (the ground-coloured covers scroll with content) */
+    background:
+      linear-gradient(var(--ir-bg) 30%, transparent) center top / 100% 40px no-repeat local,
+      linear-gradient(transparent, var(--ir-bg) 70%) center bottom / 100% 40px no-repeat local,
+      radial-gradient(farthest-side at 50% 0, color-mix(in srgb, var(--ir-text) 16%, transparent), transparent) center top / 100% 14px no-repeat scroll,
+      radial-gradient(farthest-side at 50% 100%, color-mix(in srgb, var(--ir-text) 16%, transparent), transparent) center bottom / 100% 14px no-repeat scroll,
+      var(--ir-bg);
+  }
+}
+.ir-ledger-entry-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.ir-ledger-entry-media, .ir-ledger-entry-info { display: flex; flex-direction: column; gap: 22px; min-width: 0; }
+.ir-ledger-note {
+  margin-top: -8px;
+  padding: 8px 10px;
+  font-size: 12.5px; line-height: 1.45;
+  background: var(--ir-accent-100); color: var(--ir-accent-900);
+}
+
+.ir-ledger-expr { display: flex; flex-direction: column; gap: 6px; }
+.ir-ledger-expr-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.ir-ledger-expr-btns {
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+  border: 1px solid var(--ir-divider);
+}
+.ir-ledger-expr-btn { padding: 7px 4px; font-size: 12px; line-height: 1.3; background: transparent; }
+.ir-ledger-expr-btn + .ir-ledger-expr-btn { border-left: 1px solid var(--ir-divider); }
+.ir-ledger .ir-ledger-expr-btn[aria-pressed='true'] { background: var(--ir-primary-fill); color: var(--ir-bg); }
+/* Not generated yet: hatched like the site's other open/pending slots */
+.ir-ledger-expr-btn:disabled {
+  cursor: not-allowed;
+  color: var(--ir-neutral-700);
+  background: repeating-linear-gradient(135deg, transparent 0 6px, color-mix(in srgb, var(--ir-accent) 10%, transparent) 6px 7px);
+}
+.ir-ledger-expr-note { font-size: 12px; line-height: 1.4; color: var(--ir-neutral-700); }
+
+.ir-ledger .ir-ledger-name { font-size: 36px; line-height: 1.05; }
+.ir-ledger-name:focus-visible { outline-offset: 4px; }
+.ir-ledger-dl {
+  margin: 0;
+  display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 8px 12px;
+  font-size: 13.5px; line-height: 1.45;
+}
+.ir-ledger-dl dt { color: var(--ir-neutral-700); }
+.ir-ledger-dt-q { display: block; font-size: 12px; }
+.ir-ledger-dl dd { margin: 0; overflow-wrap: anywhere; }
+
+.ir-ledger-check {
+  display: flex; flex-direction: column; gap: 8px;
+  padding-top: 16px; border-top: 1px solid var(--ir-divider);
+}
+.ir-ledger-peers {
+  margin: 0; padding: 0; list-style: none;
+  display: flex; flex-direction: column; gap: 6px;
+  font-size: 13px; line-height: 1.4;
+}
+.ir-ledger-peers li { display: flex; justify-content: space-between; gap: 12px; }
+.ir-ledger-peer-name { flex: none; font-weight: 500; }
+.ir-ledger-peer-diff { min-width: 0; text-align: right; color: var(--ir-neutral-700); overflow-wrap: anywhere; }
+.ir-ledger-peers li.is-same .ir-ledger-peer-diff { color: var(--ir-accent-800); font-weight: 500; }
+.ir-ledger-check-none { font-size: 13px; }
+
+/* Stacked layouts only: the entry sits below the roster */
+.ir-ledger-back {
+  display: none;
+  align-self: flex-start;
+  padding: 10px 18px;
+  font-family: var(--ir-font-heading); font-weight: 600; font-size: 15px; line-height: 1.2;
+  border: 1px solid var(--ir-divider);
+  background: transparent;
+}
+.ir-ledger-back:hover { background: color-mix(in srgb, var(--ir-text) 7%, transparent); }
+
+/* ── Tallies ── */
+.ir-ledger-tallies {
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-top: 1px solid var(--ir-divider);
+}
+.ir-ledger-tally { min-width: 0; padding: 24px 32px 32px; display: flex; flex-direction: column; gap: 9px; }
+.ir-ledger-tally + .ir-ledger-tally { border-left: 1px solid var(--ir-divider); }
+.ir-ledger-tally:first-of-type { padding-left: 40px; }
+.ir-ledger-tally:last-of-type { padding-right: 40px; }
+.ir-ledger-tally-text { font-size: 13px; line-height: 1.5; color: var(--ir-neutral-800); }
+.ir-ledger-tally-link { font-size: 13px; line-height: 1.4; }
+
+.ir-ledger-bars {
+  margin: 0; padding: 0; list-style: none;
+  display: grid; grid-template-columns: max-content minmax(0, 1fr) max-content; gap: 9px 8px;
+  font-size: 12px; line-height: 1.3;
+}
+.ir-ledger-bars li { grid-column: 1 / -1; display: grid; grid-template-columns: subgrid; align-items: center; }
+.ir-ledger-bar { height: 6px; border: 1px solid var(--ir-divider); }
+.ir-ledger-bar > span { display: block; height: 100%; background: var(--ir-accent); }
+.ir-ledger-bar-n { min-width: 2ch; text-align: right; font-variant-numeric: tabular-nums; }
+
+.ir-ledger-gaps {
+  margin: 0; padding-left: 16px; list-style: square;
+  display: flex; flex-direction: column; gap: 3px;
+  font-size: 12.5px; line-height: 1.4;
+}
+.ir-ledger-gaps li::marker { color: var(--ir-accent); }
+.ir-ledger-tally .ir-meta { margin-top: 4px; }
+
+/* ── Responsive ── */
+@media (max-width: 1180px) {
+  .ir-ledger-body { grid-template-columns: minmax(0, 1fr) 340px; }
+  .ir-ledger-roster { padding-inline: 32px; }
+  .ir-ledger-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .ir-ledger-entry { padding-inline: 28px; }
+  .ir-ledger-tallies { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ir-ledger-tally:nth-of-type(n) { padding: 24px 32px 32px; }
+  .ir-ledger-tally:nth-of-type(odd) { padding-left: 40px; border-left: 0; }
+  .ir-ledger-tally:nth-of-type(even) { padding-right: 40px; }
+  .ir-ledger-tally:nth-of-type(n + 3) { border-top: 1px solid var(--ir-divider); }
+}
+@media (max-width: 959px) {
+  .ir-ledger-body { grid-template-columns: minmax(0, 1fr); }
+  .ir-ledger-roster { border-right: 0; }
+  .ir-ledger-entry { border-top: 1px solid var(--ir-divider); padding-inline: 32px; }
+  .ir-ledger-back { display: inline-flex; }
+}
+@media (min-width: 640px) and (max-width: 959px) {
+  .ir-ledger-entry {
+    display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 22px 32px; align-items: start;
+  }
+  .ir-ledger-entry-top { grid-column: 1 / -1; }
+}
+@media (max-width: 768px) {
+  .ir-ledger-head { padding: 28px 16px 20px; }
+  .ir-ledger .ir-ledger-title { font-size: 44px; }
+  .ir-ledger-roster { padding: 20px 16px 28px; }
+  .ir-ledger-entry { padding: 24px 16px 32px; }
+  .ir-ledger-empty { padding: 20px 16px; }
+  .ir-ledger-tally:nth-of-type(n) { padding: 20px 16px 24px; }
+}
+@media (max-width: 639px) {
+  .ir-ledger-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 12px; }
+  .ir-ledger-card-text { padding: 8px 10px 10px; }
+  .ir-ledger-card-name { font-size: 18px; }
+  .ir-ledger .ir-ledger-name { font-size: 32px; }
+  /* Full-width filter; counts drop under their labels */
+  .ir-ledger-seg { width: 100%; }
+  .ir-ledger-seg-btn { flex: 1 1 0; flex-direction: column; align-items: center; gap: 0; padding: 7px 4px; }
+  .ir-ledger-tallies { grid-template-columns: minmax(0, 1fr); }
+  .ir-ledger-tally:nth-of-type(n) { border-left: 0; }
+  .ir-ledger-tally:nth-of-type(n + 2) { border-top: 1px solid var(--ir-divider); }
+}

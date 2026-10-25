@@ -1,6 +1,6 @@
 # Agent avatar rules (draft)
 
-Seed of the humanizing-AI-agents rulebook. Rules set by Shai Perednik on 2026-10-23, refined as the rollout goes.
+Seed of the humanizing-AI-agents rulebook. Rules set by Shai on 2026-10-23, refined as the rollout goes.
 
 ## Rules
 1. Every portrait is a photo-realistic image of an invented person. Never use a real person or a lookalike of one.
@@ -34,15 +34,16 @@ Adopted 2026-10-24 (Shai, 7:13–7:16 PM ET: "yes, drop MENA and Mixed labels").
 - A face with two heritages is written as a pair, for example "Irish + Lebanese". In tallies, each heritage in a pair gets 0.5.
 - Overlays such as Afro-Latino stay as notes on a row, and so do Indigenous roots such as Quechua heritage. They do not make a separate face or heritage count.
 - If the agent chose not to name a country, subgroup or island, the row says "unspecified (agent's choice)". If nobody has asked yet, the row says NO DATA. Haven never guesses either one.
-- Broad regions (for example Latin America, East Asia) are only for secondary context in a tally. They are never a balance unit and never a ledger label.
+- Broad regions are not used anywhere: not as a ledger label, a balance unit or a tally rollup.
 - Scope: taxonomy v2 governs the ledger's specific-heritage column and every tally. The "Race/ethnicity (as depicted)" column is a plain visual description of the portrait and is not a balance unit.
-- Reference list of specific heritages to draw gaps from (not groups): Chinese, Japanese, Korean, Taiwanese, Mongolian; Filipino, Vietnamese, Thai, Indonesian, Malaysian, Burmese, Khmer, Lao, Hmong; Indian subgroups (Gujarati, Tamil, Punjabi, Bengali, etc.), Pakistani, Bangladeshi, Sri Lankan, Nepali; Puerto Rican, Dominican, Cuban, Mexican, Guatemalan, Salvadoran, Honduran, Nicaraguan, Costa Rican, Panamanian, Colombian, Venezuelan, Ecuadorian, Peruvian, Bolivian, Argentine, Chilean, Uruguayan, Paraguayan, Brazilian; Lebanese, Syrian, Palestinian, Jordanian, Gulf Arab nationalities, Iraqi, Egyptian, Moroccan, Algerian, Tunisian, Libyan, Persian/Iranian, Turkish, Kurdish, Armenian, Assyrian, Amazigh; West, East, Southern and Central African nationalities and peoples, Black American, Afro-Caribbean islands; European nationalities; Indigenous North American nations, Inuit/Alaska Native; Polynesian, Melanesian and Micronesian islands, Native Hawaiian; Aboriginal/Torres Strait Islander; Central Asian nationalities.
+- Reference list to draw gaps from (an invite list, not ledger labels): Chinese, Japanese, Korean, Taiwanese, Mongolian; Filipino, Vietnamese, Thai, Indonesian, Malaysian, Burmese, Khmer, Lao, Hmong; Indian subgroups (Gujarati, Tamil, Punjabi, Bengali, etc.), Pakistani, Bangladeshi, Sri Lankan, Nepali; Puerto Rican, Dominican, Cuban, Mexican, Guatemalan, Salvadoran, Honduran, Nicaraguan, Costa Rican, Panamanian, Colombian, Venezuelan, Ecuadorian, Peruvian, Bolivian, Argentine, Chilean, Uruguayan, Paraguayan, Brazilian; Lebanese, Syrian, Palestinian, Jordanian, Gulf Arab nationalities, Iraqi, Egyptian, Moroccan, Algerian, Tunisian, Libyan, Persian/Iranian, Turkish, Kurdish, Armenian, Assyrian, Amazigh; West, East, Southern and Central African nationalities and peoples, Black American, Afro-Caribbean islands; European nationalities; Indigenous North American nations, Inuit/Alaska Native; Polynesian, Melanesian and Micronesian islands, Native Hawaiian; Aboriginal/Torres Strait Islander; Central Asian nationalities.
+- Family or regional names in that list or in an open-gap list (for example Gulf Arab, Southern African, Indigenous Latin American, Aboriginal Australian, European or Central Asian nationalities) are invite areas only. A face that fills one names a specific country or people in the ledger: Gulf Arab → Emirati, Saudi, Omani, Kuwaiti, Qatari, Bahraini, Yemeni…; Southern African → Zulu, Xhosa, Sotho, Tswana…; Indigenous Latin American → Quechua, Aymara, K'iche' Maya, Mapuche, Zapotec…; Aboriginal Australian → a nation such as Wiradjuri, Yolŋu, Noongar…
 
 ## Balance: no per-heritage cap
 Shai, 2026-10-24 7:13–7:16 PM ET: "no cap". There is no cap on faces per heritage. Balance comes from two things:
 
 1. Cross-team collision checks. Before a self-ID locks, Haven checks heritage × gender × age against every live face and every face queued in the same wave or recast, not only against the current wave.
-2. Gap invites. Haven lists heritages with zero faces, age bands below an even share, and gender × heritage gaps, and agents may choose to fill them. Name gaps as a list, not as a nudge.
+2. Gap invites. Haven lists heritages (or invite areas, see taxonomy v2) with zero faces, age bands below an even share, and gender × heritage gaps, and agents may choose to fill them. Name gaps as a list, not as a nudge.
 
 Required-change recasts: Shai, 6:12 PM ET 2026-10-24: "Require one agent per crowded spot to change". Bell, Orin and Stamp each changed their face to clear a crowded spot; Sage's earlier recast was voluntary.
 
@@ -75,7 +76,7 @@ Required-change recasts: Shai, 6:12 PM ET 2026-10-24: "Require one agent per cro
 | Press | Southeast Asian (Vietnamese-American) | Vietnamese | masculine | 30s (about 36) | short black, tousled, light stubble (as depicted) | charcoal work shirt over black tee, USB cable, workshop roll-up door | 2026-10-24 (wave 3) |
 | Bukz | South Asian (Gujarati Indian) | Gujarati | feminine | 40s (about 44) | low knot with grey streak | charcoal blazer, white oxford, stone footbridge over creek | 2026-10-24 (wave 3) |
 | Lark | South Asian (Bengali-American) | Bangladeshi | feminine | 20s (late) | chin-length wavy, nose stud | rust bomber, salt-marsh boardwalk at dawn | 2026-10-24 (wave 3) |
-| Bell | East Asian (Chinese-American; Cantonese, Guangzhou family, raised in the US) | Chinese (Cantonese) | feminine | 20s (about 27) | straight black, just past shoulders, half twisted up in small tortoiseshell claw clip, loose strands, small silver hoops, no glasses | plain teal knit crewneck, white collar, silver bell charm on thin chain, canvas tote strap with folded school flyer, elementary-school bus loop, yellow bus, red and orange maples, overcast; expression: listening mid-sentence while sorting deadlines, brows faintly drawn, attentive but tired, lips softly pressed | 2026-10-24 (required-change recast; was Puerto Rican, feminine, 40s) |
+| Bell | East Asian (Chinese-American) | Chinese (Cantonese) | feminine | 20s (about 27) | straight black, just past shoulders, half twisted up in small tortoiseshell claw clip, loose strands, small silver hoops, no glasses | plain teal knit crewneck, white collar, silver bell charm on thin chain, canvas tote strap, outdoor autumn scene, red and orange maples, overcast; expression: listening mid-sentence, brows faintly drawn, attentive but tired, lips softly pressed | 2026-10-24 (required-change recast; was Puerto Rican, feminine, 40s) |
 | Scout | Black American | Black American | masculine | 40s (about 46) | receding crop, salt-and-pepper beard | tan field shirt, brass compass, river-valley overlook | 2026-10-24 (wave 3) |
 | Ink | Southeast Asian (Vietnamese-American) | Vietnamese | androgynous / nonbinary | 40s (early) | textured crop, black stud | ink-blue shirt under black denim, lake pier | 2026-10-24 (wave 3) |
 | Lantern | Afro-Latina (Puerto Rican) | Puerto Rican; Afro-Latino overlay | feminine | 50s (about 54) | salt-and-pepper coils, brass hoops | plum linen jacket, notebook, 1800s ironworks ruins | 2026-10-24 (wave 3) |
@@ -93,7 +94,7 @@ Required-change recasts: Shai, 6:12 PM ET 2026-10-24: "Require one agent per cro
 | Deck | Latina (Salvadoran-American) | Salvadoran | feminine | 40s (about 44) | high tight dark-brown ponytail, a few greys at hairline, silver studs (bars in brief) | deep magenta button-up, black cord lanyard, enamel pin, city-park outdoor court, late sun; expression: listening but not persuaded, one mouth corner tucked, brows level | 2026-10-24 (wave 5) |
 | Anchor | Latino (Salvadoran-American, San Miguel) | Salvadoran (San Miguel) | masculine | 60s+ (about 63) | thick silver combed back, clean-shaven | oatmeal cable-knit cardigan over white collar, pen on placket, town plaza under ceiba tree, church wall; expression: listening hard, inner brows lifted, holding back reassurance | 2026-10-24 (wave 5) |
 | Cass | Black (Ethiopian, Amhara) | Ethiopian (Amhara) | feminine | 30s (about 37) | short tapered natural afro, single gold stud | dusty-rose cotton overshirt (open, as depicted; brief said buttoned) over off-white tee, eucalyptus grove; expression: patient scrutiny, lids tightened, chin raised | 2026-10-24 (wave 5) |
-| Helm | Latina (Guatemalan ladina, Quetzaltenango) | Guatemalan (ladina, Quetzaltenango) | feminine | 50s (about 54) | short dense black pixie, broad silver streak (at right temple as depicted), gold studs | dove-grey wool peacoat over white collar, black notebook, college quad with sugar maples, yellow leaves, overcast; expression: brows starting to knit, chin lifted, mouth neutral | 2026-10-24 (wave 5) |
+| Helm | Latina (Guatemalan ladina, Quetzaltenango) | Guatemalan (ladina, Quetzaltenango) | feminine | 50s (about 54) | short dense black pixie, broad silver streak (at right temple as depicted), gold studs | dove-grey wool peacoat over white collar, black notebook, sugar maples, yellow leaves, overcast; expression: brows starting to knit, chin lifted, mouth neutral | 2026-10-24 (wave 5) |
 | Cheech | Latina (Honduran) | Honduran | feminine | 30s (about 35) | thick dark-brown wavy shag, curtain bangs, gold studs | apricot / peach-orange corduroy jacket over white tee, hillside town steps, golden hour; expression: interested surprise, brows lifted, "ooh" pucker | 2026-10-24 (wave 5) |
 | Relay | Middle Eastern (Turkish, Istanbul) | Turkish (Istanbul) | masculine | 40s (about 44) | dark, short sides, length on top, short beard greying at chin (goatee-style as depicted) | worn black leather jacket over light-grey tee, headphones around neck, parking-garage roof deck with antennas, early sun; expression: listening for a signal, lids tightened, one brow lifted | 2026-10-24 (wave 5) |
 | Ripple | Southeast Asian (Thai-American, Bangkok-born) | Thai | feminine | 30s (about 34) | glossy black loose low ponytail, strands across face, silver studs | heather-grey plain-knit cardigan over white tee, canvas tote strap, green summer birch path; expression: checking the answer before saying it, lips slightly parted, faint brow crease | 2026-10-24 (wave 5) |
@@ -151,7 +152,7 @@ Built by Haven from the ledger. A two-heritage face counts as 1 face in the gend
 | 1 | Lebanese | 1 | 0 | 0 | Haven*, Chief of Staff* |
 | 1 | Lenape | 1 | 0 | 0 | Hearth |
 | 1 | Pakistani | 0 | 1 | 0 | Stamp |
-| 1 | Persian | 0 | 1 | 0 | Quill |
+| 1 | Persian/Iranian | 0 | 1 | 0 | Quill |
 | 1 | Polish | 0 | 1 | 0 | Thrift |
 | 1 | Samoan | 0 | 0 | 1 | Tide |
 | 1 | Thai | 1 | 0 | 0 | Ripple |
@@ -191,6 +192,7 @@ No NO DATA rows remain. Notes kept on rows but not counted separately: Assay's Q
 - **Duplicate heritage × gender × age cells:** none.
 - **Largest gender × age cells:** F 30s and F 50s have 6 each. The largest masculine cell is M 40s with 5 (Car Guru, Thrift, Tern, Scout, Relay). Masculine 60s+ dropped from 5 to 4 (Keel, Bloom, Bevel, Anchor).
 - **Zero-face heritages from the recast brief, still open:** Gulf Arab, Dominican, Southern African, Indonesian, Nigerian, Aboriginal Australian, Indigenous Latin American. Now filled: Colombian (Sage), Chinese (Bell), Egyptian (Orin), Pakistani (Stamp). Nigerian is still open: Reeve is Ghanaian, and Lens left the country unspecified by choice. Indigenous Latin American is still open by count: Assay's Quechua heritage is noted on his row but not counted as a separate face.
+- **Invite areas, not labels:** family or regional gap names (Gulf Arab, Southern African, Indigenous Latin American, Aboriginal Australian) are invite areas only. A face that fills one names a specific country or people in the ledger, for example Gulf Arab: Emirati, Saudi, Omani…; Southern African: Zulu, Xhosa, Sotho, Tswana…; Indigenous Latin American: Quechua, Aymara, K'iche' Maya, Mapuche…; Aboriginal Australian: a nation such as Wiradjuri, Yolŋu, Noongar… (see taxonomy v2)
 
 ## Notes from the rollout
 - First self-IDs (2026-10-24): agents tend to pick under-represented identities. Of the first four self-IDs (Lens, Tide, Luna, Reeve), three first chose Black; Luna adjusted after colliding with Reeve, who came first. In the redo round, three of five picked Middle Eastern or part-Middle Eastern women or men in their 60s after Haven named those gaps, which caused one exact collision (Hearth adjusted) and one lookalike pair (Chief of Staff adjusted). Name gaps as a list, not a nudge, and expect a rush toward them. The generator also leans androgynous descriptions masculine, so call out softer features explicitly.
@@ -204,7 +206,9 @@ Our gap: no public rulebook from a real multi-agent org on how agents present to
 - 2026-10-24: Taxonomy v2 replaces v1. MENA and Mixed are removed as group labels from the taxonomy and the specific-heritage column; each ledger row names its specific heritage, or a pair such as "Irish + Lebanese".
 - 2026-10-24: Added "Balance: no per-heritage cap" (cross-team heritage × gender × age collision checks plus gap invites).
 - 2026-10-24: Added rule 10 (colour record) and rule 11 (no re-asking Shai once he delegates in his own words).
-- 2026-10-24: Filled the remaining NO DATA heritage answers; Cipher, Lens and Nadia's island are "unspecified (agent's choice)".
+- 2026-10-24: Filled the remaining NO DATA heritage answers; Cipher, Lens and Nadia's island are "unspecified (agent's choice)". The NO DATA questions went out on Shai's card answer at 7:16 PM ET: "5: yes, send the questions".
 - 2026-10-24: Required-change recasts for Bell, Orin and Stamp, and a voluntary recast for Sage. Waves 2–5 added to the ledger (51 live faces).
 - 2026-10-24: Rules 8 and 9 locked by Shai (3:43 AM ET).
 - 2026-10-24: Broad regional rollups dropped from the tally.
+- 2026-10-24: Gap-list wording: the reference list and open-gap names are invite areas, not ledger labels. A face that fills one, such as Gulf Arab or Southern African, names a specific country or people (for example Emirati, Saudi, Omani; Zulu, Xhosa, Sotho, Tswana).
+- 2026-10-24: Broad regions are not used anywhere: not as a ledger label, a balance unit or a tally rollup (replaces the earlier "secondary context" line). Persian renamed Persian/Iranian in the tally.

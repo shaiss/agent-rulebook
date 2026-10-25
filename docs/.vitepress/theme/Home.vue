@@ -1,7 +1,9 @@
 <script setup lang="ts">
+import { nextTick, onMounted, ref } from 'vue'
 import { withBase } from 'vitepress'
 import { data } from '../data/rulebook.data'
 import { balance, AGE_BANDS, type Agent, type Rule } from '../data/parse'
+import SiteFooter from './SiteFooter.vue'
 
 // Everything below is read at build time from docs/rules/avatars.md (see
 // data/parse.ts), so the landing page follows the rulebook without edits.
@@ -29,6 +31,10 @@ const stats = [
     : { n: lockedCount, label: plural(lockedCount, 'locked rule', 'locked rules') },
   { n: open.length, label: plural(open.length, 'open gender × age cell', 'open gender × age cells') }
 ]
+
+const credit = setDate
+  ? `Rules set by Shai, ${setDate}${refinedDate && refinedDate !== setDate ? ` · refined ${refinedDate}` : ''}`
+  : ''
 
 const ruleCount = [
   `${rules.length} ${plural(rules.length, 'rule', 'rules')}`,
@@ -100,6 +106,58 @@ const pendingNote = [
 ]
   .filter(Boolean)
   .join('')
+
+// ── Fleet layout ──
+// style.css works out how many 70px-and-up tiles fit the fleet's width (4 to
+// 12, by container query) and reads the column count to use from
+// --fleet-c<that many>. A fleet that fits in three rows there is spread as
+// evenly as it allows (11 tiles: one row of 11, or 6 + 5, never 9 + 2); a
+// bigger one fills every column and, from 13 tiles, shows its first three
+// rows until the reader asks for all of them. Every tile is in the HTML
+// either way: the rows past the third are hidden by style.css, and shown
+// again without JavaScript, in print, or when Back returns to an open fleet.
+const FOLD_ROWS = 3
+const fleetSizes = [4, 5, 6, 7, 8, 9, 10, 11, 12]
+const n = agents.length
+const foldsAt = (max: number) => n > FOLD_ROWS * max
+const fleetCols = (max: number) => (foldsAt(max) ? max : Math.ceil(n / Math.ceil(n / max)))
+const fleetVars = Object.fromEntries(fleetSizes.map((k) => [`--fleet-c${k}`, String(fleetCols(k))]))
+/** The tile counts per row at which the fleet folds: the toggle shows at those widths only */
+const fleetFolds = fleetSizes.filter(foldsAt).join(' ')
+const fleetFoldable = fleetFolds !== ''
+
+const fleetOpen = ref(false)
+const fleetList = ref<HTMLUListElement>()
+const fleetMore = ref<HTMLButtonElement>()
+
+function saveFleetState() {
+  const state = history.state && typeof history.state === 'object' ? history.state : {}
+  history.replaceState({ ...state, ir: { ...state.ir, fleetOpen: fleetOpen.value } }, '')
+}
+
+async function toggleFleet() {
+  const opening = !fleetOpen.value
+  // Opening adds tiles above the button: focus moves to the first new one,
+  // where reading goes on. Closing pulls the button up: keep it in view.
+  const next = opening
+    ? [...(fleetList.value?.children ?? [])].find((li) => getComputedStyle(li).display === 'none')
+    : null
+  fleetOpen.value = opening
+  saveFleetState()
+  await nextTick()
+  const link = next?.querySelector<HTMLElement>('a')
+  if (link) link.focus()
+  else fleetMore.value?.scrollIntoView({ block: 'nearest' })
+}
+
+// Back to this page: open the fleet again before VitePress restores the
+// scroll position (it does so once the page has mounted), so the reader lands
+// where they left. After a full reload the head script in config.ts has
+// already shown it open; from here on the component's state decides.
+onMounted(() => {
+  if (fleetFoldable && history.state?.ir?.fleetOpen) fleetOpen.value = true
+  document.documentElement.classList.remove('ir-fleet-open')
+})
 </script>
 
 <template>
@@ -145,21 +203,41 @@ const pendingNote = [
           <h2>The fleet</h2>
           <a class="ir-btn ir-btn-secondary" :href="ledgerLink">Full ledger</a>
         </div>
-        <ul class="ir-fleet" role="list">
-          <li v-for="a in agents" :key="a.slug">
-            <a class="ir-fleet-item" :href="agentLink(a)" :aria-label="fleetLabel(a)">
-              <Portrait :agent="a" sizes="80px" />
-              <span class="ir-fleet-caption">
-                <span class="ir-fleet-name">{{ a.name }}</span>
-                <span v-if="a.age">{{ a.age }}</span>
-              </span>
-            </a>
-          </li>
-        </ul>
-        <p class="ir-fleet-note">
-          Every portrait is an AI-generated image of an invented person, never a real one
-          (<a :href="ruleLink(1)">rule 01</a>).{{ pendingNote }}
-        </p>
+        <div
+          class="ir-fleet-box"
+          :class="{ 'is-folded': fleetFoldable && !fleetOpen }"
+          :style="fleetVars"
+          :data-folds="fleetFolds || undefined"
+        >
+          <ul id="ir-fleet-list" ref="fleetList" class="ir-fleet" role="list">
+            <li v-for="(a, i) in agents" :key="`${i}-${a.slug}`">
+              <a class="ir-fleet-item" :href="agentLink(a)" :aria-label="fleetLabel(a)">
+                <Portrait :agent="a" sizes="80px" />
+                <span class="ir-fleet-caption">
+                  <span class="ir-fleet-name">{{ a.name }}</span>
+                  <span v-if="a.age">{{ a.age }}</span>
+                </span>
+              </a>
+            </li>
+          </ul>
+          <div class="ir-fleet-foot">
+            <p class="ir-fleet-note">
+              Every portrait is an AI-generated image of an invented person, never a real one
+              (<a :href="ruleLink(1)">rule 01</a>).{{ pendingNote }}
+            </p>
+            <button
+              v-if="fleetFoldable"
+              ref="fleetMore"
+              type="button"
+              class="ir-btn ir-btn-secondary ir-fleet-more"
+              :aria-expanded="fleetOpen ? 'true' : 'false'"
+              aria-controls="ir-fleet-list"
+              @click="toggleFleet"
+            >
+              {{ fleetOpen ? 'Show fewer portraits' : `Show all ${agents.length} portraits` }}
+            </button>
+          </div>
+        </div>
       </section>
 
       <!-- Principle -->
@@ -314,11 +392,6 @@ const pendingNote = [
       </section>
     </main>
 
-    <footer class="ir-footer">
-      <a :href="repoLink" target="_blank" rel="noreferrer">Edit on GitHub</a>
-      <span v-if="setDate">
-        Rules set by Shai, {{ setDate }}<template v-if="refinedDate && refinedDate !== setDate"> · refined {{ refinedDate }}</template>
-      </span>
-    </footer>
+    <SiteFooter :note="credit" />
   </div>
 </template>

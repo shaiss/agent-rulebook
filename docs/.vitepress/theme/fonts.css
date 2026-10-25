@@ -1,0 +1,59 @@
+/* Fallback faces for Barlow and Barlow Condensed.
+   The web fonts themselves are self-hosted (index.ts imports the @fontsource
+   latin files; font-display: swap). Until they arrive, text is set in a local
+   Arial-metric face (Arial, Helvetica, or the metric-compatible Liberation
+   Sans / Arimo on Linux and ChromeOS) resized to take up the same box, so the
+   swap barely moves anything:
+   - size-adjust: Barlow's advance widths over the fallback's, measured over
+     the site's own text (every page, both ledger sizes, weighted by font
+     size), one face per weight the site sets;
+   - ascent/descent/line gap: Barlow's own (1000 / 200 / 0 per 1000 units,
+     the same in every weight and in the condensed cut), divided by
+     size-adjust, since the browser scales the overrides by it too.
+   Bold text takes Arial Bold, never a synthesised bold, so its width holds. */
+
+@font-face {
+  font-family: 'Barlow Fallback';
+  font-weight: 400;
+  src: local('Arial'), local('ArialMT'), local('Helvetica'), local('Liberation Sans'), local('LiberationSans'), local('Arimo');
+  size-adjust: 96.14%;
+  ascent-override: 104.01%;
+  descent-override: 20.8%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: 'Barlow Fallback';
+  font-weight: 500;
+  src: local('Arial'), local('ArialMT'), local('Helvetica'), local('Liberation Sans'), local('LiberationSans'), local('Arimo');
+  size-adjust: 96.94%;
+  ascent-override: 103.16%;
+  descent-override: 20.63%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: 'Barlow Fallback';
+  font-weight: 700;
+  src: local('Arial Bold'), local('Arial-BoldMT'), local('Helvetica Bold'), local('Helvetica-Bold'), local('Liberation Sans Bold'), local('LiberationSans-Bold'), local('Arimo Bold'), local('Arimo-Bold');
+  size-adjust: 91.55%;
+  ascent-override: 109.23%;
+  descent-override: 21.85%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: 'Barlow Condensed Fallback';
+  font-weight: 400;
+  src: local('Arial'), local('ArialMT'), local('Helvetica'), local('Liberation Sans'), local('LiberationSans'), local('Arimo');
+  size-adjust: 75.46%;
+  ascent-override: 132.52%;
+  descent-override: 26.5%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: 'Barlow Condensed Fallback';
+  font-weight: 600;
+  src: local('Arial Bold'), local('Arial-BoldMT'), local('Helvetica Bold'), local('Helvetica-Bold'), local('Liberation Sans Bold'), local('LiberationSans-Bold'), local('Arimo Bold'), local('Arimo-Bold');
+  size-adjust: 73.21%;
+  ascent-override: 136.59%;
+  descent-override: 27.32%;
+  line-gap-override: 0%;
+}

@@ -88,12 +88,15 @@ function transform(md: MarkdownIt, state: StateCore): Token[] {
   if (pi > 0) secs.unshift(...secs.splice(pi, 1))
 
   const out: Token[] = []
-  if (intro.length) out.push(html('<header class="ir-sec ir-sec--intro">'), ...header(intro), html('</header>'))
+  // The breadcrumb (RuleCrumbs.vue) is named from the sidebar config, so it is a component
+  if (intro.length) out.push(html('<header class="ir-sec ir-sec--intro"><RuleCrumbs />'), ...header(intro), html('</header>'))
   for (const s of secs) {
     const framed = s.kind === 'principle'
     const cls = `ir-sec ir-sec--${esc(s.slug)}${s.kind ? ` ir-kind--${s.kind}` : ''}${framed ? ' blueprint' : ''}`
     out.push(html(`<section class="${cls}">${framed ? CORNERS : ''}`), ...section(s.kind, s.body), html('</section>'))
   }
+  // 2a's page foot: the edit link and "Last updated" side by side (RuleFooter.vue)
+  out.push(html('<RuleFooter />'))
   return out
 
   // ── Page header: h1 without "(draft)", then status tags, then the intro as lede ──
@@ -172,7 +175,7 @@ function transform(md: MarkdownIt, state: StateCore): Token[] {
       } else {
         // A shape we don't know (nested blocks, links, HTML): keep its markdown rendering
         inner.forEach((t) => t.type.startsWith('paragraph_') && (t.hidden = false))
-        grid.push(html(ruleTop(n, '')), ...inner, html('</li>'))
+        grid.push(html(ruleTop(n, '', null)), ...inner, html('</li>'))
       }
     }
     grid.push(html('</ol>'))
@@ -187,10 +190,18 @@ function transform(md: MarkdownIt, state: StateCore): Token[] {
     return [...withHead(ts.slice(0, li), `<span class="ir-count">${count}</span>`), ...grid, ...labelBands(ts.slice(end + 1), 'accent')]
   }
 
-  function ruleTop(n: number, tags: string) {
+  /**
+   * A cell opens with its h3, so heading lists read "Rule 4: …" and the status
+   * tags follow the heading; CSS draws the numeral row above it. The numeral
+   * itself is for the eye only, since the h3 carries the number.
+   */
+  function ruleTop(n: number, tags: string, lead: string | null) {
+    const title = lead
+      ? `<h3 class="ir-cell-title"><span class="ir-sr">Rule ${n}: </span>${esc(lead)}</h3>`
+      : `<h3 class="ir-cell-title ir-sr">Rule ${n}</h3>`
     return (
-      `<li id="rule-${n}" class="ir-cell">` +
-      `<div class="ir-cell-top"><span class="ir-cell-n"><span class="ir-sr">Rule </span>${String(n).padStart(2, '0')}</span>` +
+      `<li id="rule-${n}" class="ir-cell">${title}` +
+      `<div class="ir-cell-top"><span class="ir-cell-n" aria-hidden="true">${String(n).padStart(2, '0')}</span>` +
       (tags ? `<span class="ir-cell-tags">${tags}</span>` : '') +
       '</div>'
     )
@@ -202,8 +213,7 @@ function transform(md: MarkdownIt, state: StateCore): Token[] {
       r.status === 'draft' && r.statusNote ? tag('neutral', cap(r.statusNote)) : '',
       r.status === 'locked' ? tag('accent', 'Locked') : ''
     ].join('')
-    let h = ruleTop(r.n, tags)
-    if (r.lead) h += `<h3 class="ir-cell-title">${esc(r.lead)}</h3>`
+    let h = ruleTop(r.n, tags, r.lead)
     if (r.body) h += `<p class="ir-cell-body">${esc(r.body)}</p>`
     for (const note of r.notes) {
       const m = /^([^:]{3,40}):\s*(.*)$/.exec(note)
@@ -231,7 +241,8 @@ function transform(md: MarkdownIt, state: StateCore): Token[] {
         continue
       }
       const end = closeOf(ts, i)
-      first.content = first.content.slice(m[0].length)
+      // "Test note: the image generator…" → label + "The image generator…"
+      first.content = cap(first.content.slice(m[0].length))
       res.push(
         html(`<div class="ir-band ir-band--${variant}"><span class="ir-label">${esc(m[1])}</span>`),
         ...ts.slice(i, end + 1),
@@ -308,10 +319,14 @@ function transform(md: MarkdownIt, state: StateCore): Token[] {
     return res
   }
 
-  // ── Ledger: portrait strip, then the canonical table behind a disclosure ──
+  // ── Ledger: fleet line (narrow widths, where the aside's Fleet box is hidden),
+  // portrait strip, then the canonical table behind a disclosure ──
   function ledger(ts: Token[]): Token[] {
     const hend = closeOf(ts, 0)
-    const head = withHead(ts.slice(0, hend + 1), link('/ledger', 'Full ledger', 'ir-btn ir-btn-secondary'))
+    const head = [
+      ...withHead(ts.slice(0, hend + 1), link('/ledger', 'Full ledger', 'ir-btn ir-btn-secondary')),
+      html('<FleetLine />')
+    ]
     const body = ts.slice(hend + 1)
     const ti = topIndex(body, 'table_open')
     if (ti < 0) return [...head, html('<LedgerStrip />'), ...body]
@@ -325,10 +340,12 @@ function transform(md: MarkdownIt, state: StateCore): Token[] {
       html('<LedgerStrip />'),
       html(
         '<details class="ir-ledger-table">' +
-          `<summary><span class="ir-summary-title">Ledger table</span><span class="ir-count">${plural(rows, 'row')}</span></summary>`
+          `<summary><span id="ir-ledger-table-title" class="ir-summary-title">Ledger table</span><span class="ir-count">${plural(rows, 'row')}</span></summary>` +
+          // Wider than the column: a focusable scroll box, so keys can scroll it too
+          '<div class="ir-table-scroll" role="region" aria-labelledby="ir-ledger-table-title" tabindex="0">'
       ),
       ...body.slice(ti, tend + 1),
-      html('</details>'),
+      html('</div></details>'),
       ...after
     ]
   }
@@ -382,31 +399,52 @@ function transform(md: MarkdownIt, state: StateCore): Token[] {
   }
 
   /**
-   * Table columns by content: .ir-num (numbers: right-aligned, tabular),
-   * .ir-tight (short values: no wrap), .ir-wide (prose: a readable measure,
-   * so a wide table scrolls sideways instead of squeezing every column)
+   * Table columns by content, so no column gets squeezed to a word per line:
+   * .ir-num (numbers: right-aligned, tabular), .ir-tight (every value short:
+   * no wrap), then prose columns get a minimum width by how long their values
+   * run, on average and at their longest: .ir-short (8rem), .ir-mid (10rem),
+   * .ir-wide (15rem), .ir-xwide (22rem). A table wider than the column
+   * scrolls sideways inside its own box. A cell that opens with an ISO date
+   * keeps the date on one line.
    */
   function markTables(ts: Token[]) {
     for (let i = 0; i < ts.length; i++) {
       if (ts[i].type !== 'table_open') continue
       const end = closeOf(ts, i)
-      const rows: { open: Token; text: string }[][] = []
+      const rows: { open: Token; inline: Token; text: string }[][] = []
       for (let j = i; j < end; j++) {
         if (ts[j].type === 'tr_open') rows.push([])
-        if (ts[j].type === 'th_open' || ts[j].type === 'td_open') rows[rows.length - 1].push({ open: ts[j], text: ts[j + 1].content.trim() })
+        if (ts[j].type === 'th_open' || ts[j].type === 'td_open')
+          rows[rows.length - 1].push({ open: ts[j], inline: ts[j + 1], text: ts[j + 1].content.trim() })
       }
       for (let c = 0; c < (rows[0]?.length ?? 0); c++) {
         const body = rows.slice(1).map((r) => r[c]?.text ?? '')
         if (!body.length) continue
         const lengths = body.map((v) => v.length)
+        const max = Math.max(...lengths)
+        const avg = lengths.reduce((a, b) => a + b, 0) / lengths.length
         const cls = body.every((v) => /^\d+(?:\.\d+)?%?$/.test(v))
           ? 'ir-num'
-          : Math.max(...lengths) <= 24
+          : max <= 24
             ? 'ir-tight'
-            : lengths.reduce((a, b) => a + b, 0) / lengths.length > 30
-              ? 'ir-wide'
-              : null
-        if (cls) rows.forEach((r) => r[c]?.open.attrJoin('class', cls))
+            : avg > 60
+              ? 'ir-xwide'
+              : avg > 30
+                ? 'ir-wide'
+                : max > 40
+                  ? 'ir-mid'
+                  : 'ir-short'
+        rows.forEach((r) => r[c]?.open.attrJoin('class', cls))
+      }
+      // "2026-10-23 (replaced …)": browsers break dates at their hyphens
+      for (const r of rows.slice(1)) {
+        for (const { inline } of r) {
+          const first = inline.children?.[0]
+          const m = first?.type === 'text' ? /^(\d{4}-\d\d-\d\d)\b/.exec(first.content) : null
+          if (!m) continue
+          const date = make('html_inline', '', 0, `<time class="ir-date" datetime="${m[1]}">${m[1]}</time>`)
+          inline.children!.splice(0, 1, date, text(first!.content.slice(m[1].length)))
+        }
       }
       i = end
     }

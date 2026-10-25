@@ -6,21 +6,40 @@
    sidebar and aside are showing. Small text uses opaque ramp tokens. */
 
 .ir-rulepage {
-  /* The steel field: accent-900 under paper on light, the same steel under
-     light ink on dark */
+  /* The steel field: accent-900 under paper on light. On dark, the tint band
+     already sits on accent-100 (#1d2d3d), so the steel steps up to the light
+     ramp's 800 (#2c455d): light ink on it is 8:1, the accent-300 label 6.7:1 */
   --ir-rp-steel: var(--ir-accent-900);
   --ir-rp-on-steel: var(--ir-bg);
   /* 2a's narrower rails (this is the only page with a sidebar), so the
      content column keeps its full 688px and the rules run 3 across at 1280 */
   --vp-sidebar-width: 224px;
+  /* Where a native jump to #anchor stops: clear of the fixed nav, and from
+     960px to 1279px also of the sticky "On this page" bar under it */
+  --ir-rp-anchor: calc(var(--vp-nav-height) + 24px);
 }
-.ir-rulepage .VPDoc .aside { padding-left: 24px; max-width: 232px; }
-.ir-rulepage .VPDoc .aside-container,
-.ir-rulepage .VPDoc .aside-curtain { width: 208px; }
+@media (min-width: 960px) and (max-width: 1279px) {
+  .ir-rulepage { --ir-rp-anchor: calc(var(--vp-nav-height) + 72px); }
+}
 .dark .ir-rulepage {
-  --ir-rp-steel: var(--ir-accent-100);
+  --ir-rp-steel: #2c455d;
   --ir-rp-on-steel: var(--ir-text);
 }
+
+/* ── Page chrome: 2a's hairline rails beside the sidebar and the aside ── */
+@media (min-width: 960px) {
+  .ir-rulepage .VPSidebar { border-right: 1px solid var(--ir-divider); }
+}
+.ir-rulepage .VPDoc .aside { padding-left: 0; max-width: 232px; }
+.ir-rulepage .VPDoc .aside-container {
+  width: 232px; padding-left: 24px;
+  border-left: 1px solid var(--ir-divider);
+}
+.ir-rulepage .VPDoc .aside-curtain { width: 231px; margin-left: 1px; }
+/* The foot of the page is RuleFooter.vue (edit link + last updated, 2a); this
+   page has no prev/next pager. Only once that footer has rendered. */
+.ir-rulepage .VPDoc:has(.ir-docfoot) .VPDocFooter { display: none; }
+.ir-rulepage .VPDocFooter .prev-next { display: none; }
 
 /* ── Doc typography ── */
 .ir-rulepage .vp-doc {
@@ -51,6 +70,10 @@
 .ir-rulepage .vp-doc h3 { font-size: 24px; line-height: 1.15; }
 .ir-rulepage .vp-doc h4 { font-size: 19px; line-height: 1.2; }
 .ir-rulepage .vp-doc h2 .header-anchor { top: 0; }
+/* Anchor targets: sections and rule cells (RuleHeader.vue re-aligns them once
+   the web fonts are in) */
+.ir-rulepage .vp-doc h2[id],
+.ir-rulepage .vp-doc .ir-cell { scroll-margin-top: var(--ir-rp-anchor); }
 .ir-rulepage .vp-doc a { color: var(--ir-accent-700); text-underline-offset: 3px; }
 .ir-rulepage .vp-doc a:hover { color: var(--ir-accent-900); }
 .ir-rulepage .vp-doc strong { font-weight: 600; }
@@ -89,14 +112,12 @@
 }
 .ir-rulepage .ir-sec-body { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
 
-/* Page header: breadcrumb (RuleHeader.vue), h1, status tags, lede */
-.ir-rulepage .ir-crumbs ol {
+/* Page header: breadcrumb (RuleCrumbs.vue), h1, status tags, lede */
+.ir-rulepage .vp-doc .ir-crumbs {
   display: flex; flex-wrap: wrap; gap: 8px;
-  margin: 0 0 14px; padding: 0; list-style: none;
-  font-size: 12px; color: var(--ir-neutral-700);
+  font-size: 12px; line-height: 1.4; color: var(--ir-neutral-700);
 }
-.ir-rulepage .ir-crumbs li + li::before { content: '/' / ''; margin-right: 8px; }
-.ir-rulepage .ir-crumbs [aria-current] { color: var(--ir-text); }
+.ir-rulepage .ir-crumbs-here { color: var(--ir-text); }
 .ir-rulepage .ir-sec--intro { gap: 14px; }
 .ir-rulepage .ir-doc-tags { display: flex; flex-wrap: wrap; gap: 8px; }
 .ir-rulepage .ir-tag { gap: 0.35em; }
@@ -117,32 +138,56 @@
 /* Principle: a blueprint frame, the statement in big condensed type */
 .ir-rulepage .ir-kind--principle { padding: 28px; }
 .ir-rulepage .ir-kind--principle .ir-sec-body { gap: 8px; }
+/* 2a sets its display figures (statement, numerals, pull quote, fleet count)
+   in Barlow Condensed at the regular weight; headings stay semibold */
 .ir-rulepage .vp-doc .ir-principle-text {
-  font-family: var(--ir-font-heading); font-weight: 600;
+  font-family: var(--ir-font-heading); font-weight: 400;
   font-size: 30px; line-height: 1.15; letter-spacing: -0.015em; text-wrap: balance;
 }
 
-/* ── Rules grid: hairline cells, 3 across ── */
+/* ── Rules grid: hairline cells, 3 across ──
+   The grid draws its own outer frame, all four sides; cells draw only the
+   inner rules (right and bottom, except on the last column and the last row).
+   A count that doesn't fill the last row leaves its empty slots closed off
+   by the frame, the cell above and the last cell's right rule, not a notch. */
 .ir-rulepage .vp-doc .ir-cells {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   margin: 0; padding: 0; list-style: none;
-  border-top: 1px solid var(--ir-divider);
-  border-left: 1px solid var(--ir-divider);
+  border: 1px solid var(--ir-divider);
 }
 .ir-rulepage .vp-doc .ir-cell {
-  margin: 0; padding: 20px; min-height: 220px; min-width: 0;
+  /* The top inset is a transparent border, not padding: VitePress lands a
+     #rule-N jump at its scroll offset plus the target's padding-top, which
+     would put the cell's edge against the sticky bars from 960px to 1279px */
+  margin: 0; padding: 0 20px 20px; min-height: 220px; min-width: 0;
   display: flex; flex-direction: column; gap: 10px;
+  border-top: 20px solid transparent;
   border-right: 1px solid var(--ir-divider);
   border-bottom: 1px solid var(--ir-divider);
-  scroll-margin-top: calc(var(--vp-nav-height) + 24px);
   transition: background-color 0.3s;
+}
+/* The edges the frame already draws, per column count (3, 2 or 1 across) */
+@container irdoc (width > 640px) {
+  .ir-rulepage .vp-doc .ir-cells > .ir-cell:nth-child(3n) { border-right: 0; }
+  .ir-rulepage .vp-doc .ir-cells > .ir-cell:nth-child(3n + 1):nth-last-child(-n + 3),
+  .ir-rulepage .vp-doc .ir-cells > .ir-cell:nth-child(3n + 1):nth-last-child(-n + 3) ~ .ir-cell { border-bottom: 0; }
+}
+@container irdoc (560px < width <= 640px) {
+  .ir-rulepage .vp-doc .ir-cells > .ir-cell:nth-child(2n) { border-right: 0; }
+  .ir-rulepage .vp-doc .ir-cells > .ir-cell:nth-child(2n + 1):nth-last-child(-n + 2),
+  .ir-rulepage .vp-doc .ir-cells > .ir-cell:nth-child(2n + 1):nth-last-child(-n + 2) ~ .ir-cell { border-bottom: 0; }
+}
+@container irdoc (width <= 560px) {
+  .ir-rulepage .vp-doc .ir-cells > .ir-cell { border-right: 0; }
+  .ir-rulepage .vp-doc .ir-cells > .ir-cell:last-child { border-bottom: 0; }
 }
 .ir-rulepage .vp-doc .ir-cell:target { background: var(--ir-accent-100); }
 .ir-rulepage .vp-doc .ir-cell > * { margin: 0; }
-.ir-rulepage .ir-cell-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+/* The h3 comes first in the markup (heading, then tags); the numeral row draws above it */
+.ir-rulepage .ir-cell-top { order: -1; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
 .ir-rulepage .ir-cell-n {
-  font-family: var(--ir-font-heading); font-weight: 600; font-size: 32px; line-height: 1;
+  font-family: var(--ir-font-heading); font-weight: 400; font-size: 32px; line-height: 1;
   color: var(--ir-accent);
 }
 .ir-rulepage .ir-cell-tags { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px; }
@@ -166,7 +211,6 @@
 /* Bands: "Test note" on an accent tint, "Our gap" on the steel field */
 .ir-rulepage .ir-band { padding: 18px 20px; }
 .ir-rulepage .vp-doc .ir-band > p { margin: 0; font-size: 14px; text-wrap: pretty; }
-.ir-rulepage .vp-doc .ir-band > p::first-letter { text-transform: uppercase; }
 .ir-rulepage .ir-band--accent { background: var(--ir-accent-100); }
 .ir-rulepage .ir-band--accent .ir-label { color: var(--ir-accent-800); }
 .ir-rulepage .vp-doc .ir-band--accent > p { color: var(--ir-accent-900); }
@@ -180,7 +224,7 @@
 .ir-rulepage .vp-doc .ir-pull { margin: 0; max-width: 640px; display: flex; flex-direction: column; gap: 6px; }
 .ir-rulepage .vp-doc .ir-pull blockquote { margin: 0; padding: 0; border: 0; color: var(--ir-text); }
 .ir-rulepage .vp-doc .ir-pull blockquote p {
-  margin: 0; font-family: var(--ir-font-heading); font-weight: 600;
+  margin: 0; font-family: var(--ir-font-heading); font-weight: 400;
   font-size: 22px; line-height: 1.2; letter-spacing: -0.01em; color: var(--ir-text);
 }
 .ir-rulepage .vp-doc .ir-stepcards {
@@ -192,12 +236,23 @@
   display: flex; flex-direction: column; gap: 8px;
 }
 .ir-rulepage .ir-stepcard-n {
-  font-family: var(--ir-font-heading); font-weight: 600; font-size: 28px; line-height: 1;
+  font-family: var(--ir-font-heading); font-weight: 400; font-size: 28px; line-height: 1;
   color: var(--ir-accent);
 }
 .ir-rulepage .vp-doc .ir-stepcard > p { margin: 0; font-size: 13.5px; text-wrap: pretty; }
 
-/* ── Ledger: portrait strip (LedgerStrip.vue), table disclosure, notes ── */
+/* ── Ledger: fleet line (FleetLine.vue), portrait strip (LedgerStrip.vue),
+   table disclosure, notes ── */
+.ir-rulepage .vp-doc .ir-fleetline {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px;
+  font-size: 13px; line-height: 1.45; color: var(--ir-neutral-700);
+}
+.ir-rulepage .vp-doc .ir-fleetline-link { color: var(--ir-accent-700); }
+/* From 1280px the aside's Fleet box says the same */
+@media (min-width: 1280px) {
+  .ir-rulepage .vp-doc .ir-fleetline { display: none; }
+}
+
 .ir-rulepage .ir-strip { display: flex; flex-direction: column; gap: 14px; }
 .ir-rulepage .vp-doc .ir-strip-grid {
   display: grid;
@@ -205,16 +260,28 @@
   gap: 18px 12px;
   margin: 0; padding: 0; list-style: none;
 }
-.ir-rulepage .ir-strip.is-dense .ir-strip-grid { grid-template-columns: repeat(auto-fill, minmax(68px, 1fr)); gap: 16px 10px; }
 .ir-rulepage .vp-doc .ir-strip-grid > li { margin: 0; min-width: 0; }
 .ir-rulepage .vp-doc .ir-strip-item {
   display: flex; flex-direction: column; gap: 6px;
   color: var(--ir-text); font-weight: 400; text-decoration: none;
 }
-.ir-rulepage .ir-strip.is-dense .ir-portrait { border: 1px solid var(--ir-divider); }
-.ir-rulepage .ir-strip .ir-portrait { gap: 0; transition: border-color 0.2s; }
+.ir-rulepage .ir-strip .ir-portrait { gap: 0; transition: border-color 0.2s, outline-color 0.2s; }
 .ir-rulepage .vp-doc .ir-strip-item:hover { color: var(--ir-accent-700); }
 .ir-rulepage .ir-strip-item:hover .ir-portrait { border-color: var(--ir-accent); }
+
+/* A fleet over a dozen: one blueprint contact sheet, 8 / 6 / 4 columns by the
+   content width (below), its first two rows until "Show all" */
+.ir-rulepage .ir-strip-sheet { padding: 16px; }
+.ir-rulepage .ir-strip.is-dense .ir-strip-grid { grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 16px 10px; }
+.ir-rulepage .ir-strip.is-collapsed .ir-strip-grid > li:nth-child(n + 17) { display: none; }
+.ir-rulepage .ir-strip.is-dense .ir-strip-item:hover .ir-portrait { outline: 1px solid var(--ir-accent); }
+.ir-rulepage .ir-strip-foot {
+  display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px 16px;
+}
+.ir-rulepage .vp-doc .ir-strip-more { background: transparent; cursor: pointer; }
+@container irdoc (width > 600px) {
+  .ir-rulepage .ir-strip.fits-wide .ir-strip-more { display: none; }
+}
 .ir-rulepage .ir-strip-cap { display: flex; flex-direction: column; line-height: 1.3; }
 .ir-rulepage .ir-strip-name { font-size: 12px; font-weight: 500; overflow-wrap: anywhere; }
 .ir-rulepage .ir-strip-age { font-size: 11px; color: var(--ir-neutral-700); }
@@ -243,7 +310,18 @@
 .ir-rulepage .ir-summary-title { font-family: var(--ir-font-heading); font-weight: 600; font-size: 18px; }
 .ir-rulepage .ir-ledger-table > summary:hover .ir-summary-title { color: var(--ir-accent-700); }
 .ir-rulepage .ir-ledger-table > summary:focus-visible { outline-offset: -2px; }
-.ir-rulepage .vp-doc .ir-ledger-table table { margin: 0 0 16px; }
+.ir-rulepage .vp-doc .ir-table-scroll {
+  margin: 0 0 16px; overflow-x: auto;
+  /* Scroll shadows: a soft edge on whichever side has more table, covered
+     (by the "local" ground layers) once that end is reached */
+  background:
+    linear-gradient(to right, var(--ir-bg) 40%, transparent) left / 32px 100% no-repeat local,
+    linear-gradient(to left, var(--ir-bg) 40%, transparent) right / 32px 100% no-repeat local,
+    linear-gradient(to right, color-mix(in srgb, var(--ir-text) 14%, transparent), transparent) left / 12px 100% no-repeat scroll,
+    linear-gradient(to left, color-mix(in srgb, var(--ir-text) 14%, transparent), transparent) right / 12px 100% no-repeat scroll;
+}
+.ir-rulepage .vp-doc .ir-table-scroll > table { display: table; margin: 0; }
+.ir-rulepage .vp-doc .ir-table-scroll:focus-visible { outline-offset: 2px; }
 .ir-rulepage .vp-doc .ir-ledger-table td:first-child { font-weight: 500; white-space: nowrap; }
 .ir-rulepage .vp-doc .ir-note { font-size: 13px; color: var(--ir-neutral-700); max-width: 720px; text-wrap: pretty; }
 
@@ -293,9 +371,14 @@
 .ir-rulepage .vp-doc th:last-child,
 .ir-rulepage .vp-doc td:last-child { padding-right: 0; }
 .ir-rulepage .vp-doc .ir-num { text-align: right; font-variant-numeric: tabular-nums; padding-left: 12px; }
-.ir-rulepage .vp-doc td.ir-tight { white-space: nowrap; }
-/* In auto table layout a cell width acts as the column's minimum */
+.ir-rulepage .vp-doc td.ir-tight,
+.ir-rulepage .vp-doc .ir-date { white-space: nowrap; }
+/* Prose columns by how long their values run (markdown.ts markTables). In
+   auto table layout a cell width acts as the column's minimum. */
+.ir-rulepage .vp-doc .ir-short { width: 8rem; min-width: 8rem; }
+.ir-rulepage .vp-doc .ir-mid { width: 10rem; min-width: 10rem; }
 .ir-rulepage .vp-doc .ir-wide { width: 15rem; min-width: 15rem; }
+.ir-rulepage .vp-doc .ir-xwide { width: 22rem; min-width: 22rem; }
 
 /* Dated logs (the changelog): date column + entry */
 .ir-rulepage .vp-doc .ir-log { padding: 0; list-style: none; border-top: 1px solid var(--ir-divider); }
@@ -327,10 +410,14 @@
   margin: 28px 6px 6px; padding: 14px;
   display: flex; flex-direction: column; gap: 6px;
 }
+.ir-rulepage .ir-fleetbox-count { font-size: 13px; color: var(--ir-text); }
 .ir-rulepage .ir-fleetbox-n {
-  font-family: var(--ir-font-heading); font-weight: 600; font-size: 36px; line-height: 1; color: var(--ir-text);
+  font-family: var(--ir-font-heading); font-weight: 400; font-size: 36px; line-height: 1; color: var(--ir-text);
 }
-.ir-rulepage .ir-fleetbox-meta { font-size: 12px; line-height: 1.4; color: var(--ir-neutral-700); }
+.ir-rulepage .ir-fleetbox-meta {
+  display: flex; flex-direction: column; gap: 2px;
+  font-size: 12px; line-height: 1.4; color: var(--ir-neutral-700);
+}
 .ir-rulepage .ir-fleetbox-link { font-size: 12px; color: var(--ir-accent-700); text-underline-offset: 3px; }
 .ir-rulepage .ir-fleetbox-link:hover { color: var(--ir-accent-900); text-decoration: underline; }
 
@@ -340,6 +427,8 @@
   letter-spacing: 0.08em; text-transform: uppercase; color: var(--ir-neutral-700);
 }
 .ir-rulepage .VPDocAsideOutline .outline-marker { border-radius: 0; background-color: var(--ir-accent); }
+/* The aside's rail is the vertical line here; the outline keeps only its marker (2a) */
+.ir-rulepage .VPDocAsideOutline .content { border-left-color: transparent; }
 .ir-rulepage .VPDocAsideOutline .outline-link { font-size: 13px; color: var(--ir-accent-700); }
 .ir-rulepage .VPDocAsideOutline .outline-link:hover { color: var(--ir-accent-900); }
 .ir-rulepage .VPDocAsideOutline .outline-link.active { color: var(--ir-text); font-weight: 500; }
@@ -358,14 +447,30 @@
 }
 .ir-rulepage .VPSidebar .VPSidebarItem.level-1.is-active > .item .link > .text { color: var(--ir-accent-700); font-weight: 500; }
 
-/* Doc footer: square pager */
-.ir-rulepage .VPDocFooter .pager-link { border-radius: 0; }
+/* ── Page foot (RuleFooter.vue): edit link and last updated on one ruled line ── */
+.ir-rulepage .vp-doc .ir-docfoot {
+  display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 24px;
+  padding-top: 20px; border-top: 1px solid var(--ir-divider);
+  font-size: 13px; line-height: 1.45; color: var(--ir-neutral-700);
+}
+.ir-rulepage .vp-doc .ir-docfoot > * { margin: 0; }
+.ir-rulepage .vp-doc .ir-docfoot-edit { font-weight: 500; }
 
 /* ── Responsive: layouts follow the content column's width ── */
 @container irdoc (max-width: 640px) {
   .ir-rulepage .vp-doc .ir-cells { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .ir-rulepage .vp-doc .ir-stepcards { grid-template-columns: 1fr; gap: 20px; }
   .ir-rulepage .ir-strip:not(.is-dense) .ir-strip-grid { grid-template-columns: repeat(auto-fill, minmax(68px, 1fr)); }
+}
+/* The contact sheet's columns, and its first two rows while collapsed */
+@container irdoc (max-width: 600px) {
+  .ir-rulepage .ir-strip.is-dense .ir-strip-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .ir-rulepage .ir-strip.is-collapsed .ir-strip-grid > li:nth-child(n + 13) { display: none; }
+}
+@container irdoc (max-width: 440px) {
+  .ir-rulepage .ir-strip-sheet { padding: 12px; }
+  .ir-rulepage .ir-strip.is-dense .ir-strip-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .ir-rulepage .ir-strip.is-collapsed .ir-strip-grid > li:nth-child(n + 9) { display: none; }
 }
 @container irdoc (max-width: 560px) {
   .ir-rulepage .vp-doc h1 { font-size: 44px; }

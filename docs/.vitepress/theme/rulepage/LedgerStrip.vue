@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { nextTick, onMounted, ref } from 'vue'
+import { nextTick, ref } from 'vue'
 import { withBase } from 'vitepress'
 import { data } from '../../data/rulebook.data'
 import { readEntry, writeEntry } from '../entry-state'
+import { onRestore } from './restore'
 
 // Every ledger agent's portrait above the ledger table, each linking to its
 // /ledger entry by the agent's ledger slug (2a ledger strip).
@@ -61,9 +62,11 @@ const label = (a: Agent) => [a.name, band(a), pending(a), 'ledger entry'].filter
 
 // Back to this page: open the sheet before VitePress restores the scroll
 // position, so the reader lands where they left (this history entry's UI
-// state, entry-state.ts; a new visit starts collapsed)
-onMounted(() => {
-  if (dense && readEntry<RulepageUi>(ENTRY)?.strip === true) expanded.value = true
+// state, entry-state.ts; a new visit starts collapsed; restore.ts)
+onRestore(() => {
+  if (!dense || readEntry<RulepageUi>(ENTRY)?.strip !== true) return false
+  expanded.value = true
+  return true
 })
 
 async function toggle() {

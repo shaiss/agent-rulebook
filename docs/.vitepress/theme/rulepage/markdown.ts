@@ -73,13 +73,16 @@ function transform(md: MarkdownIt, state: StateCore): Token[] {
   const html = (content: string) => Object.assign(make('html_block', '', 0, content + '\n'), { block: true })
   const text = (content: string) => make('text', '', 0, content)
   /** Inline markdown, rendered as the rest of the page is */
-  const inline = (src: string) => md.renderer.renderInline(md.parseInline(src, env)[0].children ?? [], md.options, env)
+  const inline = (src: string) =>
+    md.renderer.renderInline(datedChildren(md.parseInline(src, env)[0].children ?? []), md.options, env)
   /** A link through VitePress's own link renderer, so base and clean URLs apply */
   const link = (href: string, label: string, cls: string) => {
     const open = make('link_open', 'a', 1)
     open.attrs = [['href', href], ['class', cls]]
     return md.renderer.renderInline([open, text(label), make('link_close', 'a', -1)], md.options, env)
   }
+  /** Text this plugin writes as HTML: escaped, its ISO dates kept on one line */
+  const txt = (s: string) => datedHtml(esc(s))
   const tag = (variant: string, label: string) => `<span class="ir-tag ir-tag-${variant}">${esc(label)}</span>`
   const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`
 
@@ -110,6 +113,7 @@ function transform(md: MarkdownIt, state: StateCore): Token[] {
   // 2a's page foot: the edit link and "Last updated" side by side, the site's
   // one page foot (SiteFooter.vue, registered globally in index.ts)
   out.push(html('<SiteFooter />'))
+  markTextDates(out)
   return out
 
   // ── Page header: h1 without "(draft)", then status tags, then the intro as lede ──
@@ -120,8 +124,15 @@ function transform(md: MarkdownIt, state: StateCore): Token[] {
       const t = ts[i]
       if (t.type === 'heading_open' && t.tag === 'h1') {
         const end = closeOf(ts, i)
-        const first = ts[i + 1].children?.[0]
-        if (book.draft && first?.type === 'text') first.content = first.content.replace(/\s*\(draft\)\s*$/i, '')
+        const inl = ts[i + 1]
+        const first = inl.children?.[0]
+        if (book.draft && first?.type === 'text') {
+          first.content = first.content.replace(/\s*\(draft\)\s*$/i, '')
+          inl.content = inl.content.replace(/\s*\(draft\)\s*$/i, '')
+          // VitePress named the "#" permalink from the heading as written,
+          // before this ran: name it from the heading as shown
+          relabelPermalink(inl)
+        }
         const tags = [
           book.draft ? tag('outline', 'Draft') : '',
           book.setDate ? dateTag('Set', book.setDate) : '',
@@ -142,7 +153,7 @@ function transform(md: MarkdownIt, state: StateCore): Token[] {
   }
 
   function dateTag(label: string, date: string) {
-    return `<span class="ir-tag ir-tag-neutral">${label} <time datetime="${esc(date)}">${esc(date)}</time></span>`
+    return `<span class="ir-tag ir-tag-neutral">${label} <time class="ir-date" datetime="${esc(date)}">${esc(date)}</time></span>`
   }
 
   function section(kind: Kind | null, ts: Token[]): Token[] {
@@ -212,7 +223,7 @@ function transform(md: MarkdownIt, state: StateCore): Token[] {
    */
   function ruleTop(n: number, tags: string, lead: string | null) {
     const title = lead
-      ? `<h3 class="ir-cell-title"><span class="ir-sr">Rule ${n}: </span>${esc(lead)}</h3>`
+      ? `<h3 class="ir-cell-title"><span class="ir-sr">Rule ${n}: </span>${txt(lead)}</h3>`
       : `<h3 class="ir-cell-title ir-sr">Rule ${n}</h3>`
     return (
       `<li id="rule-${n}" class="ir-cell">${title}` +
@@ -229,17 +240,17 @@ function transform(md: MarkdownIt, state: StateCore): Token[] {
       r.status === 'locked' ? tag('accent', 'Locked') : ''
     ].join('')
     let h = ruleTop(r.n, tags, r.lead)
-    if (r.body) h += `<p class="ir-cell-body">${esc(r.body)}</p>`
+    if (r.body) h += `<p class="ir-cell-body">${txt(r.body)}</p>`
     for (const note of r.notes) {
       const m = /^([^:]{3,40}):\s*(.*)$/.exec(note)
-      h += `<p class="ir-cell-meta">${m ? `<strong>${esc(m[1])}:</strong> ${esc(m[2])}` : esc(note)}</p>`
+      h += `<p class="ir-cell-meta">${m ? `<strong>${txt(m[1])}:</strong> ${txt(m[2])}` : txt(note)}</p>`
     }
-    if (r.status === 'locked' && r.statusNote) h += `<p class="ir-cell-meta">${esc(r.statusNote)}</p>`
+    if (r.status === 'locked' && r.statusNote) h += `<p class="ir-cell-meta">${txt(r.statusNote)}</p>`
     for (const q of r.quotes) {
       h +=
         '<figure class="ir-cell-quote">' +
-        `<blockquote><p>“${esc(q.text)}”</p></blockquote>` +
-        `<figcaption>${esc(q.attribution)}</figcaption></figure>`
+        `<blockquote><p>“${txt(q.text)}”</p></blockquote>` +
+        `<figcaption>${txt(q.attribution)}</figcaption></figure>`
     }
     return h + '</li>'
   }
@@ -277,7 +288,7 @@ function transform(md: MarkdownIt, state: StateCore): Token[] {
     const src = ts[hend + 2].content
     if (pr.attribution && src.includes(pr.attribution) && !RICH_RE.test(src)) {
       const statement =
-        `<p class="ir-principle-text">${esc(pr.text)}</p>` + `<p class="ir-meta">${esc(pr.attribution)}</p>`
+        `<p class="ir-principle-text">${txt(pr.text)}</p>` + `<p class="ir-meta">${txt(pr.attribution)}</p>`
       return [...ts.slice(0, hend + 1), html(statement), ...ts.slice(closeOf(ts, hend + 1) + 1)]
     }
     p.attrJoin('class', 'ir-principle-text')
@@ -298,8 +309,8 @@ function transform(md: MarkdownIt, state: StateCore): Token[] {
           res.push(
             html(
               '<figure class="ir-pull">' +
-                `<blockquote><p>“${esc(q.text)}”</p></blockquote>` +
-                `<figcaption class="ir-meta">${esc(q.attribution)}</figcaption></figure>`
+                `<blockquote><p>“${txt(q.text)}”</p></blockquote>` +
+                `<figcaption class="ir-meta">${txt(q.attribution)}</figcaption></figure>`
             )
           )
           i = closeOf(ts, i)
@@ -417,8 +428,7 @@ function transform(md: MarkdownIt, state: StateCore): Token[] {
    * .ir-wide (15rem), .ir-xwide (22rem). A table wider than the column
    * scrolls sideways inside its own box. Every other table (e.g. the fleet
    * tally) is .ir-fit: it keeps the browser's layout and wraps to fit the
-   * column, down to 320px. A cell that opens with an ISO date keeps the date
-   * on one line.
+   * column, down to 320px. (Dates in cells stay whole: markTextDates.)
    */
   function markTables(ts: Token[], widths: boolean) {
     for (let i = 0; i < ts.length; i++) {
@@ -450,16 +460,6 @@ function transform(md: MarkdownIt, state: StateCore): Token[] {
                   : 'ir-short'
         rows.forEach((r) => r[c]?.open.attrJoin('class', cls))
       }
-      // "2026-10-23 (replaced …)": browsers break dates at their hyphens
-      for (const r of rows.slice(1)) {
-        for (const { inline } of r) {
-          const first = inline.children?.[0]
-          const m = first?.type === 'text' ? /^(\d{4}-\d\d-\d\d)\b/.exec(first.content) : null
-          if (!m) continue
-          const date = make('html_inline', '', 0, `<time class="ir-date" datetime="${m[1]}">${m[1]}</time>`)
-          inline.children!.splice(0, 1, date, text(first!.content.slice(m[1].length)))
-        }
-      }
       i = end
     }
   }
@@ -486,38 +486,78 @@ function transform(md: MarkdownIt, state: StateCore): Token[] {
 
 // ── Token helpers ──
 
+/** VitePress's "#" link inside a heading (markdown-it-anchor's linkInsideHeader) */
+function isPermalink(t: Token) {
+  return t.type === 'link_open' && /(?:^|\s)header-anchor(?:\s|$)/.test(t.attrGet('class') ?? '')
+}
+
+/** Name a heading's "#" link as VitePress does ("Permalink to "…""), from the text it shows now */
+function relabelPermalink(inline: Token) {
+  const kids = inline.children ?? []
+  const at = kids.findIndex(isPermalink)
+  if (at < 0) return
+  const title = kids
+    .slice(0, at)
+    .filter((c) => c.type === 'text' || c.type === 'code_inline')
+    .map((c) => c.content)
+    .join('')
+    .trim()
+  kids[at].attrSet('aria-label', `Permalink to "${title}"`)
+}
+
 /**
- * ISO dates in h2–h4 ("Fleet tally (taxonomy v2, 2026-10-24)") stay on one
- * line: browsers break dates at their hyphens. In the heading a nowrap
- * <time> does it. VitePress builds the outline's link text from the
- * heading's text, skipping .ignore-header elements, so the outline (whose
- * links wrap on this page) reads a hidden copy of the date instead, joined at
- * its hyphens by invisible word joiners (U+2060).
+ * ISO dates stay on one line: browsers break "2026-10-23" at its hyphens.
+ * Every date in running text (the lede, the ledger notes, the rollout steps,
+ * table cells, lists) becomes a nowrap <time class="ir-date">, and so does
+ * every date in the HTML this plugin writes (rule cells, quotes, principle).
+ * Text in code spans and raw HTML is left alone.
+ */
+const DATE_RE = /\b(\d{4}-\d\d-\d\d)\b/
+const dateHtml = (d: string) => `<time class="ir-date" datetime="${d}">${d}</time>`
+
+/** For HTML this plugin writes itself: run it over already-escaped text */
+function datedHtml(escaped: string) {
+  return escaped.replace(new RegExp(DATE_RE, 'g'), (d) => dateHtml(d))
+}
+
+/** Inline children with each date in a text token re-emitted as `render(date)` */
+function datedChildren(children: Token[], render = dateHtml): Token[] {
+  return children.flatMap((c) => {
+    if (c.type !== 'text') return [c]
+    // split() with a capture group: dates sit at the odd indexes
+    const parts = c.content.split(DATE_RE)
+    if (parts.length === 1) return [c]
+    return parts
+      .map((s, k) => Object.assign(clone(c), k % 2 ? { type: 'html_inline', content: render(s) } : { content: s }))
+      .filter((t) => t.content)
+  })
+}
+
+/** Every inline run outside the headings (markHeadingDates has those) */
+function markTextDates(ts: Token[]) {
+  for (let i = 0; i < ts.length; i++) {
+    if (ts[i].type === 'heading_open') i = closeOf(ts, i)
+    else if (ts[i].type === 'inline' && ts[i].children) ts[i].children = datedChildren(ts[i].children!)
+  }
+}
+
+/**
+ * Dates in h2–h4 ("Fleet tally (taxonomy v2, 2026-10-24)") are nowrap
+ * <time>s too. VitePress builds the outline's link text from the heading's
+ * text, skipping .ignore-header elements, so the outline (whose links wrap on
+ * this page) reads a hidden copy of the date instead, joined at its hyphens
+ * by invisible word joiners (U+2060).
  */
 const WJ_HYPHEN = '-\u2060'
+const headingDateHtml = (d: string) =>
+  `<time class="ir-date ignore-header" datetime="${d}">${d}</time>` +
+  `<span class="ir-outline-text" hidden>${d.replace(/-/g, WJ_HYPHEN)}</span>`
+
 function markHeadingDates(ts: Token[]) {
   for (let i = 0; i < ts.length; i++) {
     if (ts[i].type !== 'heading_open' || !/^h[234]$/.test(ts[i].tag)) continue
     const inline = ts[i + 1]
-    if (inline?.type !== 'inline' || !inline.children) continue
-    inline.children = inline.children.flatMap((c) => {
-      if (c.type !== 'text') return [c]
-      // split() with a capture group: dates sit at the odd indexes
-      const parts = c.content.split(/\b(\d{4}-\d\d-\d\d)\b/)
-      if (parts.length === 1) return [c]
-      return parts
-        .map((s, k) =>
-          k % 2
-            ? Object.assign(clone(c), {
-                type: 'html_inline',
-                content:
-                  `<time class="ir-date ignore-header" datetime="${s}">${s}</time>` +
-                  `<span class="ir-outline-text" hidden>${s.replace(/-/g, WJ_HYPHEN)}</span>`
-              })
-            : Object.assign(clone(c), { content: s })
-        )
-        .filter((t) => t.content)
-    })
+    if (inline?.type === 'inline' && inline.children) inline.children = datedChildren(inline.children, headingDateHtml)
   }
 }
 

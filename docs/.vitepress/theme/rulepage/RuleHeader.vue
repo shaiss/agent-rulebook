@@ -1,6 +1,7 @@
 <script lang="ts">
 import { defineComponent, onBeforeUnmount, onMounted } from 'vue'
 import { getScrollOffset } from 'vitepress'
+import { targetOf } from './restore'
 
 // Page-level behaviour for the rule page, mounted by Layout.vue ahead of the
 // content. It renders nothing: the header itself, breadcrumb included, comes
@@ -18,15 +19,6 @@ import { getScrollOffset } from 'vitepress'
 // Not on Back or Forward to the page, though: VitePress then restores the
 // scroll position the reader left at (it keeps it in history.state), and
 // that wins over the hash.
-
-function targetOf(hash: string) {
-  if (hash.length < 2) return null
-  try {
-    return document.getElementById(decodeURIComponent(hash.slice(1)))
-  } catch {
-    return null // a malformed escape: not one of ours
-  }
-}
 
 function align(el: HTMLElement) {
   const pad = parseInt(getComputedStyle(el).paddingTop, 10) || 0

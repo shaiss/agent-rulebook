@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { readEntry, writeEntry } from '../entry-state'
+import { onRestore } from './restore'
 
 // The canonical ledger table behind a disclosure, under the portrait strip
 // (rulepage/markdown.ts wraps the markdown table in this). The table is wider
@@ -35,8 +36,12 @@ function printDone() {
   beforePrint = null
 }
 
+onRestore(() => {
+  if (readEntry<RulepageUi>(ENTRY)?.table !== true) return false
+  open.value = true
+  return true
+})
 onMounted(() => {
-  if (readEntry<RulepageUi>(ENTRY)?.table === true) open.value = true
   addEventListener('beforeprint', printOpen)
   addEventListener('afterprint', printDone)
 })

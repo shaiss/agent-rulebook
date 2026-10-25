@@ -20,16 +20,30 @@
      always has an outline, so hold the bar's place from the first paint. */
   .ir-rulepage .VPLocalNav.has-sidebar.empty { display: block; }
 }
+/* Without JavaScript the bar ("Menu", "Return to top") never fills in, and
+   neither of its buttons can do anything: the sidebar "Menu" opens can't
+   open, and from 768px the nav bar's plain links stand in for it. So it is
+   hidden at every width, not only where the rule above holds its place:
+   below 960px VitePress sticks it to the top of the screen, which would be
+   48px of dead buttons over the page for the whole read. Anchor jumps then
+   only need to clear the nav. */
 @media (scripting: none) {
-  /* Without JavaScript it stays empty, and its button can't work */
   .ir-rulepage .VPLocalNav.has-sidebar.empty { display: none; }
+}
+@media (scripting: none) and (min-width: 960px) and (max-width: 1279px) {
+  .ir-rulepage { --ir-rp-anchor: calc(var(--vp-nav-height) + 24px); }
 }
 
 /* ── Page chrome: 2a's hairline rails beside the sidebar and the aside ── */
 @media (min-width: 960px) {
   .ir-rulepage .VPSidebar { border-right: 1px solid var(--ir-divider); }
 }
-.ir-rulepage .VPDoc .aside { padding-left: 0; max-width: 232px; }
+/* The aside column runs the page's full height but holds only fixed boxes,
+   and it comes first in the markup, so from 1280px it was the browser's
+   scroll anchor: anything opening above the reading position (the strip and
+   table restored on Back to a #section, web fonts swapping in) pushed the
+   text down the screen instead of the browser holding it in place. */
+.ir-rulepage .VPDoc .aside { padding-left: 0; max-width: 232px; overflow-anchor: none; }
 .ir-rulepage .VPDoc .aside-container {
   width: 232px; padding-left: 24px;
   border-left: 1px solid var(--ir-divider);
@@ -70,11 +84,21 @@
 .ir-rulepage .vp-doc h3 { font-size: 24px; line-height: 1.15; }
 .ir-rulepage .vp-doc h4 { font-size: 19px; line-height: 1.2; }
 .ir-rulepage .vp-doc h2 .header-anchor { top: 0; }
-/* Without the sidebar the gutter is 24–32px, too narrow for the "#" VitePress
-   hangs left of the heading (it and its focus ring fell off the canvas), so
-   it follows the heading text instead */
+/* Below 960px the page gutter is 24px, too narrow for the "#" VitePress hangs
+   left of the heading (it and its focus ring fell off the canvas), so it
+   follows the heading's last word instead. It is out of flow, at its static
+   position (top/left auto: just after the last word, on the last line), so
+   it can never wrap onto a line of its own or make a heading taller. A full
+   last line leaves it the right gutter: at 20px at most, the "#" with its
+   6px gap and focus ring (drawn round the glyph itself) takes 21.5px of
+   that gutter's 24. */
 @media (max-width: 959px) {
-  .ir-rulepage .vp-doc .header-anchor { position: relative; top: 0; left: 0; margin-left: 0.2em; }
+  .ir-rulepage .vp-doc :is(h1, h2, h3, h4) .header-anchor {
+    position: absolute; top: auto; left: auto; margin-left: 6px;
+  }
+  .ir-rulepage .vp-doc .header-anchor::before { font-size: min(1em, 20px); }
+  .ir-rulepage .vp-doc .header-anchor:focus-visible { outline: none; }
+  .ir-rulepage .vp-doc .header-anchor:focus-visible::before { outline: 2px solid var(--ir-accent); outline-offset: 2px; }
 }
 /* The outline's copy of a heading date (markdown.ts) is for VitePress only */
 .ir-rulepage .vp-doc .ir-outline-text { display: none; }
@@ -117,6 +141,10 @@
 .ir-rulepage .vp-doc .ir-sec > h4 { margin-top: 8px; }
 .ir-rulepage .ir-sec-head {
   display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 8px 16px;
+}
+/* Below 960px, room for the heading's "#" (above) before its count or button */
+@media (max-width: 959px) {
+  .ir-rulepage .ir-sec-head { column-gap: 24px; }
 }
 .ir-rulepage .ir-sec-body { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
 
@@ -471,7 +499,7 @@
 .ir-rulepage .ir-log-date {
   position: absolute; left: 0; top: 11px;
   font-family: var(--ir-font-heading); font-weight: 600; font-size: 15px;
-  font-variant-numeric: tabular-nums; color: var(--ir-accent-700);
+  font-variant-numeric: tabular-nums; color: var(--ir-accent-700); white-space: nowrap;
 }
 
 /* ── Buttons: the site's one size (40px: 10px 18px around 15px × 1.2) ── */
@@ -490,6 +518,13 @@
   /* side margins keep the corner marks inside the aside's overflow clip */
   margin: 28px 6px 6px; padding: 14px;
   display: flex; flex-direction: column; gap: 6px;
+}
+/* VitePress fills the outline above it in from the page's headings once the
+   page is running, which pushed the box ~370px down the aside on every load
+   (CLS 0.04 at 1280px). It waits, unseen, and appears with the outline.
+   Without JavaScript there is no outline to wait for. */
+@media (scripting: enabled) {
+  .ir-rulepage .VPDocAsideOutline:not(.has-outline) ~ .ir-fleetbox { visibility: hidden; }
 }
 .ir-rulepage .ir-fleetbox-count { font-size: 13px; color: var(--ir-text); }
 .ir-rulepage .ir-fleetbox-n {

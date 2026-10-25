@@ -104,11 +104,12 @@ function transform(md: MarkdownIt, state: StateCore): Token[] {
   if (intro.length) out.push(html('<header class="ir-sec ir-sec--intro"><RuleCrumbs />'), ...header(intro), html('</header>'))
   for (const s of secs) {
     const framed = s.kind === 'principle'
-    const cls = `ir-sec ir-sec--${esc(s.slug)}${s.kind ? ` ir-kind--${s.kind}` : ''}${framed ? ' blueprint' : ''}`
+    const cls = `ir-sec ir-sec--${esc(s.slug)}${s.kind ? ` ir-kind--${s.kind}` : ''}${framed ? ' ir-frame' : ''}`
     out.push(html(`<section class="${cls}">${framed ? CORNERS : ''}`), ...section(s.kind, s.body), html('</section>'))
   }
-  // 2a's page foot: the edit link and "Last updated" side by side (RuleFooter.vue)
-  out.push(html('<RuleFooter />'))
+  // 2a's page foot: the edit link and "Last updated" side by side, the site's
+  // one page foot (SiteFooter.vue, registered globally in index.ts)
+  out.push(html('<SiteFooter />'))
   return out
 
   // ── Page header: h1 without "(draft)", then status tags, then the intro as lede ──
@@ -283,7 +284,7 @@ function transform(md: MarkdownIt, state: StateCore): Token[] {
     return ts
   }
 
-  // ── Rollout: Shai's ask as a pull quote, the steps as blueprint cards ──
+  // ── Rollout: Shai's ask as a pull quote, the steps as framed cards ──
   function rollout(ts: Token[]): Token[] {
     const res: Token[] = []
     const q = book.rollout.quote
@@ -314,7 +315,7 @@ function transform(md: MarkdownIt, state: StateCore): Token[] {
         let at = i
         for (const [k, [a, b]] of listItems(ts, i).entries()) {
           res.push(...ts.slice(at, a))
-          ts[a].attrJoin('class', 'ir-stepcard blueprint')
+          ts[a].attrJoin('class', 'ir-stepcard ir-frame')
           const n = Number(ts[a].info) || start + k
           res.push(ts[a], html(`${CORNERS}<span class="ir-stepcard-n"><span class="ir-sr">Step </span>${n}</span>`))
           for (const x of ts.slice(a + 1, b)) {

@@ -319,15 +319,10 @@
 .ir-ledger-gaps li::marker { color: var(--ir-accent); }
 .ir-ledger-tally .ir-meta { margin-top: 4px; }
 
-/* ── Page foot: the same ruled line as the rule page's ── */
-.ir-ledger .ir-docfoot {
-  display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 24px;
-  padding: 20px 40px 40px; border-top: 1px solid var(--ir-divider);
-  font-size: 13px; line-height: 1.45; color: var(--ir-neutral-700);
-}
-.ir-ledger .ir-docfoot > * { margin: 0; }
+/* ── Page foot (SiteFooter.vue, styled in style.css): the ledger's gutters ── */
+.ir-ledger .ir-docfoot { padding: 20px 40px 40px; }
 .ir-ledger .ir-docfoot > p { line-height: 1.55; }
-.ir-ledger .ir-docfoot-edit { font-weight: 500; text-decoration-thickness: auto; }
+.ir-ledger .ir-docfoot-edit { text-decoration-thickness: auto; }
 
 /* ── Responsive ── */
 @media (max-width: 1179px) {
@@ -404,12 +399,13 @@
   .ir-ledger-bar > span { forced-color-adjust: none; background: CanvasText; }
 }
 
-/* ── Print: the roster, the entry and the tallies; no controls ── */
+/* ── Print: the roster, the entry and the tallies; no controls (the filter
+   and "Back to the roster" go with the site's other controls, style.css) ── */
 @media print {
-  .ir-ledger-seg, .ir-ledger-back, .ir-ledger-expr { display: none; }
+  .ir-ledger-expr { display: none; }
   .ir-ledger-entry { position: static; max-height: none; overflow: visible; background: none; }
   .ir-ledger-entry, .ir-ledger-grid > li, .ir-ledger-tally, .ir-ledger-quote, .ir-ledger-check,
-  .ir-ledger-dl > div, .ir-ledger .ir-docfoot { break-inside: avoid; }
+  .ir-ledger-dl > div { break-inside: avoid; }
   .ir-ledger-head, .ir-ledger-ident, .ir-ledger-entry-top { break-after: avoid; }
   /* the tally bars are fills, which printers drop by default */
   .ir-ledger-bar > span { -webkit-print-color-adjust: exact; print-color-adjust: exact; }

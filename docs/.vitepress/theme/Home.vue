@@ -4,6 +4,7 @@ import { withBase } from 'vitepress'
 import { data } from '../data/rulebook.data'
 import { balance, AGE_BANDS, type Agent, type Rule } from '../data/parse'
 import SiteFooter from './SiteFooter.vue'
+import { readEntry, writeEntry } from './entry-state'
 
 // Everything below is read at build time from docs/rules/avatars.md (see
 // data/parse.ts), so the landing page follows the rulebook without edits.
@@ -130,11 +131,6 @@ const fleetOpen = ref(false)
 const fleetList = ref<HTMLUListElement>()
 const fleetMore = ref<HTMLButtonElement>()
 
-function saveFleetState() {
-  const state = history.state && typeof history.state === 'object' ? history.state : {}
-  history.replaceState({ ...state, ir: { ...state.ir, fleetOpen: fleetOpen.value } }, '')
-}
-
 async function toggleFleet() {
   const opening = !fleetOpen.value
   // Opening adds tiles above the button: focus moves to the first new one,
@@ -143,7 +139,8 @@ async function toggleFleet() {
     ? [...(fleetList.value?.children ?? [])].find((li) => getComputedStyle(li).display === 'none')
     : null
   fleetOpen.value = opening
-  saveFleetState()
+  // this history entry's UI state (entry-state.ts), read back on Back
+  writeEntry('fleetOpen', opening)
   await nextTick()
   const link = next?.querySelector<HTMLElement>('a')
   if (link) link.focus()
@@ -153,9 +150,10 @@ async function toggleFleet() {
 // Back to this page: open the fleet again before VitePress restores the
 // scroll position (it does so once the page has mounted), so the reader lands
 // where they left. After a full reload the head script in config.ts has
-// already shown it open; from here on the component's state decides.
+// already shown it open (it reads the same history.state.ir.fleetOpen); from
+// here on the component's state decides.
 onMounted(() => {
-  if (fleetFoldable && history.state?.ir?.fleetOpen) fleetOpen.value = true
+  if (fleetFoldable && readEntry('fleetOpen') === true) fleetOpen.value = true
   document.documentElement.classList.remove('ir-fleet-open')
 })
 </script>
@@ -173,7 +171,7 @@ onMounted(() => {
             starting with the faces they wear. Every rule comes from running the org, and changes as the rollout goes.
           </p>
           <div class="ir-actions">
-            <a class="ir-btn ir-btn-primary blueprint" :href="rulesLink">
+            <a class="ir-btn ir-btn-primary ir-frame" :href="rulesLink">
               <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
               Read the avatar rules
             </a>
@@ -182,7 +180,7 @@ onMounted(() => {
           </div>
         </div>
 
-        <div class="ir-plate blueprint" role="group" aria-labelledby="ir-spec-label">
+        <div class="ir-plate ir-frame" role="group" aria-labelledby="ir-spec-label">
           <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
           <div class="ir-plate-head">
             <span id="ir-spec-label" class="ir-label">Spec sheet</span>
@@ -241,7 +239,7 @@ onMounted(() => {
       </section>
 
       <!-- Principle -->
-      <section v-if="principle" class="ir-principle blueprint">
+      <section v-if="principle" class="ir-principle ir-frame">
         <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
         <h2 class="ir-label">Principle</h2>
         <div class="ir-principle-body">
@@ -355,19 +353,19 @@ onMounted(() => {
           <span class="ir-meta">{{ rollout.quote.attribution }}</span>
         </blockquote>
         <div class="ir-steps">
-          <div class="ir-step blueprint">
+          <div class="ir-step ir-frame">
             <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
             <div class="ir-step-top"><span class="ir-step-n">1</span><span class="ir-tag ir-tag-neutral">Agent</span></div>
             <h3 class="ir-rule-title">Describe</h3>
             <p>Each agent reads the rules and the ledger, then describes itself: race/ethnicity, gender, age band and how it looks.</p>
           </div>
-          <div class="ir-step blueprint">
+          <div class="ir-step ir-frame">
             <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
             <div class="ir-step-top"><span class="ir-step-n">2</span><span class="ir-tag ir-tag-accent">Haven</span></div>
             <h3 class="ir-rule-title">Check against the ledger</h3>
             <p>On a collision or an imbalance, Haven asks the agent to adjust. Haven never overrides an agent's choice on its own.</p>
           </div>
-          <div class="ir-step blueprint">
+          <div class="ir-step ir-frame">
             <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
             <div class="ir-step-top"><span class="ir-step-n">3</span><span class="ir-tag ir-tag-accent">Haven + agent</span></div>
             <h3 class="ir-rule-title">Compare, approve, set</h3>

@@ -12,7 +12,7 @@ const links = [
 
 <template>
   <main class="ir-nf">
-    <div class="ir-nf-plate blueprint">
+    <div class="ir-nf-plate ir-frame">
       <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
       <span class="ir-label">Error</span>
       <h1 class="ir-nf-title">
@@ -27,7 +27,7 @@ const links = [
         v-for="l in links"
         :key="l.href"
         class="ir-btn"
-        :class="l.primary ? 'ir-btn-primary blueprint' : 'ir-btn-secondary'"
+        :class="l.primary ? 'ir-btn-primary ir-frame' : 'ir-btn-secondary'"
         :href="l.href"
       >
         <template v-if="l.primary"><i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i></template>

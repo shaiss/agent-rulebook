@@ -14,7 +14,7 @@ const ledger = withBase('/ledger')
 </script>
 
 <template>
-  <aside class="ir-fleetbox blueprint" aria-labelledby="ir-fleetbox-label">
+  <aside class="ir-fleetbox ir-frame" aria-labelledby="ir-fleetbox-label">
     <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
     <span id="ir-fleetbox-label" class="ir-label">Fleet</span>
     <span class="ir-fleetbox-count"><span class="ir-fleetbox-n">{{ f.total }}</span> {{ f.agentsText }}</span>

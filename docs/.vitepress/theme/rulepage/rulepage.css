@@ -35,8 +35,9 @@
   border-left: 1px solid var(--ir-divider);
 }
 .ir-rulepage .VPDoc .aside-curtain { width: 231px; margin-left: 1px; }
-/* The foot of the page is RuleFooter.vue (edit link + last updated, 2a); this
-   page has no prev/next pager. Only once that footer has rendered. */
+/* The foot of the page is the site's own (SiteFooter.vue: edit link + last
+   updated, 2a); this page has no prev/next pager. Only once that footer has
+   rendered. */
 .ir-rulepage .VPDoc:has(.ir-docfoot) .VPDocFooter { display: none; }
 .ir-rulepage .VPDocFooter .prev-next { display: none; }
 
@@ -142,7 +143,7 @@
   align-items: baseline;
 }
 
-/* Principle: a blueprint frame, the statement in big condensed type */
+/* Principle: a registration-corner frame, the statement in big condensed type */
 .ir-rulepage .ir-kind--principle { padding: 28px; }
 .ir-rulepage .ir-kind--principle .ir-sec-body { gap: 8px; }
 /* 2a sets its display figures (statement, numerals, pull quote, fleet count)
@@ -242,7 +243,7 @@
 .ir-rulepage .vp-doc .ir-band--steel a:hover { color: var(--ir-on-steel); }
 .ir-rulepage .ir-band--steel :focus-visible { outline-color: var(--ir-on-steel-label); }
 
-/* ── Rollout: pull quote and blueprint step cards ── */
+/* ── Rollout: pull quote and framed step cards ── */
 .ir-rulepage .vp-doc .ir-pull { margin: 0; max-width: 640px; display: flex; flex-direction: column; gap: 6px; }
 .ir-rulepage .vp-doc .ir-pull blockquote { margin: 0; padding: 0; border: 0; color: var(--ir-text); }
 .ir-rulepage .vp-doc .ir-pull blockquote p {
@@ -314,7 +315,7 @@
 /* The portrait's own pending note has no room at strip size; the caption carries it */
 .ir-rulepage .ir-strip .ir-portrait-note { display: none; }
 
-/* A fleet over a dozen: one blueprint contact sheet, 8 / 6 / 4 columns by the
+/* A fleet over a dozen: one framed contact sheet, 8 / 6 / 4 columns by the
    content width (below), its first two rows until "Show all" */
 .ir-rulepage .ir-strip-sheet { padding: 16px; }
 .ir-rulepage .vp-doc .ir-strip.is-dense .ir-strip-grid {
@@ -534,15 +535,6 @@
 }
 .ir-rulepage .VPSidebar .VPSidebarItem.level-1.is-active > .item .link > .text { color: var(--ir-accent-700); font-weight: 500; }
 
-/* ── Page foot (RuleFooter.vue): edit link and last updated on one ruled line ── */
-.ir-rulepage .vp-doc .ir-docfoot {
-  display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 24px;
-  padding-top: 20px; border-top: 1px solid var(--ir-divider);
-  font-size: 13px; line-height: 1.45; color: var(--ir-neutral-700);
-}
-.ir-rulepage .vp-doc .ir-docfoot > * { margin: 0; }
-.ir-rulepage .vp-doc .ir-docfoot-edit { font-weight: 500; }
-
 /* ── Responsive: layouts follow the content column's width ── */
 @container irdoc (max-width: 640px) {
   .ir-rulepage .vp-doc .ir-cells { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -582,8 +574,7 @@
   .ir-rulepage .VPLocalNav,
   .ir-rulepage .VPSidebar,
   .ir-rulepage .VPDoc .aside,
-  .ir-rulepage .vp-doc .header-anchor,
-  .ir-rulepage .ir-strip-more { display: none !important; }
+  .ir-rulepage .vp-doc .header-anchor { display: none !important; }
   .ir-rulepage .VPContent { padding-top: 0 !important; }
   .ir-rulepage .ir-strip.is-collapsed .ir-strip-grid > li { display: grid !important; }
   .ir-rulepage .vp-doc :is(h2, h3, h4, .ir-sec-head) { break-after: avoid; }
@@ -591,8 +582,6 @@
     .ir-cell, .ir-stepcard, .ir-band, .ir-kind--principle, .ir-pull,
     .ir-strip-grid > li, .ir-col, .ir-log > li, tr
   ) { break-inside: avoid; }
-  /* The steel field keeps its ground, or its light text would print on white */
-  .ir-rulepage .ir-band--steel { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
   .ir-rulepage .ir-ledger-table > summary::before { content: none; }
   .ir-rulepage .vp-doc .ir-table-scroll { max-height: none; overflow: visible; background: none; }
   .ir-rulepage .vp-doc .ir-table-scroll > table { width: 100%; }

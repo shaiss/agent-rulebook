@@ -150,13 +150,14 @@
 }
 
 /* ── Page foot, every page: "Edit this page on GitHub" and "Last updated" on
-   one ruled line (SiteFooter.vue; the rule page's RuleFooter.vue) ── */
+   one ruled line (SiteFooter.vue; the ledger adds its gutters in ledger.css) ── */
 .ir-docfoot {
   display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 24px;
   margin: 0; padding-top: 20px; border-top: 1px solid var(--ir-divider);
   font-size: 13px; line-height: 1.45; color: var(--ir-neutral-700);
 }
-.ir-docfoot > * { margin: 0; }
+/* in the rule page's doc column, over VitePress's own .vp-doc p margins */
+.ir-docfoot > *, .vp-doc .ir-docfoot > * { margin: 0; }
 .ir-docfoot .ir-docfoot-edit {
   font-weight: 500; color: var(--ir-accent-700);
   text-decoration: underline; text-underline-offset: 3px;
@@ -165,20 +166,20 @@
 /* A second line under the row (the landing's credit) */
 .ir-docfoot-note { flex-basis: 100%; }
 
-/* ── Blueprint frame: hairline box with "+" registration marks ── */
-.ir-home .blueprint { position: relative; border: 1px solid var(--ir-divider); }
-.ir-home .blueprint > .corner {
+/* ── Frame (.ir-frame): hairline box with "+" registration marks ── */
+.ir-home .ir-frame { position: relative; border: 1px solid var(--ir-divider); }
+.ir-home .ir-frame > .corner {
   position: absolute; width: 11px; height: 11px;
   color: color-mix(in srgb, var(--ir-text) 55%, transparent);
 }
-.ir-home .blueprint > .corner::before,
-.ir-home .blueprint > .corner::after { content: ''; position: absolute; background: currentColor; }
-.ir-home .blueprint > .corner::before { left: 5px; top: 0; width: 1px; height: 100%; }
-.ir-home .blueprint > .corner::after { top: 5px; left: 0; width: 100%; height: 1px; }
-.ir-home .blueprint > .corner.tl { top: -6px; left: -6px; }
-.ir-home .blueprint > .corner.tr { top: -6px; right: -6px; }
-.ir-home .blueprint > .corner.bl { bottom: -6px; left: -6px; }
-.ir-home .blueprint > .corner.br { bottom: -6px; right: -6px; }
+.ir-home .ir-frame > .corner::before,
+.ir-home .ir-frame > .corner::after { content: ''; position: absolute; background: currentColor; }
+.ir-home .ir-frame > .corner::before { left: 5px; top: 0; width: 1px; height: 100%; }
+.ir-home .ir-frame > .corner::after { top: 5px; left: 0; width: 100%; height: 1px; }
+.ir-home .ir-frame > .corner.tl { top: -6px; left: -6px; }
+.ir-home .ir-frame > .corner.tr { top: -6px; right: -6px; }
+.ir-home .ir-frame > .corner.bl { bottom: -6px; left: -6px; }
+.ir-home .ir-frame > .corner.br { bottom: -6px; right: -6px; }
 
 /* ── Page frame ── */
 .ir-home {
@@ -446,7 +447,8 @@
   letter-spacing: normal; text-transform: none; color: var(--ir-neutral-700);
 }
 .ir-matrix td { height: 76px; }
-.ir-cell-n { display: block; font-family: var(--ir-font-heading); font-weight: 600; font-size: 22px; line-height: 1; color: var(--ir-accent-700); }
+/* a display figure: condensed at the regular weight, like the stats and rule numerals */
+.ir-cell-n { display: block; font-family: var(--ir-font-heading); font-weight: 400; font-size: 22px; line-height: 1; color: var(--ir-accent-700); }
 .ir-cell-names { display: block; margin-top: 6px; font-size: 12.5px; line-height: 1.4; font-weight: 500; }
 /* Keep "Chief of Staff" on one line when it fits; wrap inside only when it can't */
 .ir-cell-name { display: inline-block; max-width: 100%; overflow-wrap: anywhere; }
@@ -531,10 +533,14 @@
 
 /* ── Print, every page: the content alone, ink on paper ── */
 @media print {
+  /* The site's chrome, and every control that only works on screen: all the
+     button-styled links and buttons (.ir-btn: the hero's and the 404's
+     actions, "Full ledger", "Show all", the steel field's call to action),
+     the ledger's filter and its "Back to the roster" */
   .VPNav, .VPLocalNav, .VPSidebar, .VPDoc .aside, .VPBackdrop, .VPSkipLink,
   .VPNavScreen, .VPDocFooter .prev-next, .VPFooter,
-  .vp-doc .header-anchor, .ir-actions, .ir-section-head .ir-btn, .ir-nf-actions,
-  .ir-fleet-more, .ir-strip-more, .ir-ledger-back { display: none !important; }
+  .vp-doc .header-anchor, .ir-actions, .ir-nf-actions, .ir-btn,
+  .ir-ledger-seg, .ir-ledger-back { display: none !important; }
   .VPContent, .VPContent.has-sidebar { margin: 0 !important; padding: 0 !important; }
   .VPDoc, .VPDoc .container, .VPDoc .content, .VPDoc .content-container { padding: 0 !important; max-width: none !important; }
   html, html.dark, body, .Layout, .VPContent {
@@ -563,14 +569,24 @@
   }
   .ir-home { padding: 0; gap: 32px; }
   .ir-home-main { gap: 32px; }
-  /* The steel field prints as a ruled box, not a solid block of ink */
-  .ir-gap, .ir-band--steel { border: 1px solid #000; }
-  .ir-home .ir-btn-primary { border-color: #000; }
+  /* The steel field (the landing's "Why this exists", the rule page's "Our
+     gap") prints as a ruled box, black ink on white (the steel tokens
+     above), so it reads the same with background graphics on or off */
+  .ir-gap, .ir-band--steel { background: #fff; color: #000; border: 1px solid #000; }
+  /* Pressed toggles and the current option (the ledger's filter and
+     expression switch) are filled on screen; the print tokens would make
+     that fill white under white text. An inked outline instead (the
+     ledger's selected card keeps its own frame) */
+  [aria-pressed='true']:not(.ir-ledger-card),
+  .ir-ledger .ir-ledger-expr-opt.is-current {
+    background: transparent !important; color: #000 !important; border: 2px solid #000 !important;
+  }
+  [aria-pressed='true']:not(.ir-ledger-card) * { color: #000 !important; }
   /* The whole fleet, folded or not */
   .ir-fleet-box.is-folded .ir-fleet > li:nth-child(n) { display: block !important; }
   /* Frames, cards and table rows stay whole on a page; headings stay with
      what follows them */
-  .blueprint, .ir-rule, .ir-step, .ir-matrix tr, .ir-stat, .ir-fleet > li,
+  .ir-frame, .ir-rule, .ir-step, .ir-matrix tr, .ir-stat, .ir-fleet > li,
   .ir-principle, .ir-gap, .ir-quote, .ir-docfoot { break-inside: avoid; }
   h1, h2, h3, .ir-section-head { break-after: avoid; }
   /* Where a link leads, for links that go somewhere off the page: the

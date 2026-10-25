@@ -3,9 +3,10 @@ import { computed } from 'vue'
 import { withBase } from 'vitepress'
 import type { Agent } from '../data/parse'
 
-// One agent's portrait in a blueprint frame (a span, so it can sit inside buttons). Falls back to a monogram when
-// the agent has no portrait yet, or when its portrait shows a newer face
-// than its ledger row describes (until the ledger is synced).
+// One agent's portrait in a registration-corner frame (.ir-frame; a span, so
+// it can sit inside buttons). Falls back to a monogram when the agent has no
+// portrait yet, or when its portrait shows a newer face than its ledger row
+// describes (until the ledger is synced).
 const props = withDefaults(
   defineProps<{
     agent: Agent
@@ -31,7 +32,7 @@ const pendingNote = computed(() =>
 </script>
 
 <template>
-  <span class="ir-portrait" :class="{ blueprint: framed, 'is-pending': !agent.portrait }">
+  <span class="ir-portrait" :class="{ 'ir-frame': framed, 'is-pending': !agent.portrait }">
     <template v-if="framed">
       <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
     </template>

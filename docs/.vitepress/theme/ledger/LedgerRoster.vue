@@ -5,7 +5,8 @@ import { data } from '../../data/rulebook.data'
 import { GENDERS, type Agent, type Gender } from '../../data/parse'
 import LedgerEntry from './LedgerEntry.vue'
 import LedgerTallies from './LedgerTallies.vue'
-import LedgerFooter from './LedgerFooter.vue'
+import SiteFooter from '../SiteFooter.vue'
+import { readEntry, writeEntry } from '../entry-state'
 import { RULES, ruleLink } from './links'
 
 // The ledger page (/ledger): roster cards with a gender filter, the selected
@@ -67,10 +68,11 @@ function agentFromHash() {
 }
 
 // ── History ──
-// The filter and the selection live in this history entry's state (and the
-// selection in the hash too), so Back to /ledger, or a reload, comes back to
-// the same roster before the scroll position is restored.
-const STATE_KEY = 'irLedger'
+// The filter and the selection are this history entry's UI state
+// (history.state.ir.ledger, entry-state.ts), and the selection is in the hash
+// too, so Back to /ledger, or a reload, comes back to the same roster before
+// the scroll position is restored.
+const ENTRY = 'ledger'
 interface Saved {
   filter: Filter
   slug: string
@@ -78,34 +80,14 @@ interface Saved {
 const isFilter = (v: unknown): v is Filter => filters.some((f) => f.key === v)
 
 function savedState(): Saved | null {
-  const s = history.state?.[STATE_KEY]
-  return s && isFilter(s.filter) && agents.some((a) => a.slug === s.slug) ? s : null
+  const s = readEntry<Partial<Saved>>(ENTRY)
+  return s && isFilter(s.filter) && agents.some((a) => a.slug === s.slug) ? (s as Saved) : null
 }
 
 /** Record the filter and selection on the current entry; with `hash`, also point the URL at the selection */
 function persist(hash = false) {
-  const url = hash ? `${location.pathname}${location.search}#${selectedSlug.value}` : undefined
-  const mine: Saved = { filter: filter.value, slug: selectedSlug.value }
-  history.replaceState({ ...(history.state ?? {}), [STATE_KEY]: mine }, '', url)
-}
-
-// VitePress's router replaces the whole state with { scrollPosition } just
-// before it pushes the next page, which would drop ours. While the ledger is
-// mounted, writes that keep this entry's URL carry the ledger's state along.
-let unkeep: (() => void) | undefined
-function keepStateAcrossRouter() {
-  const native = history.replaceState
-  const patched: History['replaceState'] = function (this: History, state, unused, url) {
-    const mine = this.state?.[STATE_KEY]
-    if (mine && (url == null || url === '') && state && typeof state === 'object' && !(STATE_KEY in state)) {
-      state = { ...state, [STATE_KEY]: mine }
-    }
-    return native.call(this, state, unused, url)
-  }
-  history.replaceState = patched
-  return () => {
-    if (history.replaceState === patched) history.replaceState = native
-  }
+  if (hash) history.replaceState(history.state, '', `${location.pathname}${location.search}#${selectedSlug.value}`)
+  writeEntry<Saved>(ENTRY, { filter: filter.value, slug: selectedSlug.value })
 }
 
 /**
@@ -177,7 +159,6 @@ function backToRoster() {
 const onHashChange = () => syncFromHash(motion(), true)
 
 onMounted(() => {
-  unkeep = keepStateAcrossRouter()
   const saved = savedState()
   const fromHash = agentFromHash()
   if (saved && (!fromHash || fromHash.slug === saved.slug)) {
@@ -191,7 +172,6 @@ onMounted(() => {
   window.addEventListener('hashchange', onHashChange)
 })
 onBeforeUnmount(() => {
-  unkeep?.()
   window.removeEventListener('hashchange', onHashChange)
 })
 </script>
@@ -275,7 +255,7 @@ onBeforeUnmount(() => {
 
       <LedgerTallies />
 
-      <LedgerFooter />
+      <SiteFooter />
 
       <p class="ir-sr" role="status">{{ status }}</p>
     </main>

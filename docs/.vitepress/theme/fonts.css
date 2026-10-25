@@ -10,7 +10,11 @@
    - ascent/descent/line gap: Barlow's own (1000 / 200 / 0 per 1000 units,
      the same in every weight and in the condensed cut), divided by
      size-adjust, since the browser scales the overrides by it too.
-   Bold text takes Arial Bold, never a synthesised bold, so its width holds. */
+   Bold text takes Arial Bold, never a synthesised bold, so its width holds.
+   Each fallback covers only Barlow's own latin range (the unicode-range of
+   the latin subset): a character Barlow lacks, such as "→", falls through to
+   system-ui at its full size, whether or not Barlow has loaded, instead of
+   being set in Arial scaled down to Barlow's widths. */
 
 @font-face {
   font-family: 'Barlow Fallback';
@@ -20,6 +24,7 @@
   ascent-override: 104.01%;
   descent-override: 20.8%;
   line-gap-override: 0%;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 @font-face {
   font-family: 'Barlow Fallback';
@@ -29,6 +34,7 @@
   ascent-override: 103.16%;
   descent-override: 20.63%;
   line-gap-override: 0%;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 @font-face {
   font-family: 'Barlow Fallback';
@@ -38,6 +44,7 @@
   ascent-override: 109.23%;
   descent-override: 21.85%;
   line-gap-override: 0%;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 @font-face {
   font-family: 'Barlow Condensed Fallback';
@@ -47,6 +54,7 @@
   ascent-override: 132.52%;
   descent-override: 26.5%;
   line-gap-override: 0%;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 @font-face {
   font-family: 'Barlow Condensed Fallback';
@@ -56,4 +64,5 @@
   ascent-override: 136.59%;
   descent-override: 27.32%;
   line-gap-override: 0%;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }

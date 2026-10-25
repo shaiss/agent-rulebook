@@ -9,8 +9,8 @@ import rulebookMarkdown from './theme/rulepage/markdown'
 const PRELOAD_FONTS = ['barlow-latin-400-normal', 'barlow-condensed-latin-600-normal']
 
 // Before first paint: if this history entry left the landing's fleet open
-// (history.state.ir, Home.vue), show it open, so Back after a full reload
-// restores the page without a jump.
+// (history.state.ir.fleetOpen: theme/entry-state.ts, Home.vue), show it open,
+// so Back after a full reload restores the page without a jump.
 const restoreUi = `(()=>{try{var s=history.state;s&&s.ir&&s.ir.fleetOpen&&document.documentElement.classList.add('ir-fleet-open')}catch(e){}})()`
 
 export default defineConfig({

@@ -23,3 +23,7 @@ Preview deployments stay behind Vercel Authentication (Deployment Protection). P
 ## Publishing
 
 The owner-approved go-public step (opening production) and attaching a custom domain require owner approval.
+
+## Content checks
+
+CI (`content-check`) fails the build if published docs leak internals (paths, emails, phones, cloud IDs, tokens/keys, image metadata, unknown binaries, symlinks, or private terms). Private terms are supplied only as salted SHA-256 hashes in the required `CONTENT_CHECK_EXTRA_TERMS` repo secret (`scripts/content-check/hash-terms.mjs` builds that value). Sync PRs are content-only and are never auto-merged.

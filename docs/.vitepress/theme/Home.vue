@@ -15,7 +15,7 @@ const agentLink = (a: Agent) => withBase(`/ledger#${a.slug}`)
 const plural = (n: number, one: string, many: string) => (n === 1 ? one : many)
 const pad = (n: number) => String(n).padStart(2, '0')
 
-const { agents, rules, principle, rollout, setDate, updatedDate } = data
+const { agents, rules, principle, rollout, setDate, updatedDate, hasHeritageColumn } = data
 const { matrix, open, genderTally, ageTally } = balance(agents)
 
 const draftCount = rules.filter((r) => r.status === 'draft').length
@@ -39,13 +39,10 @@ const ruleCount = [
   .join(' · ')
 
 // ── Rule card text ──
-// A card shows the rule's lead as its title and the first sentence of the
-// rest as its body. Rules that open with a long sentence have no lead, so
-// their title is the sentence cut before its first trailing clause.
+// A card shows the rule's lead (from parse.ts) as its title and the first
+// sentence of the rest as its body.
 
-const TITLE_MAX = 48
 const BODY_MAX = 170
-const BREAK_WORDS = /^(with|after|before|only|when|while|by|for|because|so|which|that|on|in|to|from|and|or|but|if|unless|until|as)$/i
 
 const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1)
 
@@ -62,30 +59,20 @@ function clip(text: string, max: number) {
   return cut.slice(0, cut.lastIndexOf(' ')).replace(/[\s,;:]+$/, '') + '…'
 }
 
-function excerptTitle(text: string) {
-  const clause = firstSentence(text).replace(/[.!?]$/, '').split(/[,;:]\s|\s[–—]\s/)[0]
-  if (clause.length <= TITLE_MAX) return clause
-  const words = clause.split(' ')
-  let best = ''
-  for (let i = 3; i < words.length; i++) {
-    const prefix = words.slice(0, i).join(' ')
-    if (prefix.length > TITLE_MAX) break
-    if (BREAK_WORDS.test(words[i])) best = prefix
-  }
-  return best || clip(clause, TITLE_MAX)
-}
+// Word joiners keep ISO dates on one line ("2026-10-23", not "2026-" / "10-23")
+const keepDates = (s: string) => s.replace(/\b(\d{4})-(\d{2})-(\d{2})\b/g, '$1-\u2060$2-\u2060$3')
 
 function excerptBody(text: string) {
   let s = firstSentence(capitalize(text))
   if (s.length > BODY_MAX) s = s.replace(/\s*\([^()]*\)/g, '')
-  return clip(s, BODY_MAX)
+  return keepDates(clip(s, BODY_MAX))
 }
 
 const ruleCards = rules.map((r: Rule) => ({
   n: r.n,
   num: pad(r.n),
   href: ruleLink(r.n),
-  title: r.lead ?? excerptTitle(r.body),
+  title: r.lead ?? clip(firstSentence(r.body).replace(/[.!?]$/, ''), 64),
   body: excerptBody(r.body),
   status: r.status === 'draft' ? 'Draft' : r.status === 'locked' ? 'Locked' : null
 }))
@@ -212,11 +199,11 @@ const pendingNote = [
         <div class="ir-balance-intro">
           <h2 id="ir-balance-title">An even blend, kept in the open</h2>
           <p>
-            Before any portrait is set, it's checked against the ledger: no two agents share a race, gender
-            presentation and age band. The grid shows who fills each gender × age cell today<template v-if="open.length">,
+            Before any portrait is set, it's checked against the ledger: no two agents share
+            {{ hasHeritageColumn ? 'a specific heritage' : 'a race' }}, gender presentation and age band. The grid shows who fills each gender × age cell today<template v-if="open.length">,
             and which are still open</template><template v-else>; every cell has at least one face</template>.
           </p>
-          <p class="ir-aside">Gaps are named as a list, not a nudge.</p>
+          <p v-if="open.length" class="ir-aside">Gaps are named as a list, not a nudge.</p>
         </div>
 
         <!-- Wide screens: gender rows × age columns -->

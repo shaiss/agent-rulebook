@@ -213,6 +213,7 @@
 .ir-home .ir-fleet-item:hover { color: var(--ir-text); }
 .ir-home .ir-fleet-item .ir-portrait { transition: border-color 0.15s; }
 .ir-home .ir-fleet-item:hover .ir-portrait { border-color: var(--ir-accent); }
+.ir-home .ir-fleet-item:active .ir-portrait { border-color: var(--ir-accent-800); }
 .ir-fleet-caption { display: flex; flex-direction: column; font-size: 11px; line-height: 1.35; color: var(--ir-neutral-700); }
 .ir-fleet-name { font-size: 13px; font-weight: 500; color: var(--ir-text); overflow-wrap: anywhere; }
 .ir-home .ir-fleet-item:hover .ir-fleet-name { text-decoration: underline; text-underline-offset: 3px; }

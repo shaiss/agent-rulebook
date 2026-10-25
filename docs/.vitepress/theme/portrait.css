@@ -35,6 +35,7 @@
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
   padding: 6px;
   text-align: center;
+  overflow: hidden;
   background-color: var(--ir-surface);
   background-image: repeating-linear-gradient(135deg, transparent 0 6px, color-mix(in srgb, var(--ir-accent) 10%, transparent) 6px 7px);
 }
@@ -45,4 +46,8 @@
 .ir-portrait-note {
   font-size: 11px; line-height: 1.25; letter-spacing: 0.02em;
   color: var(--ir-neutral-700);
+}
+/* Small tiles: the monogram alone; the pending reason is in the link name */
+@container (max-width: 120px) {
+  .ir-portrait-note { display: none; }
 }

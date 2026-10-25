@@ -199,18 +199,25 @@
 .ir-stat dt { font-size: 12px; color: var(--ir-neutral-700); }
 .ir-stat dd { margin: 0; font-family: var(--ir-font-heading); font-weight: 600; font-size: 52px; line-height: 1; color: var(--ir-accent); }
 
-/* ── Fleet strip ── */
-.ir-fleet { display: grid; grid-template-columns: repeat(11, minmax(0, 1fr)); gap: 12px; }
-.ir-portrait { margin: 0; display: flex; flex-direction: column; gap: 8px; }
-.ir-portrait-frame {
-  aspect-ratio: 3 / 4;
-  display: grid; place-items: center;
-  background:
-    linear-gradient(160deg, color-mix(in srgb, var(--ir-accent) 22%, transparent), color-mix(in srgb, var(--ir-accent) 6%, transparent));
+/* ── Fleet: every ledger face, wrapping. Tiles render at roughly 60–100px;
+   Home.vue passes Portrait sizes="80px" so every device, 3x phones included,
+   takes the 240px file. The column gap clears neighbouring tiles'
+   registration marks. ── */
+.ir-home .ir-fleet {
+  list-style: none; margin: 0; padding: 0;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
+  gap: 22px 16px;
 }
-.ir-monogram { font-family: var(--ir-font-heading); font-weight: 600; font-size: 30px; color: var(--ir-accent-700); }
-.ir-portrait figcaption { display: flex; flex-direction: column; font-size: 11px; line-height: 1.35; color: var(--ir-neutral-700); }
-.ir-portrait-name { font-size: 13px; font-weight: 500; color: var(--ir-text); }
+.ir-home .ir-fleet > li { margin: 0; padding: 0; min-width: 0; }
+.ir-home .ir-fleet-item { display: flex; flex-direction: column; gap: 8px; color: var(--ir-text); text-decoration: none; }
+.ir-home .ir-fleet-item:hover { color: var(--ir-text); }
+.ir-home .ir-fleet-item .ir-portrait { transition: border-color 0.15s; }
+.ir-home .ir-fleet-item:hover .ir-portrait { border-color: var(--ir-accent); }
+.ir-fleet-caption { display: flex; flex-direction: column; font-size: 11px; line-height: 1.35; color: var(--ir-neutral-700); }
+.ir-fleet-name { font-size: 13px; font-weight: 500; color: var(--ir-text); overflow-wrap: anywhere; }
+.ir-home .ir-fleet-item:hover .ir-fleet-name { text-decoration: underline; text-underline-offset: 3px; }
+.ir-fleet-note { font-size: 13px; color: var(--ir-neutral-700); max-width: 720px; }
+.ir-home .ir-fleet-note a { text-decoration: underline; }
 
 /* ── Principle ── */
 .ir-principle {
@@ -221,9 +228,11 @@
 .ir-principle-quote { font-family: var(--ir-font-heading); font-weight: 600; font-size: 40px; line-height: 1.1; letter-spacing: -0.015em; text-wrap: balance; }
 
 /* ── Rules grid ── */
+/* The frame draws the outer edge and each cell its inner rules, so a short
+   last row (11 rules) still closes as a grid with one empty cell. */
 .ir-rules {
   display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
-  border-top: 1px solid var(--ir-divider); border-left: 1px solid var(--ir-divider);
+  border: 1px solid var(--ir-divider);
 }
 .ir-home .ir-rule {
   padding: 22px; min-height: 196px;
@@ -233,6 +242,11 @@
   transition: background-color 0.15s;
 }
 .ir-home .ir-rule:hover { background: var(--ir-accent-100); color: var(--ir-text); }
+@media (min-width: 769px) {
+  .ir-home .ir-rule:nth-child(3n) { border-right: 0; }
+  .ir-home .ir-rule:nth-child(3n + 1):nth-last-child(-n + 3),
+  .ir-home .ir-rule:nth-child(3n + 1):nth-last-child(-n + 3) ~ .ir-rule { border-bottom: 0; }
+}
 .ir-rule-top { display: flex; justify-content: space-between; align-items: center; }
 .ir-rule-n { font-family: var(--ir-font-heading); font-weight: 600; font-size: 32px; line-height: 1; color: var(--ir-accent); }
 .ir-home .ir-rule-title { font-family: var(--ir-font-heading); font-weight: 600; font-size: 20px; line-height: 1.2; letter-spacing: normal; }
@@ -244,6 +258,8 @@
 .ir-balance-intro p { color: var(--ir-neutral-800); }
 .ir-home .ir-aside { font-size: 13px; padding-left: 12px; border-left: 2px solid var(--ir-accent); color: var(--ir-neutral-700); }
 .ir-matrix-wrap { overflow-x: auto; }
+/* Two orientations of the same cells; only one is displayed (and exposed) at a time */
+.ir-matrix-narrow { display: none; }
 .ir-matrix { width: 100%; border-collapse: collapse; table-layout: fixed; display: table; margin: 0; font-size: 13px; }
 .ir-matrix th, .ir-matrix td { border: 1px solid var(--ir-divider); padding: 12px; vertical-align: top; background: transparent; }
 .ir-matrix tr { background: transparent; border: 0; }
@@ -251,14 +267,24 @@
   font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; text-align: left;
   color: var(--ir-neutral-700);
 }
-.ir-matrix thead th:first-child { border-top-color: transparent; border-left-color: transparent; }
-.ir-matrix tbody th { width: 120px; text-align: left; font-family: var(--ir-font-heading); font-weight: 600; font-size: 16px; }
+/* table-layout: fixed takes column widths from the first row, so the
+   row-header width sits on the corner cell */
+.ir-matrix thead th:first-child { width: 120px; border-top-color: transparent; border-left-color: transparent; }
+.ir-matrix tbody th { text-align: left; font-family: var(--ir-font-heading); font-weight: 600; font-size: 16px; }
+.ir-matrix-tally {
+  display: block; margin-top: 2px;
+  font-family: var(--ir-font-body); font-weight: 400; font-size: 11px; line-height: 1.3;
+  letter-spacing: normal; text-transform: none; color: var(--ir-neutral-700);
+}
 .ir-matrix td { height: 76px; }
-.ir-matrix td span { display: block; font-weight: 500; }
+.ir-cell-n { display: block; font-family: var(--ir-font-heading); font-weight: 600; font-size: 22px; line-height: 1; color: var(--ir-accent-700); }
+.ir-cell-names { display: block; margin-top: 6px; font-size: 12.5px; line-height: 1.4; font-weight: 500; }
+/* Keep "Chief of Staff" on one line when it fits; wrap inside only when it can't */
+.ir-cell-name { display: inline-block; max-width: 100%; overflow-wrap: anywhere; }
 .ir-matrix td.is-open {
   background: repeating-linear-gradient(135deg, transparent 0 6px, color-mix(in srgb, var(--ir-accent) 10%, transparent) 6px 7px);
 }
-.ir-matrix td .ir-open { font-weight: 400; font-size: 12px; color: var(--ir-accent-700); }
+.ir-matrix td .ir-open { display: block; font-size: 12px; color: var(--ir-accent-700); }
 
 /* ── Rollout ── */
 .ir-quote { margin: 0; padding: 0; border: 0; display: flex; flex-direction: column; gap: 6px; max-width: 680px; }
@@ -291,18 +317,30 @@
   .ir-home .ir-hero-title { font-size: 80px; }
   .ir-hero { grid-template-columns: 1fr; gap: 40px; }
   .ir-plate { max-width: 480px; }
-  .ir-fleet { grid-template-columns: repeat(6, minmax(0, 1fr)); row-gap: 20px; }
   .ir-balance { grid-template-columns: 1fr; gap: 24px; }
 }
 @media (max-width: 768px) {
   .ir-home { padding: 32px 16px 32px; gap: 56px; }
   .ir-home .ir-hero-title { font-size: 56px; }
   .ir-lede { font-size: 17px; }
-  .ir-fleet { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .ir-home .ir-fleet { grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); gap: 20px 14px; }
   .ir-rules, .ir-steps { grid-template-columns: 1fr; }
-  .ir-home .ir-rule { min-height: 0; }
+  .ir-home .ir-rule { min-height: 0; border-right: 0; }
+  .ir-home .ir-rule:last-child { border-bottom: 0; }
   .ir-principle, .ir-gap { grid-template-columns: 1fr; gap: 12px; padding: 24px; }
   .ir-principle-quote { font-size: 30px; }
   .ir-gap-lead { font-size: 26px; }
-  .ir-matrix { min-width: 560px; }
+  .ir-matrix thead th:first-child { width: 100px; }
+  .ir-matrix th, .ir-matrix td { padding: 10px; }
+}
+@media (max-width: 600px) {
+  .ir-matrix-wide { display: none; }
+  .ir-matrix-narrow { display: block; }
+  .ir-matrix th, .ir-matrix td { padding: 10px 8px; }
+  .ir-matrix thead th { letter-spacing: 0.05em; }
+  .ir-matrix thead th:first-child { width: 60px; }
+  .ir-matrix td { height: 64px; }
+}
+@media (max-width: 480px) {
+  .ir-home .ir-fleet { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px 14px; }
 }

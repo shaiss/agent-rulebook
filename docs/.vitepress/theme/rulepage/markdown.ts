@@ -133,7 +133,9 @@ function transform(md: MarkdownIt, state: StateCore): Token[] {
   }
 
   function section(kind: Kind | null, ts: Token[]): Token[] {
-    markTables(ts)
+    // Column widths are tuned for the long ledger table only; other tables
+    // (e.g. the fleet tally) keep the browser's own layout.
+    markTables(ts, kind === 'ledger')
     markDateLists(ts)
     if (kind === 'rules') return rules(ts)
     if (kind === 'principle') return labelled(principle(ts))
@@ -407,7 +409,7 @@ function transform(md: MarkdownIt, state: StateCore): Token[] {
    * scrolls sideways inside its own box. A cell that opens with an ISO date
    * keeps the date on one line.
    */
-  function markTables(ts: Token[]) {
+  function markTables(ts: Token[], widths: boolean) {
     for (let i = 0; i < ts.length; i++) {
       if (ts[i].type !== 'table_open') continue
       const end = closeOf(ts, i)
@@ -417,7 +419,7 @@ function transform(md: MarkdownIt, state: StateCore): Token[] {
         if (ts[j].type === 'th_open' || ts[j].type === 'td_open')
           rows[rows.length - 1].push({ open: ts[j], inline: ts[j + 1], text: ts[j + 1].content.trim() })
       }
-      for (let c = 0; c < (rows[0]?.length ?? 0); c++) {
+      for (let c = 0; widths && c < (rows[0]?.length ?? 0); c++) {
         const body = rows.slice(1).map((r) => r[c]?.text ?? '')
         if (!body.length) continue
         const lengths = body.map((v) => v.length)

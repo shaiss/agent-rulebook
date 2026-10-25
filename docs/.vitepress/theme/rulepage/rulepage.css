@@ -161,26 +161,38 @@
      #rule-N jump at its scroll offset plus the target's padding-top, which
      would put the cell's edge against the sticky bars from 960px to 1279px */
   margin: 0; padding: 0 20px 20px; min-height: 220px; min-width: 0;
+  position: relative;
   display: flex; flex-direction: column; gap: 10px;
   border-top: 20px solid transparent;
-  border-right: 1px solid var(--ir-divider);
-  border-bottom: 1px solid var(--ir-divider);
+  --ir-cell-r: 1; --ir-cell-b: 1;
   transition: background-color 0.3s;
+}
+/* Inner rules are drawn as pseudo-elements: real right/bottom borders would
+   mitre into the transparent top inset and fade out at every joint. The
+   right rule spans the cell's full height; the bottom rule stops short of
+   it, so no pixel is drawn twice. */
+.ir-rulepage .vp-doc .ir-cell::before,
+.ir-rulepage .vp-doc .ir-cell::after {
+  content: ''; position: absolute; background: var(--ir-divider); pointer-events: none;
+}
+.ir-rulepage .vp-doc .ir-cell::after { top: -20px; right: 0; bottom: 0; width: 1px; opacity: var(--ir-cell-r); }
+.ir-rulepage .vp-doc .ir-cell::before {
+  left: 0; bottom: 0; height: 1px; right: calc(var(--ir-cell-r) * 1px); opacity: var(--ir-cell-b);
 }
 /* The edges the frame already draws, per column count (3, 2 or 1 across) */
 @container irdoc (width > 640px) {
-  .ir-rulepage .vp-doc .ir-cells > .ir-cell:nth-child(3n) { border-right: 0; }
+  .ir-rulepage .vp-doc .ir-cells > .ir-cell:nth-child(3n) { --ir-cell-r: 0; }
   .ir-rulepage .vp-doc .ir-cells > .ir-cell:nth-child(3n + 1):nth-last-child(-n + 3),
-  .ir-rulepage .vp-doc .ir-cells > .ir-cell:nth-child(3n + 1):nth-last-child(-n + 3) ~ .ir-cell { border-bottom: 0; }
+  .ir-rulepage .vp-doc .ir-cells > .ir-cell:nth-child(3n + 1):nth-last-child(-n + 3) ~ .ir-cell { --ir-cell-b: 0; }
 }
 @container irdoc (560px < width <= 640px) {
-  .ir-rulepage .vp-doc .ir-cells > .ir-cell:nth-child(2n) { border-right: 0; }
+  .ir-rulepage .vp-doc .ir-cells > .ir-cell:nth-child(2n) { --ir-cell-r: 0; }
   .ir-rulepage .vp-doc .ir-cells > .ir-cell:nth-child(2n + 1):nth-last-child(-n + 2),
-  .ir-rulepage .vp-doc .ir-cells > .ir-cell:nth-child(2n + 1):nth-last-child(-n + 2) ~ .ir-cell { border-bottom: 0; }
+  .ir-rulepage .vp-doc .ir-cells > .ir-cell:nth-child(2n + 1):nth-last-child(-n + 2) ~ .ir-cell { --ir-cell-b: 0; }
 }
 @container irdoc (width <= 560px) {
-  .ir-rulepage .vp-doc .ir-cells > .ir-cell { border-right: 0; }
-  .ir-rulepage .vp-doc .ir-cells > .ir-cell:last-child { border-bottom: 0; }
+  .ir-rulepage .vp-doc .ir-cells > .ir-cell { --ir-cell-r: 0; }
+  .ir-rulepage .vp-doc .ir-cells > .ir-cell:last-child { --ir-cell-b: 0; }
 }
 .ir-rulepage .vp-doc .ir-cell:target { background: var(--ir-accent-100); }
 .ir-rulepage .vp-doc .ir-cell > * { margin: 0; }

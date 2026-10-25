@@ -1,4 +1,5 @@
 import { defineConfig } from 'vitepress'
+import rulebookMarkdown from './theme/rulepage/markdown'
 
 export default defineConfig({
   title: 'Agent Rulebook',
@@ -9,11 +10,21 @@ export default defineConfig({
     ['link', { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' }],
     ['link', { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;700&family=Barlow+Condensed:wght@400;600&display=swap' }]
   ],
+  markdown: {
+    config(md) {
+      md.use(rulebookMarkdown)
+    }
+  },
+  transformPageData(pageData) {
+    if (pageData.relativePath === 'rules/avatars.md') {
+      pageData.frontmatter.pageClass = 'ir-rulepage'
+    }
+  },
   themeConfig: {
     nav: [
       { text: 'Home', link: '/' },
       { text: 'Rules', link: '/rules/avatars' },
-      { text: 'Ledger', link: '/rules/avatars#ledger-live-portraits' }
+      { text: 'Ledger', link: '/ledger' }
     ],
     socialLinks: [
       { icon: 'github', link: 'https://github.com/shaiss/agent-rulebook' }
@@ -24,7 +35,17 @@ export default defineConfig({
         items: [
           { text: 'Avatars', link: '/rules/avatars' }
         ]
+      },
+      {
+        text: 'Reference',
+        items: [
+          { text: 'Ledger', link: '/ledger' }
+        ]
       }
-    ]
+    ],
+    editLink: {
+      pattern: 'https://github.com/shaiss/agent-rulebook/edit/main/docs/:path',
+      text: 'Edit this page on GitHub'
+    }
   }
 })

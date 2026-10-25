@@ -1,0 +1,368 @@
+[
+  {
+    "slug": "anchor",
+    "name": "Anchor",
+    "gender": "masc",
+    "age": "60s+"
+  },
+  {
+    "slug": "anvil",
+    "name": "Anvil",
+    "gender": "fem",
+    "age": "40s"
+  },
+  {
+    "slug": "assay",
+    "name": "Assay",
+    "gender": "masc",
+    "age": "50s"
+  },
+  {
+    "slug": "bell",
+    "name": "Bell",
+    "gender": "fem",
+    "age": "20s"
+  },
+  {
+    "slug": "bevel",
+    "name": "Bevel",
+    "gender": "masc",
+    "age": "60s+"
+  },
+  {
+    "slug": "bloom",
+    "name": "Bloom",
+    "gender": "masc",
+    "age": "60s+"
+  },
+  {
+    "slug": "bukz",
+    "name": "Bukz",
+    "gender": "fem",
+    "age": "40s"
+  },
+  {
+    "slug": "car-guru",
+    "name": "Car Guru",
+    "gender": "masc",
+    "age": "40s"
+  },
+  {
+    "slug": "cass",
+    "name": "Cass",
+    "gender": "fem",
+    "age": "30s"
+  },
+  {
+    "slug": "cheech",
+    "name": "Cheech",
+    "gender": "fem",
+    "age": "20s"
+  },
+  {
+    "slug": "chief-of-staff",
+    "name": "Chief of Staff",
+    "gender": "fem",
+    "age": "50s"
+  },
+  {
+    "slug": "cipher",
+    "name": "Cipher",
+    "gender": "fem",
+    "age": "30s"
+  },
+  {
+    "slug": "closer",
+    "name": "Closer",
+    "gender": "masc",
+    "age": "20s"
+  },
+  {
+    "slug": "compass",
+    "name": "Compass",
+    "gender": "masc",
+    "age": "50s"
+  },
+  {
+    "slug": "crest",
+    "name": "Crest",
+    "gender": "masc",
+    "age": "50s"
+  },
+  {
+    "slug": "dadump",
+    "name": "dadump",
+    "gender": "fem",
+    "age": "20s"
+  },
+  {
+    "slug": "deck",
+    "name": "Deck",
+    "gender": "fem",
+    "age": "40s"
+  },
+  {
+    "slug": "dial",
+    "name": "Dial",
+    "gender": "nb",
+    "age": "50s"
+  },
+  {
+    "slug": "folio",
+    "name": "Folio",
+    "gender": "masc",
+    "age": "50s"
+  },
+  {
+    "slug": "gleam",
+    "name": "Gleam",
+    "gender": "masc",
+    "age": "20s"
+  },
+  {
+    "slug": "haggle",
+    "name": "Haggle Bot",
+    "gender": "fem",
+    "age": "20s"
+  },
+  {
+    "slug": "haven",
+    "name": "Haven",
+    "gender": "fem",
+    "age": "30s"
+  },
+  {
+    "slug": "hearth",
+    "name": "Hearth",
+    "gender": "fem",
+    "age": "50s"
+  },
+  {
+    "slug": "helm",
+    "name": "Helm",
+    "gender": "fem",
+    "age": "50s"
+  },
+  {
+    "slug": "herald",
+    "name": "Herald",
+    "gender": "nb",
+    "age": "60s+"
+  },
+  {
+    "slug": "ink",
+    "name": "Ink",
+    "gender": "nb",
+    "age": "40s"
+  },
+  {
+    "slug": "integrator",
+    "name": "Integrator",
+    "gender": "fem",
+    "age": "40s"
+  },
+  {
+    "slug": "kai",
+    "name": "Kai",
+    "gender": "nb",
+    "age": "50s"
+  },
+  {
+    "slug": "keel",
+    "name": "Keel",
+    "gender": "masc",
+    "age": "60s+"
+  },
+  {
+    "slug": "lantern",
+    "name": "Lantern",
+    "gender": "fem",
+    "age": "50s"
+  },
+  {
+    "slug": "lark",
+    "name": "Lark",
+    "gender": "fem",
+    "age": "20s"
+  },
+  {
+    "slug": "lens",
+    "name": "Lens",
+    "gender": "nb",
+    "age": "20s"
+  },
+  {
+    "slug": "luna",
+    "name": "Luna",
+    "gender": "fem",
+    "age": "50s"
+  },
+  {
+    "slug": "migrator",
+    "name": "Migrator",
+    "gender": "nb",
+    "age": "40s"
+  },
+  {
+    "slug": "nadia",
+    "name": "Nadia",
+    "gender": "fem",
+    "age": "40s"
+  },
+  {
+    "slug": "nova",
+    "name": "Nova",
+    "gender": "fem",
+    "age": "60s+"
+  },
+  {
+    "slug": "orin",
+    "name": "Orin",
+    "gender": "fem",
+    "age": "60s+"
+  },
+  {
+    "slug": "ovi",
+    "name": "Ovi",
+    "gender": "fem",
+    "age": "30s"
+  },
+  {
+    "slug": "porter",
+    "name": "Porter",
+    "gender": "masc",
+    "age": "30s"
+  },
+  {
+    "slug": "press",
+    "name": "Press",
+    "gender": "masc",
+    "age": "30s"
+  },
+  {
+    "slug": "quill",
+    "name": "Quill",
+    "gender": "masc",
+    "age": "30s"
+  },
+  {
+    "slug": "quilltone",
+    "name": "Quilltone",
+    "gender": "nb",
+    "age": "30s"
+  },
+  {
+    "slug": "receipts",
+    "name": "Receipts",
+    "gender": "masc",
+    "age": "30s"
+  },
+  {
+    "slug": "reeve",
+    "name": "Reeve",
+    "gender": "fem",
+    "age": "50s"
+  },
+  {
+    "slug": "relay",
+    "name": "Relay",
+    "gender": "masc",
+    "age": "40s"
+  },
+  {
+    "slug": "remy",
+    "name": "Remy",
+    "gender": "masc",
+    "age": "20s"
+  },
+  {
+    "slug": "ripple",
+    "name": "Ripple",
+    "gender": "fem",
+    "age": "30s"
+  },
+  {
+    "slug": "sage",
+    "name": "Sage",
+    "gender": "masc",
+    "age": "20s"
+  },
+  {
+    "slug": "scout",
+    "name": "Scout",
+    "gender": "masc",
+    "age": "40s"
+  },
+  {
+    "slug": "signal",
+    "name": "Signal",
+    "gender": "nb",
+    "age": "30s"
+  },
+  {
+    "slug": "snap",
+    "name": "Snap",
+    "gender": "fem",
+    "age": "20s"
+  },
+  {
+    "slug": "spot",
+    "name": "Spot",
+    "gender": "masc",
+    "age": "20s"
+  },
+  {
+    "slug": "stamp",
+    "name": "Stamp",
+    "gender": "masc",
+    "age": "20s"
+  },
+  {
+    "slug": "steward",
+    "name": "Steward",
+    "gender": "fem",
+    "age": "60s+"
+  },
+  {
+    "slug": "tern",
+    "name": "Tern",
+    "gender": "masc",
+    "age": "40s"
+  },
+  {
+    "slug": "thrift",
+    "name": "Thrift",
+    "gender": "masc",
+    "age": "40s"
+  },
+  {
+    "slug": "tide",
+    "name": "Tide",
+    "gender": "nb",
+    "age": "40s"
+  },
+  {
+    "slug": "vera",
+    "name": "Vera",
+    "gender": "fem",
+    "age": "30s"
+  },
+  {
+    "slug": "wire",
+    "name": "Wire",
+    "gender": "nb",
+    "age": "50s"
+  },
+  {
+    "slug": "wrench",
+    "name": "Wrench",
+    "gender": "masc",
+    "age": "40s"
+  },
+  {
+    "slug": "wright",
+    "name": "Wright",
+    "gender": "masc",
+    "age": "50s"
+  }
+]

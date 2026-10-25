@@ -15,8 +15,8 @@ const agentLink = (a: Agent) => withBase(`/ledger#${a.slug}`)
 const plural = (n: number, one: string, many: string) => (n === 1 ? one : many)
 const pad = (n: number) => String(n).padStart(2, '0')
 
-const { agents, rules, principle, rollout, setDate, updatedDate, hasHeritageColumn } = data
-const { matrix, open, genderTally, ageTally } = balance(agents)
+const { agents, rules, principle, rollout, setDate, refinedDate, updatedDate, hasHeritageColumn } = data
+const { matrix, open, ungrouped, genderTally, ageTally } = balance(agents)
 
 const draftCount = rules.filter((r) => r.status === 'draft').length
 const lockedCount = rules.filter((r) => r.status === 'locked').length
@@ -204,6 +204,10 @@ const pendingNote = [
             and which are still open</template><template v-else>; every cell has at least one face</template>.
           </p>
           <p v-if="open.length" class="ir-aside">Gaps are named as a list, not a nudge.</p>
+          <p v-if="ungrouped.length" class="ir-aside">
+            Not in the grid: {{ ungrouped.map((a) => a.name).join(', ') }}. The ledger gives
+            {{ plural(ungrouped.length, 'this agent', 'these agents') }} a gender presentation or age band the grid doesn't have.
+          </p>
         </div>
 
         <!-- Wide screens: gender rows × age columns -->
@@ -313,7 +317,7 @@ const pendingNote = [
     <footer class="ir-footer">
       <a :href="repoLink" target="_blank" rel="noreferrer">Edit on GitHub</a>
       <span v-if="setDate">
-        Rules set by Shai, {{ setDate }}<template v-if="updatedDate && updatedDate !== setDate"> · refined {{ updatedDate }}</template>
+        Rules set by Shai, {{ setDate }}<template v-if="refinedDate && refinedDate !== setDate"> · refined {{ refinedDate }}</template>
       </span>
     </footer>
   </div>

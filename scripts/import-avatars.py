@@ -9,10 +9,12 @@ For each agent this writes two re-encoded copies to docs/public/avatars/
 (EXIF, XMP, ICC, comments, C2PA/JUMBF), and records only the fields the
 site needs to pair a portrait with its ledger row in
 docs/.vitepress/data/avatars.json. Nothing else from identity.json is kept.
+Generated portraits of agents missing from <agents-dir> are removed.
 
 Needs Pillow (pip install pillow).
 """
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -63,7 +65,13 @@ def main(src):
             'age': age_key(identity['age_band']),
         })
     OUT_MANIFEST.write_text(json.dumps(manifest, indent=2, ensure_ascii=False) + '\n')
-    print(f'{len(manifest)} portraits -> {OUT_IMG.relative_to(ROOT)}, manifest -> {OUT_MANIFEST.relative_to(ROOT)}')
+    # Unpublish portraits of agents no longer in the import (public/ is served as-is)
+    kept = {f'{m["slug"]}-{size}.jpg' for m in manifest for size in SIZES}
+    stale = [f for f in OUT_IMG.glob('*.jpg') if re.fullmatch(r'.+-(?:%s)\.jpg' % '|'.join(map(str, SIZES)), f.name) and f.name not in kept]
+    for f in stale:
+        f.unlink()
+    print(f'{len(manifest)} portraits -> {OUT_IMG.relative_to(ROOT)}, manifest -> {OUT_MANIFEST.relative_to(ROOT)}'
+          + (f', removed {len(stale)} stale files' if stale else ''))
 
 
 if __name__ == '__main__':

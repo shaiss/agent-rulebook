@@ -82,6 +82,9 @@ export interface Rulebook {
   sections: { title: string; slug: string }[]
   /** Dates mentioned in the rules text, for "Set / Refined" tags */
   setDate: string | null
+  /** Latest date in the Rules section: when the rules themselves last changed */
+  refinedDate: string | null
+  /** Latest date anywhere in the file, ledger included */
   updatedDate: string | null
 }
 
@@ -304,6 +307,7 @@ export function parseRulebook(md: string, manifest: ManifestEntry[], avatarBase 
     hasHeritageColumn: idx.heritage >= 0,
     sections: secs.map((s) => ({ title: s.title, slug: headingSlug(s.title) })),
     setDate: rulesDates[0] ?? null,
+    refinedDate: rulesDates[rulesDates.length - 1] ?? null,
     updatedDate: allDates[allDates.length - 1] ?? null
   }
 }
@@ -319,7 +323,9 @@ export function balance(agents: Agent[]) {
     }))
   }))
   const open = matrix.flatMap((r) => r.cells.filter((c) => c.agents.length === 0).map((c) => `${r.label} · ${c.age}`))
+  // Rows whose gender or age label isn't recognised can't be placed in the grid
+  const ungrouped = agents.filter((a) => !a.gender || !a.age)
   const genderTally = GENDERS.map((g) => ({ ...g, n: agents.filter((a) => a.gender === g.key).length }))
   const ageTally = AGE_BANDS.map((age) => ({ key: age, label: age, n: agents.filter((a) => a.age === age).length }))
-  return { matrix, open, genderTally, ageTally }
+  return { matrix, open, ungrouped, genderTally, ageTally }
 }

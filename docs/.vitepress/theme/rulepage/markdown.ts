@@ -112,7 +112,7 @@ function transform(md: MarkdownIt, state: StateCore): Token[] {
         const tags = [
           book.draft ? tag('outline', 'Draft') : '',
           book.setDate ? dateTag('Set', book.setDate) : '',
-          book.updatedDate && book.updatedDate !== book.setDate ? dateTag('Refined', book.updatedDate) : ''
+          book.refinedDate && book.refinedDate !== book.setDate ? dateTag('Refined', book.refinedDate) : ''
         ].join('')
         res.push(...ts.slice(i, end + 1))
         if (tags) res.push(html(`<div class="ir-doc-tags">${tags}</div>`))

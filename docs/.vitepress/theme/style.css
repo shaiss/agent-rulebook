@@ -1,0 +1,356 @@
+/* Industry design system, adapted for VitePress.
+   Tokens come from the Claude Design handoff (Industry styles.css); the
+   VitePress theme variables are mapped onto them so the whole site shares
+   the steel accent and Barlow type. Landing-page classes are prefixed ir-. */
+
+:root {
+  --ir-bg: #f2f2f3;
+  --ir-surface: #e9e9ea;
+  --ir-text: #1d1f20;
+  --ir-accent: #5980a6;
+  --ir-divider: color-mix(in srgb, #1d1f20 16%, transparent);
+
+  --ir-neutral-100: #f5f5f8;
+  --ir-neutral-700: #5d5d60;
+  --ir-neutral-800: #424244;
+
+  --ir-accent-100: #eef6ff;
+  --ir-accent-300: #b5d9fd;
+  --ir-accent-600: #597ea3;
+  --ir-accent-700: #416180;
+  --ir-accent-800: #2c455d;
+  --ir-accent-900: #1d2d3d;
+
+  --ir-font-heading: 'Barlow Condensed', system-ui, sans-serif;
+  --ir-font-body: 'Barlow', system-ui, sans-serif;
+
+  /* The handoff's #5980a6 fill can't carry 15px light text at 4.5:1,
+     so the light-theme primary button steps down the ramp. */
+  --ir-primary-fill: var(--ir-accent-700);
+  --ir-primary-fill-hover: var(--ir-accent-800);
+  --ir-primary-fill-active: var(--ir-accent-900);
+
+  /* The one full steel field a page may carry ("Why this exists", "Our gap") */
+  --ir-steel: #1d2d3d;
+  --ir-on-steel: #f2f2f3;
+  --ir-on-steel-label: #b5d9fd;
+
+  /* VitePress mapping */
+  --vp-font-family-base: var(--ir-font-body);
+  --vp-c-bg: var(--ir-bg);
+  --vp-c-bg-alt: var(--ir-surface);
+  --vp-c-bg-elv: var(--ir-bg);
+  --vp-c-bg-soft: var(--ir-surface);
+  --vp-c-text-1: var(--ir-text);
+  --vp-c-text-2: var(--ir-neutral-700);
+  --vp-c-divider: var(--ir-divider);
+  --vp-c-gutter: var(--ir-divider);
+  --vp-c-brand-1: var(--ir-accent-700);
+  --vp-c-brand-2: var(--ir-accent-800);
+  --vp-c-brand-3: var(--ir-accent-700);
+  --vp-c-brand-soft: color-mix(in srgb, var(--ir-accent) 14%, transparent);
+  --vp-c-tip-1: var(--ir-accent-800);
+  --vp-nav-bg-color: var(--ir-bg);
+  --vp-sidebar-bg-color: var(--ir-bg);
+}
+
+.dark {
+  --ir-bg: #16181a;
+  --ir-surface: #1e2124;
+  --ir-text: #e7e8ea;
+  --ir-accent: #749dc4;
+  --ir-divider: color-mix(in srgb, #e7e8ea 16%, transparent);
+
+  --ir-neutral-100: #24272a;
+  --ir-neutral-700: #a3a4a8;
+  --ir-neutral-800: #c4c5c8;
+
+  /* On the dark ground the ramp runs the other way: higher steps are
+     lighter, so text set in 700–900 keeps its contrast. */
+  --ir-accent-100: #1d2d3d;
+  --ir-accent-300: #b5d9fd;
+  --ir-accent-600: #94bce3;
+  --ir-accent-700: #94bce3;
+  --ir-accent-800: #b5d9fd;
+  --ir-accent-900: #d6ebff;
+
+  --ir-primary-fill: var(--ir-accent);
+  --ir-primary-fill-hover: var(--ir-accent-600);
+
+  /* Kept clearly off the dark ground and off the accent-100 tint bands */
+  --ir-steel: #2c455d;
+  --ir-on-steel: #e7e8ea;
+  --ir-primary-fill-active: var(--ir-accent-800);
+
+  --vp-c-tip-1: var(--ir-accent-700);
+
+  --vp-button-brand-text: var(--ir-bg);
+  --vp-button-brand-hover-text: var(--ir-bg);
+  --vp-button-brand-active-text: var(--ir-bg);
+}
+
+/* VitePress fades container links on hover, which drops them below AA */
+.vp-doc .custom-block a:hover { opacity: 1; }
+
+/* Headings site-wide take the condensed face */
+.VPNavBarTitle .title,
+.vp-doc h1, .vp-doc h2, .vp-doc h3, .vp-doc h4 {
+  font-family: var(--ir-font-heading);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+}
+.VPNavBarTitle .title { font-size: 18px; }
+.vp-doc h1 { font-size: 48px; line-height: 1.05; }
+.vp-doc h2 { font-size: 32px; border-top-color: var(--ir-divider); }
+.vp-doc h3 { font-size: 24px; }
+
+/* ── Blueprint frame: hairline box with "+" registration marks ── */
+.ir-home .blueprint { position: relative; border: 1px solid var(--ir-divider); }
+.ir-home .blueprint > .corner {
+  position: absolute; width: 11px; height: 11px;
+  color: color-mix(in srgb, var(--ir-text) 55%, transparent);
+}
+.ir-home .blueprint > .corner::before,
+.ir-home .blueprint > .corner::after { content: ''; position: absolute; background: currentColor; }
+.ir-home .blueprint > .corner::before { left: 5px; top: 0; width: 1px; height: 100%; }
+.ir-home .blueprint > .corner::after { top: 5px; left: 0; width: 100%; height: 1px; }
+.ir-home .blueprint > .corner.tl { top: -6px; left: -6px; }
+.ir-home .blueprint > .corner.tr { top: -6px; right: -6px; }
+.ir-home .blueprint > .corner.bl { bottom: -6px; left: -6px; }
+.ir-home .blueprint > .corner.br { bottom: -6px; right: -6px; }
+
+/* ── Page frame ── */
+.ir-home {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 56px 48px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 72px;
+  color: var(--ir-text);
+  font-family: var(--ir-font-body);
+  font-size: 15px;
+  line-height: 1.55;
+}
+.ir-home-main { display: flex; flex-direction: column; gap: inherit; }
+.ir-home h1, .ir-home h2, .ir-home h3, .ir-home .ir-label {
+  font-family: var(--ir-font-heading);
+  font-weight: 600;
+  line-height: 1.12;
+  letter-spacing: -0.015em;
+  margin: 0;
+  border: 0;
+  padding: 0;
+}
+.ir-home h2 { font-size: 32px; }
+/* Small uppercase labels; some are real headings (h2), some plain spans */
+.ir-home .ir-label {
+  font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--ir-accent-700);
+}
+.ir-home p { margin: 0; }
+.ir-home a { color: var(--ir-accent-700); text-underline-offset: 3px; }
+.ir-home a:hover { color: var(--ir-accent-900); }
+.ir-home :focus-visible { outline: 2px solid var(--ir-accent); outline-offset: 2px; }
+
+.ir-meta { font-size: 11px; color: var(--ir-neutral-700); }
+.ir-count { font-size: 13px; color: var(--ir-neutral-700); }
+.ir-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+.ir-section { display: flex; flex-direction: column; gap: 20px; }
+.ir-section-head { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; }
+
+/* ── Buttons & tags ── */
+.ir-home .ir-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  font-family: var(--ir-font-heading); font-weight: 600; font-size: 15px; line-height: 1.2;
+  padding: 10px 18px; text-decoration: none; color: var(--ir-text);
+  border: 1px solid var(--ir-divider); background: transparent; cursor: pointer;
+}
+.ir-home .ir-btn-primary { background: var(--ir-primary-fill); border-color: var(--ir-primary-fill); color: var(--ir-bg); }
+.ir-home .ir-btn-primary:hover { background: var(--ir-primary-fill-hover); border-color: var(--ir-primary-fill-hover); color: var(--ir-bg); }
+.ir-home .ir-btn-primary:active { background: var(--ir-primary-fill-active); border-color: var(--ir-primary-fill-active); }
+.ir-home .ir-btn-secondary:hover { background: color-mix(in srgb, var(--ir-text) 7%, transparent); color: var(--ir-text); }
+.ir-home .ir-btn-secondary:active { background: color-mix(in srgb, var(--ir-text) 14%, transparent); }
+.ir-home .ir-btn-ghost { border-color: transparent; color: var(--ir-accent-700); }
+.ir-home .ir-btn-ghost:hover { background: color-mix(in srgb, var(--ir-accent) 10%, transparent); }
+.ir-home .ir-btn-inverse { border-color: var(--ir-on-steel-label); color: var(--ir-on-steel); align-self: flex-start; }
+.ir-home .ir-btn-inverse:hover { background: color-mix(in srgb, var(--ir-on-steel) 12%, transparent); color: var(--ir-on-steel); }
+
+.ir-tag { display: inline-flex; align-items: center; font-size: 11px; letter-spacing: 0.02em; padding: 3px 10px; }
+.ir-tag-accent { background: var(--ir-accent-100); color: var(--ir-accent-800); }
+.ir-tag-neutral { background: var(--ir-neutral-100); color: var(--ir-neutral-800); }
+.ir-tag-outline { border: 1px solid var(--ir-accent); color: var(--ir-accent-700); }
+
+/* ── Hero ── */
+.ir-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 380px;
+  gap: 56px;
+  align-items: end;
+}
+.ir-hero-copy { display: flex; flex-direction: column; gap: 20px; }
+.ir-home .ir-hero-title { font-size: 104px; line-height: 0.92; letter-spacing: -0.025em; }
+.ir-lede { font-size: 19px; max-width: 620px; color: var(--ir-neutral-800); text-wrap: pretty; }
+.ir-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px; }
+
+.ir-plate { padding: 22px 24px 8px; }
+.ir-plate-head { display: flex; justify-content: space-between; align-items: baseline; padding-bottom: 14px; border-bottom: 1px solid var(--ir-text); }
+.ir-stats { margin: 0; display: grid; grid-template-columns: 1fr 1fr; }
+.ir-stat {
+  display: flex; flex-direction: column-reverse; gap: 2px;
+  padding: 16px 0 18px;
+  border-bottom: 1px solid var(--ir-divider);
+}
+.ir-stat:nth-child(odd) { padding-right: 16px; border-right: 1px solid var(--ir-divider); }
+.ir-stat:nth-child(even) { padding-left: 20px; }
+.ir-stat:nth-last-child(-n + 2) { border-bottom: 0; }
+.ir-stat dt { font-size: 12px; color: var(--ir-neutral-700); }
+.ir-stat dd { margin: 0; font-family: var(--ir-font-heading); font-weight: 600; font-size: 52px; line-height: 1; color: var(--ir-accent); }
+
+/* ── Fleet: every ledger face, wrapping. Tiles render at roughly 60–100px;
+   Home.vue passes Portrait sizes="80px" so every device, 3x phones included,
+   takes the 240px file. The column gap clears neighbouring tiles'
+   registration marks. ── */
+.ir-home .ir-fleet {
+  list-style: none; margin: 0; padding: 0;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
+  gap: 22px 16px;
+}
+.ir-home .ir-fleet > li { margin: 0; padding: 0; min-width: 0; }
+.ir-home .ir-fleet-item { display: flex; flex-direction: column; gap: 8px; color: var(--ir-text); text-decoration: none; }
+.ir-home .ir-fleet-item:hover { color: var(--ir-text); }
+.ir-home .ir-fleet-item .ir-portrait { transition: border-color 0.15s; }
+.ir-home .ir-fleet-item:hover .ir-portrait { border-color: var(--ir-accent); }
+.ir-home .ir-fleet-item:active .ir-portrait { border-color: var(--ir-accent-800); }
+.ir-fleet-caption { display: flex; flex-direction: column; font-size: 11px; line-height: 1.35; color: var(--ir-neutral-700); }
+.ir-fleet-name { font-size: 13px; font-weight: 500; color: var(--ir-text); overflow-wrap: anywhere; }
+.ir-home .ir-fleet-item:hover .ir-fleet-name { text-decoration: underline; text-underline-offset: 3px; }
+.ir-fleet-note { font-size: 13px; color: var(--ir-neutral-700); max-width: 720px; }
+.ir-home .ir-fleet-note a { text-decoration: underline; }
+
+/* ── Principle ── */
+.ir-principle {
+  padding: 32px;
+  display: grid; grid-template-columns: 160px 1fr; gap: 24px; align-items: baseline;
+}
+.ir-principle-body { display: flex; flex-direction: column; gap: 10px; }
+.ir-principle-quote { font-family: var(--ir-font-heading); font-weight: 600; font-size: 40px; line-height: 1.1; letter-spacing: -0.015em; text-wrap: balance; }
+
+/* ── Rules grid ── */
+/* The frame draws the outer edge and each cell its inner rules, so a short
+   last row (11 rules) still closes as a grid with one empty cell. */
+.ir-rules {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+  border: 1px solid var(--ir-divider);
+}
+.ir-home .ir-rule {
+  padding: 22px; min-height: 196px;
+  display: flex; flex-direction: column; gap: 10px;
+  border-right: 1px solid var(--ir-divider); border-bottom: 1px solid var(--ir-divider);
+  color: var(--ir-text); text-decoration: none;
+  transition: background-color 0.15s;
+}
+.ir-home .ir-rule:hover { background: var(--ir-accent-100); color: var(--ir-text); }
+@media (min-width: 769px) {
+  .ir-home .ir-rule:nth-child(3n) { border-right: 0; }
+  .ir-home .ir-rule:nth-child(3n + 1):nth-last-child(-n + 3),
+  .ir-home .ir-rule:nth-child(3n + 1):nth-last-child(-n + 3) ~ .ir-rule { border-bottom: 0; }
+}
+.ir-rule-top { display: flex; justify-content: space-between; align-items: center; }
+.ir-rule-n { font-family: var(--ir-font-heading); font-weight: 600; font-size: 32px; line-height: 1; color: var(--ir-accent); }
+.ir-home .ir-rule-title { font-family: var(--ir-font-heading); font-weight: 600; font-size: 20px; line-height: 1.2; letter-spacing: normal; }
+.ir-rule p, .ir-step p { font-size: 13.5px; color: var(--ir-neutral-800); text-wrap: pretty; }
+
+/* ── Balance matrix ── */
+.ir-balance { display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: 48px; align-items: start; }
+.ir-balance-intro { display: flex; flex-direction: column; gap: 14px; }
+.ir-balance-intro p { color: var(--ir-neutral-800); }
+.ir-home .ir-aside { font-size: 13px; padding-left: 12px; border-left: 2px solid var(--ir-accent); color: var(--ir-neutral-700); }
+.ir-matrix-wrap { overflow-x: auto; }
+/* Two orientations of the same cells; only one is displayed (and exposed) at a time */
+.ir-matrix-narrow { display: none; }
+.ir-matrix { width: 100%; border-collapse: collapse; table-layout: fixed; display: table; margin: 0; font-size: 13px; }
+.ir-matrix th, .ir-matrix td { border: 1px solid var(--ir-divider); padding: 12px; vertical-align: top; background: transparent; }
+.ir-matrix tr { background: transparent; border: 0; }
+.ir-matrix thead th {
+  font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; text-align: left;
+  color: var(--ir-neutral-700);
+}
+/* table-layout: fixed takes column widths from the first row, so the
+   row-header width sits on the corner cell */
+.ir-matrix thead th:first-child { width: 120px; border-top-color: transparent; border-left-color: transparent; }
+.ir-matrix tbody th { text-align: left; font-family: var(--ir-font-heading); font-weight: 600; font-size: 16px; }
+.ir-matrix-tally {
+  display: block; margin-top: 2px;
+  font-family: var(--ir-font-body); font-weight: 400; font-size: 11px; line-height: 1.3;
+  letter-spacing: normal; text-transform: none; color: var(--ir-neutral-700);
+}
+.ir-matrix td { height: 76px; }
+.ir-cell-n { display: block; font-family: var(--ir-font-heading); font-weight: 600; font-size: 22px; line-height: 1; color: var(--ir-accent-700); }
+.ir-cell-names { display: block; margin-top: 6px; font-size: 12.5px; line-height: 1.4; font-weight: 500; }
+/* Keep "Chief of Staff" on one line when it fits; wrap inside only when it can't */
+.ir-cell-name { display: inline-block; max-width: 100%; overflow-wrap: anywhere; }
+.ir-matrix td.is-open {
+  background: repeating-linear-gradient(135deg, transparent 0 6px, color-mix(in srgb, var(--ir-accent) 10%, transparent) 6px 7px);
+}
+.ir-matrix td .ir-open { display: block; font-size: 12px; color: var(--ir-accent-700); }
+
+/* ── Rollout ── */
+.ir-quote { margin: 0; padding: 0; border: 0; display: flex; flex-direction: column; gap: 6px; max-width: 680px; }
+.ir-quote > span:first-child { font-family: var(--ir-font-heading); font-weight: 600; font-size: 24px; line-height: 1.2; }
+.ir-steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; margin-top: 8px; }
+.ir-step { padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+.ir-step-top { display: flex; justify-content: space-between; align-items: baseline; }
+.ir-step-n { font-family: var(--ir-font-heading); font-weight: 600; font-size: 30px; line-height: 1; color: var(--ir-accent); }
+
+/* ── Our gap: the one full steel field ── */
+.ir-gap {
+  padding: 40px 40px 44px;
+  background: var(--ir-steel);
+  color: var(--ir-on-steel);
+  display: grid; grid-template-columns: 160px 1fr; gap: 24px; align-items: baseline;
+}
+.ir-home .ir-gap .ir-label { color: var(--ir-on-steel-label); }
+.ir-gap > div { display: flex; flex-direction: column; gap: 14px; max-width: 760px; }
+.ir-gap-lead { font-family: var(--ir-font-heading); font-weight: 600; font-size: 34px; line-height: 1.12; letter-spacing: -0.015em; }
+.ir-gap p:not(.ir-gap-lead) { font-size: 15px; color: color-mix(in srgb, var(--ir-on-steel) 82%, transparent); }
+
+.ir-footer {
+  display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  border-top: 1px solid var(--ir-divider); padding-top: 20px;
+  font-size: 13px; color: var(--ir-neutral-700);
+}
+
+/* ── Responsive ── */
+@media (max-width: 1100px) {
+  .ir-home .ir-hero-title { font-size: 80px; }
+  .ir-hero { grid-template-columns: 1fr; gap: 40px; }
+  .ir-plate { max-width: 480px; }
+  .ir-balance { grid-template-columns: 1fr; gap: 24px; }
+}
+@media (max-width: 768px) {
+  .ir-home { padding: 32px 16px 32px; gap: 56px; }
+  .ir-home .ir-hero-title { font-size: 56px; }
+  .ir-lede { font-size: 17px; }
+  .ir-home .ir-fleet { grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); gap: 20px 14px; }
+  .ir-rules, .ir-steps { grid-template-columns: 1fr; }
+  .ir-home .ir-rule { min-height: 0; border-right: 0; }
+  .ir-home .ir-rule:last-child { border-bottom: 0; }
+  .ir-principle, .ir-gap { grid-template-columns: 1fr; gap: 12px; padding: 24px; }
+  .ir-principle-quote { font-size: 30px; }
+  .ir-gap-lead { font-size: 26px; }
+  .ir-matrix thead th:first-child { width: 100px; }
+  .ir-matrix th, .ir-matrix td { padding: 10px; }
+}
+@media (max-width: 600px) {
+  .ir-matrix-wide { display: none; }
+  .ir-matrix-narrow { display: block; }
+  .ir-matrix th, .ir-matrix td { padding: 10px 8px; }
+  .ir-matrix thead th { letter-spacing: 0.05em; }
+  .ir-matrix thead th:first-child { width: 60px; }
+  .ir-matrix td { height: 64px; }
+}
+@media (max-width: 480px) {
+  .ir-home .ir-fleet { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px 14px; }
+}

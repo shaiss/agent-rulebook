@@ -1,0 +1,53 @@
+/* Shared portrait frame (Portrait.vue). Portraits stay in true colour: the
+   Industry duotone would flatten the skin tones the avatar rules exist to
+   represent. */
+
+.blueprint { position: relative; border: 1px solid var(--ir-divider); }
+.blueprint > .corner {
+  position: absolute; width: 11px; height: 11px;
+  color: color-mix(in srgb, var(--ir-text) 55%, transparent);
+}
+.blueprint > .corner::before,
+.blueprint > .corner::after { content: ''; position: absolute; background: currentColor; }
+.blueprint > .corner::before { left: 5px; top: 0; width: 1px; height: 100%; }
+.blueprint > .corner::after { top: 5px; left: 0; width: 100%; height: 1px; }
+.blueprint > .corner.tl { top: -6px; left: -6px; }
+.blueprint > .corner.tr { top: -6px; right: -6px; }
+.blueprint > .corner.bl { bottom: -6px; left: -6px; }
+.blueprint > .corner.br { bottom: -6px; right: -6px; }
+
+.ir-portrait {
+  display: block;
+  position: relative;
+  aspect-ratio: 1 / 1;
+  container-type: inline-size;
+  background: var(--ir-surface);
+}
+.ir-portrait > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  margin: 0;
+}
+.ir-portrait-pending {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  padding: 6px;
+  text-align: center;
+  overflow: hidden;
+  background-color: var(--ir-surface);
+  background-image: repeating-linear-gradient(135deg, transparent 0 6px, color-mix(in srgb, var(--ir-accent) 10%, transparent) 6px 7px);
+}
+.ir-portrait-monogram {
+  font-family: var(--ir-font-heading); font-weight: 600; font-size: clamp(14px, 28cqi, 40px); line-height: 1;
+  color: var(--ir-accent-700);
+}
+.ir-portrait-note {
+  font-size: 11px; line-height: 1.25; letter-spacing: 0.02em;
+  color: var(--ir-neutral-700);
+}
+/* Small tiles: the monogram alone; the pending reason is in the link name */
+@container (max-width: 120px) {
+  .ir-portrait-note { display: none; }
+}

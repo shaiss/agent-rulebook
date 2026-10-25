@@ -9,7 +9,8 @@ For each agent this writes two re-encoded copies to docs/public/avatars/
 (EXIF, XMP, ICC, comments, C2PA/JUMBF), and records only the fields the
 site needs to pair a portrait with its ledger row in
 docs/.vitepress/data/avatars.json. Nothing else from identity.json is kept.
-Generated portraits of agents missing from <agents-dir> are removed.
+Portraits of agents in the previous manifest but missing from <agents-dir>
+are removed; other files in docs/public/avatars are left alone.
 
 Needs Pillow (pip install pillow).
 """
@@ -69,12 +70,16 @@ def main(src):
             'gender': gender_key(identity['gender']),
             'age': age_key(identity['age_band']),
         })
-    OUT_MANIFEST.write_text(json.dumps(manifest, indent=2, ensure_ascii=False) + '\n')
-    # Unpublish portraits of agents no longer in the import (public/ is served as-is)
-    kept = {f'{m["slug"]}-{size}.jpg' for m in manifest for size in SIZES}
-    stale = [f for f in OUT_IMG.glob('*.jpg') if re.fullmatch(r'.+-(?:%s)\.jpg' % '|'.join(map(str, SIZES)), f.name) and f.name not in kept]
+    # Unpublish portraits of agents that were in the previous manifest but not
+    # in this import (public/ is served as-is). Only files this script made
+    # for those slugs are touched; anything else in the folder is left alone.
+    previous = json.loads(OUT_MANIFEST.read_text()) if OUT_MANIFEST.exists() else []
+    gone = {m['slug'] for m in previous} - {m['slug'] for m in manifest}
+    stale = [OUT_IMG / f'{slug}-{size}.jpg' for slug in sorted(gone) for size in SIZES]
+    stale = [f for f in stale if f.exists()]
     for f in stale:
         f.unlink()
+    OUT_MANIFEST.write_text(json.dumps(manifest, indent=2, ensure_ascii=False) + '\n')
     print(f'{len(manifest)} portraits -> {OUT_IMG.relative_to(ROOT)}, manifest -> {OUT_MANIFEST.relative_to(ROOT)}'
           + (f', removed {len(stale)} stale files' if stale else ''))
 

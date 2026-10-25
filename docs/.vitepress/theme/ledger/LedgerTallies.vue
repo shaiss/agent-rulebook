@@ -87,7 +87,7 @@ const heritageLink = fleetTally
         <li v-for="g in open" :key="g">{{ g }}</li>
       </ul>
       <p v-else class="ir-ledger-tally-text">None. Every gender × age cell has at least one agent.</p>
-      <span class="ir-meta">Gaps are named as a list, not a nudge.</span>
+      <span v-if="open.length" class="ir-meta">Gaps are named as a list, not a nudge.</span>
     </div>
   </section>
 </template>

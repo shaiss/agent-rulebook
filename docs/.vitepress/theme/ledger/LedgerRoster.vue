@@ -17,6 +17,9 @@ const rulesLink = withBase('/rules/avatars')
 
 const genderName = (a: Agent) => GENDERS.find((g) => g.key === a.gender)?.label ?? a.genderLabel
 const heritageOf = (a: Agent) => a.heritage || a.depicted
+const pendingNote = (a: Agent) =>
+  a.portrait ? '' : a.portraitStatus === 'mismatch' ? 'portrait pending ledger update' : 'no portrait yet'
+const plural = (n: number) => (n === 1 ? '1 agent' : `${n} agents`)
 
 const filters: { key: Filter; label: string; n: number }[] = [
   { key: 'all', label: 'All', n: agents.length },
@@ -32,6 +35,17 @@ const status = ref('')
 
 const root = ref<HTMLElement>()
 const entry = ref<HTMLElement>()
+
+// Side by side, the entry sticks beside the roster only while all of it fits
+// under the nav; taller, it stays at the head of its column and the page
+// scrolls to it instead. SSR renders it static.
+const sticky = ref(false)
+const wide = () => matchMedia('(min-width: 960px)').matches
+const navHeight = () => parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--vp-nav-height')) || 64
+function updateSticky() {
+  const el = entry.value
+  sticky.value = !!el && wide() && el.offsetHeight <= innerHeight - navHeight()
+}
 
 const motion = (): ScrollBehavior =>
   matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'
@@ -54,12 +68,25 @@ function writeHash(slug: string) {
   history.replaceState(history.state, '', `${location.pathname}${location.search}#${slug}`)
 }
 
-/** Side by side the entry is sticky and already in view; stacked, scroll to it */
-function reveal(behavior: ScrollBehavior, focus: boolean) {
+/**
+ * Bring the entry into view after it changes. Sticky, it already is, unless
+ * the end of the roster has pushed its head up under the nav. Side by side but
+ * static, scroll only when its top is out of view; stacked below the roster,
+ * always scroll to it.
+ */
+async function reveal(behavior: ScrollBehavior, focus: boolean) {
+  await nextTick()
+  updateSticky()
+  await nextTick()
   const el = entry.value
   if (!el) return
-  el.scrollTop = 0
-  if (getComputedStyle(el).position === 'sticky') return
+  const top = el.getBoundingClientRect().top
+  const nav = navHeight()
+  if (sticky.value) {
+    if (top < nav - 1) window.scrollBy({ top: top - nav, behavior })
+    return
+  }
+  if (wide() && top >= nav && top < innerHeight / 2) return
   scrollToEl(el, 'start', behavior)
   if (focus) el.querySelector<HTMLElement>('#ir-ledger-name')?.focus({ preventScroll: true })
 }
@@ -67,17 +94,21 @@ function reveal(behavior: ScrollBehavior, focus: boolean) {
 function choose(slug: string) {
   selectedSlug.value = slug
   writeHash(slug)
-  status.value = `Showing ${selected.value.name}'s ledger entry`
-  nextTick(() => reveal(motion(), true))
+  status.value = `Showing ${selected.value.name}'s ledger entry.`
+  reveal(motion(), true)
 }
 
 function setFilter(key: Filter) {
   filter.value = key
   const list = roster.value
+  const f = filters.find((x) => x.key === key)!
+  let msg = `Filter: ${f.label}, ${plural(list.length)}.`
   if (list.length && !list.some((a) => a.slug === selectedSlug.value)) {
     selectedSlug.value = list[0].slug
     writeHash(list[0].slug)
+    msg += ` Showing ${list[0].name}'s ledger entry.`
   }
+  status.value = msg
 }
 
 function syncFromHash(behavior: ScrollBehavior) {
@@ -98,12 +129,21 @@ function backToRoster() {
 }
 
 const onHashChange = () => syncFromHash(motion())
+let ro: ResizeObserver | undefined
 
 onMounted(() => {
+  updateSticky()
+  ro = new ResizeObserver(updateSticky)
+  if (entry.value) ro.observe(entry.value)
+  window.addEventListener('resize', updateSticky)
   syncFromHash('auto')
   window.addEventListener('hashchange', onHashChange)
 })
-onBeforeUnmount(() => window.removeEventListener('hashchange', onHashChange))
+onBeforeUnmount(() => {
+  ro?.disconnect()
+  window.removeEventListener('resize', updateSticky)
+  window.removeEventListener('hashchange', onHashChange)
+})
 </script>
 
 <template>
@@ -150,7 +190,7 @@ onBeforeUnmount(() => window.removeEventListener('hashchange', onHashChange))
                 @click="choose(a.slug)"
               >
                 <span class="ir-ledger-card-img" aria-hidden="true">
-                  <Portrait :agent="a" :framed="false" sizes="(max-width: 559px) 45vw, (max-width: 959px) 30vw, 190px" />
+                  <Portrait :agent="a" :framed="false" sizes="(max-width: 639px) 45vw, (max-width: 959px) 30vw, 190px" />
                 </span>
                 <span class="ir-ledger-card-text">
                   <span class="ir-ledger-card-name">{{ a.name }}</span>
@@ -159,6 +199,7 @@ onBeforeUnmount(() => window.removeEventListener('hashchange', onHashChange))
                     <span class="ir-tag ir-tag-neutral">{{ a.age ?? a.ageLabel }}</span>
                   </span>
                   <span class="ir-ledger-card-heritage">{{ heritageOf(a) }}</span>
+                  <span v-if="!a.portrait" class="ir-sr">, {{ pendingNote(a) }}</span>
                 </span>
               </button>
             </li>
@@ -170,7 +211,8 @@ onBeforeUnmount(() => window.removeEventListener('hashchange', onHashChange))
           id="ir-ledger-entry"
           ref="entry"
           class="ir-ledger-entry"
-          aria-labelledby="ir-ledger-name"
+          :class="{ 'is-sticky': sticky }"
+          :aria-label="`Ledger entry: ${selected.name}`"
         >
           <LedgerEntry :agent="selected" @back="backToRoster" />
         </section>

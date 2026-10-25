@@ -27,7 +27,11 @@
 }
 .ir-ledger .ir-label-muted { color: var(--ir-neutral-700); }
 .ir-ledger p { margin: 0; }
-.ir-ledger a { color: var(--ir-accent-700); text-underline-offset: 3px; }
+/* Underlined: inside labels and notes, colour alone wouldn't mark a link */
+.ir-ledger a {
+  color: var(--ir-accent-700);
+  text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px;
+}
 .ir-ledger a:hover { color: var(--ir-accent-900); }
 .ir-ledger :focus-visible { outline: 2px solid var(--ir-accent); outline-offset: 2px; }
 .ir-ledger-empty { padding: 28px 40px; color: var(--ir-neutral-700); }
@@ -84,8 +88,10 @@
   border: 1px solid var(--ir-divider);
   background: transparent;
   transition: background-color 0.15s;
+  /* keyboard focus never lands under the fixed nav */
+  scroll-margin: calc(var(--vp-nav-height) + 16px) 0 16px;
 }
-.ir-ledger-card:hover { background: color-mix(in srgb, var(--ir-text) 5%, transparent); }
+.ir-ledger-card:hover { background: var(--ir-neutral-100); }
 /* Selected: a 2px accent frame drawn over the hairline (focus keeps its own outer ring) */
 .ir-ledger-card[aria-pressed='true']::after {
   content: '';
@@ -103,32 +109,21 @@
 .ir-ledger-tags .ir-tag { line-height: 1.4; }
 .ir-ledger-card-heritage { font-size: 12px; line-height: 1.4; color: var(--ir-neutral-700); overflow-wrap: anywhere; }
 
-/* Entry: sticky beside the roster while it scrolls */
+/* Entry: heads the right-hand column side by side, follows the roster when
+   stacked. It never scrolls on its own. */
 .ir-ledger-entry {
   min-width: 0;
   padding: 28px 32px 40px;
   display: flex; flex-direction: column; gap: 22px;
-  /* clears VitePress's 48px "Return to top" bar, fixed below 960px once scrolled */
-  scroll-margin-top: 64px;
+  /* clears the fixed nav side by side, and VitePress's 48px "Return to top"
+     bar (fixed below 960px once scrolled) when stacked */
+  scroll-margin-top: var(--vp-nav-height);
 }
 @media (min-width: 960px) {
-  .ir-ledger-entry {
-    position: sticky;
-    top: var(--vp-nav-height);
-    align-self: start;
-    max-height: calc(100vh - var(--vp-nav-height));
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    scrollbar-width: thin;
-    /* Scroll hints: an ink shadow shows at an edge only while more of the
-       entry lies past it (the ground-coloured covers scroll with content) */
-    background:
-      linear-gradient(var(--ir-bg) 30%, transparent) center top / 100% 40px no-repeat local,
-      linear-gradient(transparent, var(--ir-bg) 70%) center bottom / 100% 40px no-repeat local,
-      radial-gradient(farthest-side at 50% 0, color-mix(in srgb, var(--ir-text) 16%, transparent), transparent) center top / 100% 14px no-repeat scroll,
-      radial-gradient(farthest-side at 50% 100%, color-mix(in srgb, var(--ir-text) 16%, transparent), transparent) center bottom / 100% 14px no-repeat scroll,
-      var(--ir-bg);
-  }
+  .ir-ledger-entry { align-self: start; }
+  /* Sticky only while the whole entry fits under the nav (LedgerRoster.vue
+     measures it); a taller entry stays put and the page scrolls to it */
+  .ir-ledger-entry.is-sticky { position: sticky; top: var(--vp-nav-height); }
 }
 .ir-ledger-entry-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
 .ir-ledger-entry-media, .ir-ledger-entry-info { display: flex; flex-direction: column; gap: 22px; min-width: 0; }
@@ -141,22 +136,32 @@
 
 .ir-ledger-expr { display: flex; flex-direction: column; gap: 6px; }
 .ir-ledger-expr-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
-.ir-ledger-expr-btns {
-  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+/* Equal cells while every label fits on one line; a cell never squeezes its
+   label onto two */
+.ir-ledger-expr-opts {
+  display: grid; grid-template-columns: repeat(4, minmax(max-content, 1fr));
   border: 1px solid var(--ir-divider);
 }
-.ir-ledger-expr-btn { padding: 7px 4px; font-size: 12px; line-height: 1.3; background: transparent; }
-.ir-ledger-expr-btn + .ir-ledger-expr-btn { border-left: 1px solid var(--ir-divider); }
-.ir-ledger .ir-ledger-expr-btn[aria-pressed='true'] { background: var(--ir-primary-fill); color: var(--ir-bg); }
-/* Not generated yet: hatched like the site's other open/pending slots */
-.ir-ledger-expr-btn:disabled {
-  cursor: not-allowed;
+.ir-ledger-expr-opt {
+  display: block;
+  padding: 7px 4px;
+  font-size: 12px; line-height: 1.3; text-align: center; white-space: nowrap;
+  border: 0;
+  background: transparent;
+}
+.ir-ledger-expr-opt + .ir-ledger-expr-opt { border-left: 1px solid var(--ir-divider); }
+/* The state on show: an indicator, filled like a pressed segment */
+.ir-ledger .ir-ledger-expr-opt.is-current { background: var(--ir-primary-fill); color: var(--ir-bg); }
+/* Not generated (or not shown) yet: hatched like the site's other open/pending slots */
+.ir-ledger-expr-opt.is-off {
   color: var(--ir-neutral-700);
   background: repeating-linear-gradient(135deg, transparent 0 6px, color-mix(in srgb, var(--ir-accent) 10%, transparent) 6px 7px);
 }
+.ir-ledger-expr-opt:disabled { cursor: not-allowed; }
 .ir-ledger-expr-note { font-size: 12px; line-height: 1.4; color: var(--ir-neutral-700); }
 
 .ir-ledger .ir-ledger-name { font-size: 36px; line-height: 1.05; }
+.ir-ledger-name { scroll-margin-top: calc(var(--vp-nav-height) + 16px); }
 .ir-ledger-name:focus-visible { outline-offset: 4px; }
 .ir-ledger-dl {
   margin: 0;
@@ -177,14 +182,27 @@
   font-size: 13px; line-height: 1.4;
 }
 .ir-ledger-peers li { display: flex; justify-content: space-between; gap: 12px; }
-.ir-ledger-peer-name { flex: none; font-weight: 500; }
-.ir-ledger-peer-diff { min-width: 0; text-align: right; color: var(--ir-neutral-700); overflow-wrap: anywhere; }
-.ir-ledger-peers li.is-same .ir-ledger-peer-diff { color: var(--ir-accent-800); font-weight: 500; }
+.ir-ledger-peer-name { flex: none; max-width: 50%; font-weight: 500; }
+.ir-ledger-peer-self { font-weight: 400; color: var(--ir-neutral-700); }
+.ir-ledger-peer-val { min-width: 0; text-align: right; color: var(--ir-neutral-700); overflow-wrap: anywhere; }
+.ir-ledger-peers li.is-self { padding-bottom: 6px; border-bottom: 1px dashed var(--ir-divider); }
+.ir-ledger-peers li.is-self .ir-ledger-peer-val { color: var(--ir-text); }
+.ir-ledger-peer-flag { font-weight: 600; color: var(--ir-accent-800); }
+.ir-ledger-peers li.is-same .ir-ledger-peer-val { color: var(--ir-accent-800); }
 .ir-ledger-check-none { font-size: 13px; }
 
-/* Stacked layouts only: the entry sits below the roster */
+/* A ledger note quoted as written (mockup 2b's note band) */
+.ir-ledger-quote { margin: 4px 0 0; display: flex; flex-direction: column; gap: 4px; }
+.ir-ledger-quote blockquote {
+  margin: 0; padding: 8px 10px; border: 0;
+  font-size: 12.5px; line-height: 1.45;
+  background: var(--ir-accent-100); color: var(--ir-accent-900);
+}
+.ir-ledger-quote figcaption { font-size: 11px; line-height: 1.4; color: var(--ir-neutral-700); }
+
+/* Whenever the entry isn't beside the roster in view (stacked, or too tall to stick) */
 .ir-ledger-back {
-  display: none;
+  display: inline-flex;
   align-self: flex-start;
   padding: 10px 18px;
   font-family: var(--ir-font-heading); font-weight: 600; font-size: 15px; line-height: 1.2;
@@ -192,6 +210,7 @@
   background: transparent;
 }
 .ir-ledger-back:hover { background: color-mix(in srgb, var(--ir-text) 7%, transparent); }
+.ir-ledger-entry.is-sticky .ir-ledger-back { display: none; }
 
 /* ── Tallies ── */
 .ir-ledger-tallies {
@@ -226,7 +245,6 @@
 /* ── Responsive ── */
 @media (max-width: 1180px) {
   .ir-ledger-body { grid-template-columns: minmax(0, 1fr) 340px; }
-  .ir-ledger-roster { padding-inline: 32px; }
   .ir-ledger-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .ir-ledger-entry { padding-inline: 28px; }
   .ir-ledger-tallies { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -238,8 +256,8 @@
 @media (max-width: 959px) {
   .ir-ledger-body { grid-template-columns: minmax(0, 1fr); }
   .ir-ledger-roster { border-right: 0; }
-  .ir-ledger-entry { border-top: 1px solid var(--ir-divider); padding-inline: 32px; }
-  .ir-ledger-back { display: inline-flex; }
+  /* stacked, the entry lines up with the header and roster */
+  .ir-ledger-entry { border-top: 1px solid var(--ir-divider); padding-inline: 40px; }
 }
 @media (min-width: 640px) and (max-width: 959px) {
   .ir-ledger-entry {

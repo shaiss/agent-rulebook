@@ -2,27 +2,28 @@
 import { computed } from 'vue'
 import { data } from '../../data/rulebook.data'
 import { GENDERS, type Agent } from '../../data/parse'
+import { RULES, ruleLink, sectionHref } from './links'
+import { heritageMatch, notesFor } from './notes'
 
-// One ledger row in full: portrait, the rule-09 expression switch, the row's
-// fields as written, and the rule-02 check against agents in the same
-// gender × age cell.
+// One ledger row in full: portrait, the rule-09 expression switch, the rule-02
+// check against agents in the same gender × age cell (with the ledger's own
+// notes on documented exceptions), then the row's fields as written.
 
 const props = defineProps<{ agent: Agent }>()
 defineEmits<{ back: [] }>()
 
 const heritageOf = (a: Agent) => a.heritage || a.depicted
-const pad = (n: number) => String(n).padStart(2, '0')
 
 // Only the base portrait exists, so the switch shows its states without faking any
 const EXPRESSIONS = ['Steady', 'Focused', 'Concerned', 'Quietly proud']
-const exprRule =
-  data.rules.find((r) => /expression variants?|dynamic avatar/i.test(`${r.lead ?? ''} ${r.body}`)) ??
-  data.rules.find((r) => r.n === 9) ??
-  null
-const exprStatus = exprRule?.status === 'locked' ? 'Locked' : exprRule?.status === 'draft' ? 'Draft' : null
+const expr = ruleLink(/expression variants?|dynamic avatar/i, 9, true)
+const exprStatus = expr.rule?.status === 'locked' ? 'Locked' : expr.rule?.status === 'draft' ? 'Draft' : null
+const distinct = ruleLink(...RULES.distinct)
+const ledgerHref = sectionHref(/^Ledger/i)
 
 // Without the specific-heritage column, the depicted column is all there is
 const kind = data.hasHeritageColumn ? 'heritage' : 'race/ethnicity'
+const names = data.agents.map((a) => a.name)
 
 const setDate = computed(() => /\b\d{4}-\d{2}-\d{2}\b/.exec(props.agent.set)?.[0] ?? props.agent.set)
 
@@ -39,18 +40,30 @@ const fields = computed(() => {
   ].filter((f) => f.v)
 })
 
+const FLAG = { same: 'same', overlap: 'check' } as const
+
 const cell = computed(() => {
   const a = props.agent
   const g = GENDERS.find((x) => x.key === a.gender)
   if (!g || !a.age) return null
-  const mine = heritageOf(a).trim().toLowerCase()
-  return {
-    label: `${g.label} · ${a.age}`,
-    peers: data.agents
-      .filter((p) => p !== a && p.gender === a.gender && p.age === a.age)
-      .map((p) => ({ name: p.name, slug: p.slug, value: heritageOf(p), same: heritageOf(p).trim().toLowerCase() === mine }))
-  }
+  const mine = heritageOf(a)
+  const peers = data.agents
+    .filter((p) => p !== a && p.gender === a.gender && p.age === a.age)
+    .map((p) => {
+      const m = heritageMatch(mine, heritageOf(p))
+      return { name: p.name, slug: p.slug, value: heritageOf(p), match: m, flag: m ? FLAG[m] : null }
+    })
+  return { label: `${g.label} · ${a.age}`, peers }
 })
+const others = computed(() => {
+  const n = cell.value?.peers.length ?? 0
+  return n === 1 ? '1 other agent' : `${n} other agents`
+})
+
+// The ledger's notes that name this agent, quoted as written
+const notes = computed(() => notesFor(props.agent.name, data.ledgerNotes, names))
+const rule2Notes = computed(() => notes.value.filter((q) => q.rule2))
+const otherNotes = computed(() => notes.value.filter((q) => !q.rule2))
 </script>
 
 <template>
@@ -68,38 +81,68 @@ const cell = computed(() => {
     </p>
 
     <div
-      v-if="exprRule"
+      v-if="expr.rule"
       class="ir-ledger-expr"
       role="group"
       aria-labelledby="ir-ledger-expr-label"
       aria-describedby="ir-ledger-expr-note"
     >
       <div class="ir-ledger-expr-head">
-        <span id="ir-ledger-expr-label" class="ir-label ir-label-muted">Expression · rule {{ pad(exprRule.n) }}</span>
+        <span id="ir-ledger-expr-label" class="ir-label ir-label-muted">
+          Expression · <a :href="expr.href">rule {{ expr.label }}</a>
+        </span>
         <span v-if="exprStatus" class="ir-tag" :class="exprStatus === 'Draft' ? 'ir-tag-outline' : 'ir-tag-neutral'">
           {{ exprStatus }}
         </span>
       </div>
-      <div class="ir-ledger-expr-btns">
-        <button
-          v-for="(e, i) in EXPRESSIONS"
-          :key="e"
-          type="button"
-          class="ir-ledger-expr-btn"
-          :aria-pressed="i === 0"
-          :disabled="i > 0"
-        >
+      <div class="ir-ledger-expr-opts">
+        <!-- The one state that exists: an indicator, not a toggle -->
+        <span class="ir-ledger-expr-opt" :class="agent.portrait ? 'is-current' : 'is-off'">
+          {{ EXPRESSIONS[0] }}<span v-if="agent.portrait" class="ir-sr">, shown</span>
+        </span>
+        <button v-for="e in EXPRESSIONS.slice(1)" :key="e" type="button" class="ir-ledger-expr-opt is-off" disabled>
           {{ e }}
         </button>
       </div>
       <p id="ir-ledger-expr-note" class="ir-ledger-expr-note">
-        Only the base portrait exists. The other expressions aren't generated yet.
+        <template v-if="agent.portrait">Only the base portrait exists. The other expressions aren't generated yet.</template>
+        <template v-else>No portrait shown yet, so no expression is either. The others aren't generated yet.</template>
       </p>
     </div>
   </div>
 
   <div class="ir-ledger-entry-info">
     <h2 id="ir-ledger-name" class="ir-ledger-name" tabindex="-1">{{ agent.name }}</h2>
+
+    <div class="ir-ledger-check">
+      <h3 class="ir-label ir-label-muted">
+        <a :href="distinct.href">Rule {{ distinct.label }}</a> check · same gender and age band
+      </h3>
+      <template v-if="cell">
+        <span class="ir-meta">{{ cell.label }} · {{ others }}</span>
+        <ul class="ir-ledger-peers" role="list">
+          <li class="is-self">
+            <span class="ir-ledger-peer-name">{{ agent.name }} <span class="ir-ledger-peer-self">(this entry)</span></span>
+            <span class="ir-ledger-peer-val">{{ kind }} · {{ heritageOf(agent) }}</span>
+          </li>
+          <li v-for="p in cell.peers" :key="p.slug" :class="p.match && `is-${p.match}`">
+            <span class="ir-ledger-peer-name">{{ p.name }}</span>
+            <span class="ir-ledger-peer-val">
+              <strong v-if="p.flag" class="ir-ledger-peer-flag">{{ p.flag }}</strong> {{ kind }} · {{ p.value }}
+            </span>
+          </li>
+        </ul>
+        <p v-if="!cell.peers.length" class="ir-ledger-check-none">No other agent shares this cell.</p>
+      </template>
+      <p v-else class="ir-ledger-check-none">
+        This row's gender or age band is outside the ledger's bands, so there is no cell to check.
+      </p>
+
+      <figure v-for="(q, i) in rule2Notes" :key="i" class="ir-ledger-quote">
+        <blockquote><p>{{ q.text }}</p></blockquote>
+        <figcaption>From the <a :href="ledgerHref">ledger notes</a></figcaption>
+      </figure>
+    </div>
 
     <dl class="ir-ledger-dl">
       <template v-for="f in fields" :key="f.k">
@@ -108,22 +151,10 @@ const cell = computed(() => {
       </template>
     </dl>
 
-    <section class="ir-ledger-check" aria-labelledby="ir-ledger-check-title">
-      <h3 id="ir-ledger-check-title" class="ir-label ir-label-muted">Rule 02 check · same gender and age band</h3>
-      <template v-if="cell">
-        <span class="ir-meta">{{ cell.label }}</span>
-        <ul v-if="cell.peers.length" class="ir-ledger-peers" role="list">
-          <li v-for="p in cell.peers" :key="p.slug" :class="{ 'is-same': p.same }">
-            <span class="ir-ledger-peer-name">{{ p.name }}</span>
-            <span class="ir-ledger-peer-diff">{{ p.same ? 'same' : 'differs by' }} {{ kind }} · {{ p.value }}</span>
-          </li>
-        </ul>
-        <p v-else class="ir-ledger-check-none">No other agent shares this cell.</p>
-      </template>
-      <p v-else class="ir-ledger-check-none">
-        This row's gender or age band is outside the ledger's bands, so there is no cell to check.
-      </p>
-    </section>
+    <figure v-for="(q, i) in otherNotes" :key="i" class="ir-ledger-quote">
+      <blockquote><p>{{ q.text }}</p></blockquote>
+      <figcaption>From the <a :href="ledgerHref">ledger notes</a></figcaption>
+    </figure>
 
     <button type="button" class="ir-ledger-back" @click="$emit('back')">Back to the roster</button>
   </div>

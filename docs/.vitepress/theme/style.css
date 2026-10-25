@@ -24,6 +24,12 @@
   --ir-font-heading: 'Barlow Condensed', system-ui, sans-serif;
   --ir-font-body: 'Barlow', system-ui, sans-serif;
 
+  /* The handoff's #5980a6 fill can't carry 15px light text at 4.5:1,
+     so the light-theme primary button steps down the ramp. */
+  --ir-primary-fill: var(--ir-accent-700);
+  --ir-primary-fill-hover: var(--ir-accent-800);
+  --ir-primary-fill-active: var(--ir-accent-900);
+
   /* VitePress mapping */
   --vp-font-family-base: var(--ir-font-body);
   --vp-c-bg: var(--ir-bg);
@@ -35,8 +41,8 @@
   --vp-c-divider: var(--ir-divider);
   --vp-c-gutter: var(--ir-divider);
   --vp-c-brand-1: var(--ir-accent-700);
-  --vp-c-brand-2: var(--ir-accent-600);
-  --vp-c-brand-3: var(--ir-accent);
+  --vp-c-brand-2: var(--ir-accent-800);
+  --vp-c-brand-3: var(--ir-accent-700);
   --vp-c-brand-soft: color-mix(in srgb, var(--ir-accent) 14%, transparent);
   --vp-nav-bg-color: var(--ir-bg);
   --vp-sidebar-bg-color: var(--ir-bg);
@@ -53,12 +59,22 @@
   --ir-neutral-700: #a3a4a8;
   --ir-neutral-800: #c4c5c8;
 
+  /* On the dark ground the ramp runs the other way: higher steps are
+     lighter, so text set in 700–900 keeps its contrast. */
   --ir-accent-100: #1d2d3d;
   --ir-accent-300: #b5d9fd;
   --ir-accent-600: #94bce3;
   --ir-accent-700: #94bce3;
   --ir-accent-800: #b5d9fd;
-  --ir-accent-900: #2c455d;
+  --ir-accent-900: #d6ebff;
+
+  --ir-primary-fill: var(--ir-accent);
+  --ir-primary-fill-hover: var(--ir-accent-600);
+  --ir-primary-fill-active: var(--ir-accent-600);
+
+  --vp-button-brand-text: var(--ir-bg);
+  --vp-button-brand-hover-text: var(--ir-bg);
+  --vp-button-brand-active-text: var(--ir-bg);
 }
 
 /* Headings site-wide take the condensed face */
@@ -101,7 +117,8 @@
   font-size: 15px;
   line-height: 1.55;
 }
-.ir-home h1, .ir-home h2, .ir-home h6 {
+.ir-home-main { display: flex; flex-direction: column; gap: inherit; }
+.ir-home h1, .ir-home h2, .ir-home h3, .ir-home .ir-label {
   font-family: var(--ir-font-heading);
   font-weight: 600;
   line-height: 1.12;
@@ -111,7 +128,8 @@
   padding: 0;
 }
 .ir-home h2 { font-size: 32px; }
-.ir-home h6 {
+/* Small uppercase labels; some are real headings (h2), some plain spans */
+.ir-home .ir-label {
   font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase;
   color: var(--ir-accent-700);
 }
@@ -120,7 +138,7 @@
 .ir-home a:hover { color: var(--ir-accent-900); }
 .ir-home :focus-visible { outline: 2px solid var(--ir-accent); outline-offset: 2px; }
 
-.ir-meta { font-size: 11px; color: color-mix(in srgb, var(--ir-text) 50%, transparent); }
+.ir-meta { font-size: 11px; color: var(--ir-neutral-700); }
 .ir-count { font-size: 13px; color: var(--ir-neutral-700); }
 .ir-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 
@@ -134,9 +152,9 @@
   padding: 10px 18px; text-decoration: none; color: var(--ir-text);
   border: 1px solid var(--ir-divider); background: transparent; cursor: pointer;
 }
-.ir-home .ir-btn-primary { background: var(--ir-accent); border-color: var(--ir-accent); color: var(--ir-bg); }
-.ir-home .ir-btn-primary:hover { background: var(--ir-accent-600); color: var(--ir-bg); }
-.ir-home .ir-btn-primary:active { background: var(--ir-accent-700); }
+.ir-home .ir-btn-primary { background: var(--ir-primary-fill); border-color: var(--ir-primary-fill); color: var(--ir-bg); }
+.ir-home .ir-btn-primary:hover { background: var(--ir-primary-fill-hover); border-color: var(--ir-primary-fill-hover); color: var(--ir-bg); }
+.ir-home .ir-btn-primary:active { background: var(--ir-primary-fill-active); border-color: var(--ir-primary-fill-active); }
 .ir-home .ir-btn-secondary:hover { background: color-mix(in srgb, var(--ir-text) 7%, transparent); color: var(--ir-text); }
 .ir-home .ir-btn-secondary:active { background: color-mix(in srgb, var(--ir-text) 14%, transparent); }
 .ir-home .ir-btn-ghost { border-color: transparent; color: var(--ir-accent-700); }
@@ -184,7 +202,7 @@
   background:
     linear-gradient(160deg, color-mix(in srgb, var(--ir-accent) 22%, transparent), color-mix(in srgb, var(--ir-accent) 6%, transparent));
 }
-.ir-monogram { font-family: var(--ir-font-heading); font-weight: 600; font-size: 30px; color: var(--ir-accent-700); opacity: 0.7; }
+.ir-monogram { font-family: var(--ir-font-heading); font-weight: 600; font-size: 30px; color: var(--ir-accent-700); }
 .ir-portrait figcaption { display: flex; flex-direction: column; font-size: 11px; line-height: 1.35; color: var(--ir-neutral-700); }
 .ir-portrait-name { font-size: 13px; font-weight: 500; color: var(--ir-text); }
 
@@ -211,7 +229,7 @@
 .ir-home .ir-rule:hover { background: var(--ir-accent-100); color: var(--ir-text); }
 .ir-rule-top { display: flex; justify-content: space-between; align-items: center; }
 .ir-rule-n { font-family: var(--ir-font-heading); font-weight: 600; font-size: 32px; line-height: 1; color: var(--ir-accent); }
-.ir-rule-title { font-family: var(--ir-font-heading); font-weight: 600; font-size: 20px; line-height: 1.2; }
+.ir-home .ir-rule-title { font-family: var(--ir-font-heading); font-weight: 600; font-size: 20px; line-height: 1.2; letter-spacing: normal; }
 .ir-rule p, .ir-step p { font-size: 13.5px; color: var(--ir-neutral-800); text-wrap: pretty; }
 
 /* ── Balance matrix ── */
@@ -225,7 +243,7 @@
 .ir-matrix tr { background: transparent; border: 0; }
 .ir-matrix thead th {
   font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; text-align: left;
-  color: color-mix(in srgb, var(--ir-text) 60%, transparent);
+  color: var(--ir-neutral-700);
 }
 .ir-matrix thead th:first-child { border-top-color: transparent; border-left-color: transparent; }
 .ir-matrix tbody th { width: 120px; text-align: left; font-family: var(--ir-font-heading); font-weight: 600; font-size: 16px; }
@@ -251,7 +269,7 @@
   color: #f2f2f3;
   display: grid; grid-template-columns: 160px 1fr; gap: 24px; align-items: baseline;
 }
-.ir-home .ir-gap h6 { color: #b5d9fd; }
+.ir-home .ir-gap .ir-label { color: #b5d9fd; }
 .ir-gap > div { display: flex; flex-direction: column; gap: 14px; max-width: 760px; }
 .ir-gap-lead { font-family: var(--ir-font-heading); font-weight: 600; font-size: 34px; line-height: 1.12; letter-spacing: -0.015em; }
 .ir-gap p:not(.ir-gap-lead) { font-size: 15px; color: color-mix(in srgb, #f2f2f3 78%, transparent); }
@@ -276,7 +294,7 @@
   .ir-lede { font-size: 17px; }
   .ir-fleet { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .ir-rules, .ir-steps { grid-template-columns: 1fr; }
-  .ir-rule { min-height: 0; }
+  .ir-home .ir-rule { min-height: 0; }
   .ir-principle, .ir-gap { grid-template-columns: 1fr; gap: 12px; padding: 24px; }
   .ir-principle-quote { font-size: 30px; }
   .ir-gap-lead { font-size: 26px; }

@@ -167,7 +167,10 @@
 
 /* Expression switch: four cells on one line, two by two when narrow. The
    switch's own width decides, never its labels', so a font swap can't
-   rearrange it. */
+   rearrange it. Four across from 22em (330px): the labels are centred in
+   cells with no side padding, so even the longest, "Quietly proud", has
+   about 10px to spare at that width, in Barlow Condensed or its wider
+   fallback, and the threshold grows with the text if the reader enlarges it. */
 .ir-ledger-expr { display: flex; flex-direction: column; gap: 6px; container-type: inline-size; }
 .ir-ledger-expr-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 .ir-ledger-expr-opts {
@@ -177,13 +180,13 @@
 .ir-ledger-expr-opt {
   display: flex; justify-content: center;
   min-width: 0;
-  padding-inline: 6px;
+  padding-inline: 0;
   text-align: center;
 }
 .ir-ledger-expr-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .ir-ledger-expr-opt:nth-child(even) { border-left: 1px solid var(--ir-divider); }
 .ir-ledger-expr-opt:nth-child(n + 3) { border-top: 1px solid var(--ir-divider); }
-@container (min-width: 330px) {
+@container (min-width: 22em) {
   .ir-ledger-expr-opts { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .ir-ledger-expr-opt:nth-child(n + 3) { border-top: 0; }
   .ir-ledger-expr-opt + .ir-ledger-expr-opt { border-left: 1px solid var(--ir-divider); }
@@ -276,9 +279,10 @@
   .ir-ledger .ir-ledger-name { font-size: 30px; }
   .ir-ledger-note { margin-top: 0; }
   .ir-ledger-check { padding-top: 14px; }
-  /* dense: a short field after a long one fills the gap beside the one before */
+  /* In the ledger's own order, entry to entry: a short field before a long
+     one keeps its line to itself rather than trade places with a later one */
   .ir-ledger-dl {
-    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-flow: row dense; gap: 10px 16px;
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 16px;
     padding-top: 14px; border-top: 1px solid var(--ir-divider);
     font-size: 13px; line-height: 1.4;
   }

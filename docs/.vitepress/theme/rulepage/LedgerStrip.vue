@@ -1,42 +1,91 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { nextTick, onMounted, ref } from 'vue'
 import { withBase } from 'vitepress'
 import { data } from '../../data/rulebook.data'
+import { readUi, writeUi } from './ui-state'
 
 // Every ledger agent's portrait above the ledger table, each linking to its
-// /ledger entry by the agent's ledger slug (2a ledger strip). Up to a dozen
-// sit in one row, each in its own blueprint frame. A bigger fleet becomes a
-// contact sheet: one blueprint frame around a grid of small unframed
-// portraits (a frame per 70px tile would be all registration marks), showing
-// its first two rows until the reader asks for all of them. Every tile is in
-// the HTML either way; the rows past the second are hidden by rulepage.css,
-// which knows how many columns the sheet has at each width.
+// /ledger entry by the agent's ledger slug (2a ledger strip).
+//
+// Up to a dozen: each in its own blueprint frame, in balanced rows. Tiles
+// keep at least 72px, so a caption's age line ("60s+ · pending") stays on one
+// line, and the column gap (16px, as on the landing) keeps neighbouring
+// frames' registration marks apart. The column count for each content width
+// is worked out here, so no row is left with a stray tile or two.
+//
+// A bigger fleet becomes a contact sheet: one blueprint frame around a grid
+// of small unframed portraits (a frame per 70px tile would be all
+// registration marks), showing its first two rows until the reader asks for
+// all of them. Every tile is in the HTML either way; the rows past the second
+// are hidden by rulepage.css, which knows how many columns the sheet has at
+// each width, and shown again without JavaScript, or in print.
 const agents = data.agents
-const dense = agents.length > 12
+const n = agents.length
+const dense = n > 12
 /** At its widest the sheet has 8 columns: two rows hold 16, so nothing is hidden */
-const fitsWide = agents.length <= 16
+const fitsWide = n <= 16
 const expanded = ref(false)
+const list = ref<HTMLUListElement>()
+const more = ref<HTMLButtonElement>()
 const listId = 'ir-strip-list'
 const ledger = withBase('/ledger')
 const hasRule1 = data.rules.some((r) => r.n === 1)
+
+/**
+ * Columns for n tiles with at most `max` per row, spread over as few rows as
+ * that allows, and as evenly as it allows (11 over 2 rows: 6 + 5, not 7 + 4).
+ * rulepage.css picks one per content width: the most 72px tiles that fit.
+ */
+const balanced = (max: number) => Math.ceil(n / Math.ceil(n / max))
+const columns = dense
+  ? undefined
+  : {
+      '--ir-strip-c7': balanced(7),
+      '--ir-strip-c6': balanced(6),
+      '--ir-strip-c5': balanced(5),
+      '--ir-strip-c4': balanced(4),
+      '--ir-strip-c3': balanced(3)
+    }
 
 type Agent = (typeof agents)[number]
 const band = (a: Agent) => a.age ?? a.ageLabel
 const pending = (a: Agent) =>
   a.portrait ? '' : a.portraitStatus === 'mismatch' ? 'new portrait pending ledger update' : 'no portrait yet'
 const label = (a: Agent) => [a.name, band(a), pending(a), 'ledger entry'].filter(Boolean).join(', ')
+
+// Back to this page: open the sheet before VitePress restores the scroll
+// position, so the reader lands where they left (ui-state.ts)
+onMounted(() => {
+  if (dense && readUi().strip) expanded.value = true
+})
+
+async function toggle() {
+  const opening = !expanded.value
+  // The first tile the collapsed sheet hides, which is where reading goes on
+  const next = opening
+    ? [...(list.value?.children ?? [])].find((li) => getComputedStyle(li).display === 'none')
+    : null
+  expanded.value = opening
+  writeUi('strip', opening)
+  await nextTick()
+  // Opening adds the tiles above the button, so focus moves to the first new
+  // one; closing pulls the button up, so keep it in view
+  const link = next?.querySelector('a')
+  if (link) link.focus()
+  else more.value?.scrollIntoView({ block: 'nearest' })
+}
 </script>
 
 <template>
   <div
-    v-if="agents.length"
+    v-if="n"
     class="ir-strip"
     :class="{ 'is-dense': dense, 'is-collapsed': dense && !expanded, 'fits-wide': dense && fitsWide }"
-    :style="dense ? undefined : { '--ir-strip-n': agents.length }"
+    :style="columns"
   >
     <div :class="dense ? 'ir-strip-sheet blueprint' : 'ir-strip-row'">
       <template v-if="dense"><i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i></template>
-      <ul :id="listId" class="ir-strip-grid" role="list">
+      <ul :id="listId" ref="list" class="ir-strip-grid" role="list">
         <li v-for="(a, i) in agents" :key="`${i}-${a.slug}`">
           <a
             class="ir-strip-item"
@@ -44,7 +93,7 @@ const label = (a: Agent) => [a.name, band(a), pending(a), 'ledger entry'].filter
             :aria-label="label(a)"
             :title="pending(a) ? `${a.name}: ${pending(a)}` : undefined"
           >
-            <Portrait :agent="a" :framed="!dense" sizes="80px" />
+            <Portrait :agent="a" :framed="!dense" :sizes="dense ? '80px' : '(max-width: 768px) 80px, 112px'" />
             <span class="ir-strip-cap">
               <span class="ir-strip-name">{{ a.name }}</span>
               <span class="ir-strip-age">{{ band(a) }}<template v-if="pending(a)"> · pending</template></span>
@@ -60,13 +109,14 @@ const label = (a: Agent) => [a.name, band(a), pending(a), 'ledger entry'].filter
       </p>
       <button
         v-if="dense"
+        ref="more"
         type="button"
         class="ir-btn ir-btn-secondary ir-strip-more"
         :aria-expanded="expanded ? 'true' : 'false'"
         :aria-controls="listId"
-        @click="expanded = !expanded"
+        @click="toggle"
       >
-        {{ expanded ? 'Show fewer' : `Show all ${agents.length}` }}
+        {{ expanded ? 'Show fewer portraits' : `Show all ${n} portraits` }}
       </button>
     </div>
   </div>

@@ -14,6 +14,10 @@ import { getScrollOffset } from 'vitepress'
 // offset, plus the target's top padding), unless the reader has started
 // scrolling meanwhile. The same happens for a hash change (an in-page link or
 // an outline click) that lands while the fonts are still loading.
+//
+// Not on Back or Forward to the page, though: VitePress then restores the
+// scroll position the reader left at (it keeps it in history.state), and
+// that wins over the hash.
 
 function targetOf(hash: string) {
   if (hash.length < 2) return null
@@ -64,7 +68,7 @@ export default defineComponent({
     onMounted(() => {
       // Always on mount: the fonts may have finished between VitePress's scroll
       // and hydration, and re-aligning a target already in place is a no-op
-      realignAfterFonts()
+      if (!(history.state?.scrollPosition > 0)) realignAfterFonts()
       addEventListener('hashchange', onHashChange)
     })
     onBeforeUnmount(() => {

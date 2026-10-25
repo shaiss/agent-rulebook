@@ -1,7 +1,9 @@
 /* Industry design system, adapted for VitePress.
    Tokens come from the Claude Design handoff (Industry styles.css); the
    VitePress theme variables are mapped onto them so the whole site shares
-   the steel accent and Barlow type. Landing-page classes are prefixed ir-. */
+   the steel accent and Barlow type. Landing-page classes are prefixed ir-.
+   Also here, for every page: VitePress's own chrome squared off to match,
+   the page foot, the 404 page, print and forced-colours rules. */
 
 :root {
   --ir-bg: #f2f2f3;
@@ -21,8 +23,9 @@
   --ir-accent-800: #2c455d;
   --ir-accent-900: #1d2d3d;
 
-  --ir-font-heading: 'Barlow Condensed', system-ui, sans-serif;
-  --ir-font-body: 'Barlow', system-ui, sans-serif;
+  /* Self-hosted (index.ts), over size-matched local fallbacks (fonts.css) */
+  --ir-font-heading: 'Barlow Condensed', 'Barlow Condensed Fallback', system-ui, sans-serif;
+  --ir-font-body: 'Barlow', 'Barlow Fallback', system-ui, sans-serif;
 
   /* The handoff's #5980a6 fill can't carry 15px light text at 4.5:1,
      so the light-theme primary button steps down the ramp. */
@@ -52,6 +55,12 @@
   --vp-c-tip-1: var(--ir-accent-800);
   --vp-nav-bg-color: var(--ir-bg);
   --vp-sidebar-bg-color: var(--ir-bg);
+  /* Line drawings, not floating cards: no VitePress element casts a shadow */
+  --vp-shadow-1: none;
+  --vp-shadow-2: none;
+  --vp-shadow-3: none;
+  --vp-shadow-4: none;
+  --vp-shadow-5: none;
 }
 
 .dark {
@@ -104,20 +113,73 @@
 .vp-doc h2 { font-size: 32px; border-top-color: var(--ir-divider); }
 .vp-doc h3 { font-size: 24px; }
 
-/* ── Blueprint frame: hairline box with "+" registration marks ── */
-.ir-home .blueprint { position: relative; border: 1px solid var(--ir-divider); }
-.ir-home .blueprint > .corner {
+/* ── VitePress chrome, Industry style: square corners, hairline borders, no
+   shadows (the shadow tokens above are off), the themed focus ring ── */
+:root :focus-visible { outline: 2px solid var(--ir-accent); outline-offset: 2px; }
+
+/* Appearance switch: a square track, a square accent knob carrying the icon */
+.VPSwitch.VPSwitch { border-radius: 0; border-color: var(--ir-divider); background-color: transparent; }
+.VPSwitch.VPSwitch:hover { border-color: var(--ir-accent); }
+.VPSwitch.VPSwitch:active { background-color: color-mix(in srgb, var(--ir-text) 10%, transparent); }
+.VPSwitch.VPSwitch .check,
+.VPSwitch.VPSwitch .icon { border-radius: 0; }
+.VPSwitch.VPSwitch .check { background-color: var(--ir-primary-fill); }
+.VPSwitch.VPSwitch .icon [class^='vpi-'] { color: var(--ir-bg); }
+/* The "…" flyout and its menu, the rule page's "On this page" dropdown */
+.VPMenu.VPMenu,
+.VPLocalNavOutlineDropdown .items.items { border-radius: 0; border-color: var(--ir-divider); }
+.VPMenu.VPMenu .link { border-radius: 0; }
+.VPMenu.VPMenu .link:hover { background-color: color-mix(in srgb, var(--ir-text) 7%, transparent); }
+.VPMenu.VPMenu .link:active { background-color: color-mix(in srgb, var(--ir-text) 14%, transparent); }
+/* The mobile menu's Appearance row: a hairline-ruled tile, not a soft pill */
+.VPNavScreenAppearance.VPNavScreenAppearance {
+  border-radius: 0; border: 1px solid var(--ir-divider); background-color: transparent;
+}
+.VPSkipLink.VPSkipLink { border-radius: 0; border: 1px solid var(--ir-divider); }
+.VPSidebarItem .indicator.indicator,
+.VPDocAsideOutline .outline-marker.outline-marker { border-radius: 0; }
+
+/* Below 960px the closed sidebar is only faded out and slid off-canvas, so
+   its links stayed in the tab order. Hide it for real once the slide-out
+   (0.5s) has played; opening shows it at once. */
+@media (max-width: 959px) {
+  .VPSidebar:not(.open) {
+    visibility: hidden;
+    transition: opacity 0.5s, transform 0.25s ease, visibility 0s linear 0.5s;
+  }
+}
+
+/* ── Page foot, every page: "Edit this page on GitHub" and "Last updated" on
+   one ruled line (SiteFooter.vue; the ledger adds its gutters in ledger.css) ── */
+.ir-docfoot {
+  display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 24px;
+  margin: 0; padding-top: 20px; border-top: 1px solid var(--ir-divider);
+  font-size: 13px; line-height: 1.45; color: var(--ir-neutral-700);
+}
+/* in the rule page's doc column, over VitePress's own .vp-doc p margins */
+.ir-docfoot > *, .vp-doc .ir-docfoot > * { margin: 0; }
+.ir-docfoot .ir-docfoot-edit {
+  font-weight: 500; color: var(--ir-accent-700);
+  text-decoration: underline; text-underline-offset: 3px;
+}
+.ir-docfoot .ir-docfoot-edit:hover { color: var(--ir-accent-900); }
+/* A second line under the row (the landing's credit) */
+.ir-docfoot-note { flex-basis: 100%; }
+
+/* ── Frame (.ir-frame): hairline box with "+" registration marks ── */
+.ir-home .ir-frame { position: relative; border: 1px solid var(--ir-divider); }
+.ir-home .ir-frame > .corner {
   position: absolute; width: 11px; height: 11px;
   color: color-mix(in srgb, var(--ir-text) 55%, transparent);
 }
-.ir-home .blueprint > .corner::before,
-.ir-home .blueprint > .corner::after { content: ''; position: absolute; background: currentColor; }
-.ir-home .blueprint > .corner::before { left: 5px; top: 0; width: 1px; height: 100%; }
-.ir-home .blueprint > .corner::after { top: 5px; left: 0; width: 100%; height: 1px; }
-.ir-home .blueprint > .corner.tl { top: -6px; left: -6px; }
-.ir-home .blueprint > .corner.tr { top: -6px; right: -6px; }
-.ir-home .blueprint > .corner.bl { bottom: -6px; left: -6px; }
-.ir-home .blueprint > .corner.br { bottom: -6px; right: -6px; }
+.ir-home .ir-frame > .corner::before,
+.ir-home .ir-frame > .corner::after { content: ''; position: absolute; background: currentColor; }
+.ir-home .ir-frame > .corner::before { left: 5px; top: 0; width: 1px; height: 100%; }
+.ir-home .ir-frame > .corner::after { top: 5px; left: 0; width: 100%; height: 1px; }
+.ir-home .ir-frame > .corner.tl { top: -6px; left: -6px; }
+.ir-home .ir-frame > .corner.tr { top: -6px; right: -6px; }
+.ir-home .ir-frame > .corner.bl { bottom: -6px; left: -6px; }
+.ir-home .ir-frame > .corner.br { bottom: -6px; right: -6px; }
 
 /* ── Page frame ── */
 .ir-home {
@@ -133,7 +195,8 @@
   line-height: 1.55;
 }
 .ir-home-main { display: flex; flex-direction: column; gap: inherit; }
-.ir-home h1, .ir-home h2, .ir-home h3, .ir-home .ir-label {
+.ir-home h1, .ir-home h2, .ir-home h3, .ir-home .ir-label,
+.ir-nf h1, .ir-nf .ir-label {
   font-family: var(--ir-font-heading);
   font-weight: 600;
   line-height: 1.12;
@@ -144,7 +207,7 @@
 }
 .ir-home h2 { font-size: 32px; }
 /* Small uppercase labels; some are real headings (h2), some plain spans */
-.ir-home .ir-label {
+.ir-home .ir-label, .ir-nf .ir-label {
   font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase;
   color: var(--ir-accent-700);
 }
@@ -157,25 +220,29 @@
 .ir-count { font-size: 13px; color: var(--ir-neutral-700); }
 .ir-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 
-.ir-section { display: flex; flex-direction: column; gap: 20px; }
+/* Each section is the container its grids answer to, as the rule page's
+   grids answer to its content column */
+.ir-section { display: flex; flex-direction: column; gap: 20px; container: ir-sec / inline-size; }
 .ir-section-head { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; }
 
-/* ── Buttons & tags ── */
-.ir-home .ir-btn {
+/* ── Buttons & tags ── one size site-wide: 10px 18px, 15px condensed, 40px tall */
+:is(.ir-home, .ir-nf) .ir-btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 6px;
   font-family: var(--ir-font-heading); font-weight: 600; font-size: 15px; line-height: 1.2;
   padding: 10px 18px; text-decoration: none; color: var(--ir-text);
-  border: 1px solid var(--ir-divider); background: transparent; cursor: pointer;
+  border: 1px solid var(--ir-divider); border-radius: 0; background: transparent; cursor: pointer;
 }
-.ir-home .ir-btn-primary { background: var(--ir-primary-fill); border-color: var(--ir-primary-fill); color: var(--ir-bg); }
-.ir-home .ir-btn-primary:hover { background: var(--ir-primary-fill-hover); border-color: var(--ir-primary-fill-hover); color: var(--ir-bg); }
-.ir-home .ir-btn-primary:active { background: var(--ir-primary-fill-active); border-color: var(--ir-primary-fill-active); }
-.ir-home .ir-btn-secondary:hover { background: color-mix(in srgb, var(--ir-text) 7%, transparent); color: var(--ir-text); }
-.ir-home .ir-btn-secondary:active { background: color-mix(in srgb, var(--ir-text) 14%, transparent); }
+:is(.ir-home, .ir-nf) .ir-btn-primary { background: var(--ir-primary-fill); border-color: var(--ir-primary-fill); color: var(--ir-bg); }
+:is(.ir-home, .ir-nf) .ir-btn-primary:hover { background: var(--ir-primary-fill-hover); border-color: var(--ir-primary-fill-hover); color: var(--ir-bg); }
+:is(.ir-home, .ir-nf) .ir-btn-primary:active { background: var(--ir-primary-fill-active); border-color: var(--ir-primary-fill-active); }
+:is(.ir-home, .ir-nf) .ir-btn-secondary:hover { background: color-mix(in srgb, var(--ir-text) 7%, transparent); color: var(--ir-text); }
+:is(.ir-home, .ir-nf) .ir-btn-secondary:active { background: color-mix(in srgb, var(--ir-text) 14%, transparent); }
 .ir-home .ir-btn-ghost { border-color: transparent; color: var(--ir-accent-700); }
 .ir-home .ir-btn-ghost:hover { background: color-mix(in srgb, var(--ir-accent) 10%, transparent); }
+.ir-home .ir-btn-ghost:active { background: color-mix(in srgb, var(--ir-accent) 16%, transparent); }
 .ir-home .ir-btn-inverse { border-color: var(--ir-on-steel-label); color: var(--ir-on-steel); align-self: flex-start; }
 .ir-home .ir-btn-inverse:hover { background: color-mix(in srgb, var(--ir-on-steel) 12%, transparent); color: var(--ir-on-steel); }
+.ir-home .ir-btn-inverse:active { background: color-mix(in srgb, var(--ir-on-steel) 20%, transparent); }
 
 .ir-tag { display: inline-flex; align-items: center; font-size: 11px; letter-spacing: 0.02em; padding: 3px 10px; }
 .ir-tag-accent { background: var(--ir-accent-100); color: var(--ir-accent-800); }
@@ -189,36 +256,59 @@
   gap: 56px;
   align-items: end;
 }
-.ir-hero-copy { display: flex; flex-direction: column; gap: 20px; }
-.ir-home .ir-hero-title { font-size: 104px; line-height: 0.92; letter-spacing: -0.025em; }
+.ir-hero-copy { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+/* break-word only if a word can't fit the line at all (a wide fallback face
+   on a narrow phone); it never changes how the column is sized */
+.ir-home .ir-hero-title { font-size: 104px; line-height: 0.92; letter-spacing: -0.025em; overflow-wrap: break-word; }
 .ir-lede { font-size: 19px; max-width: 620px; color: var(--ir-neutral-800); text-wrap: pretty; }
 .ir-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px; }
 
-.ir-plate { padding: 22px 24px 8px; }
-.ir-plate-head { display: flex; justify-content: space-between; align-items: baseline; padding-bottom: 14px; border-bottom: 1px solid var(--ir-text); }
+/* The spec plate: its four stats 2 × 2 beside the copy, in one row once the
+   plate runs the full width under it */
+.ir-plate { padding: 22px 24px 8px; container: ir-plate / inline-size; }
+.ir-plate-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding-bottom: 14px; border-bottom: 1px solid var(--ir-text); }
 .ir-stats { margin: 0; display: grid; grid-template-columns: 1fr 1fr; }
 .ir-stat {
-  display: flex; flex-direction: column-reverse; gap: 2px;
+  display: flex; flex-direction: column-reverse; justify-content: flex-end; gap: 2px;
   padding: 16px 0 18px;
   border-bottom: 1px solid var(--ir-divider);
 }
 .ir-stat:nth-child(odd) { padding-right: 16px; border-right: 1px solid var(--ir-divider); }
 .ir-stat:nth-child(even) { padding-left: 20px; }
 .ir-stat:nth-last-child(-n + 2) { border-bottom: 0; }
+@container ir-plate (width >= 560px) {
+  .ir-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .ir-stat:nth-child(n) { padding: 16px 20px 18px; border-bottom: 0; border-right: 1px solid var(--ir-divider); }
+  .ir-stat:first-child { padding-left: 0; }
+  .ir-stat:last-child { padding-right: 0; border-right: 0; }
+}
 .ir-stat dt { font-size: 12px; color: var(--ir-neutral-700); }
-.ir-stat dd { margin: 0; font-family: var(--ir-font-heading); font-weight: 600; font-size: 52px; line-height: 1; color: var(--ir-accent); }
+/* Display figures (stats, rule and step numerals, the principle, the pull
+   quote) are condensed at the regular weight, as on the rule page (2a);
+   headings stay semibold */
+.ir-stat dd { margin: 0; font-family: var(--ir-font-heading); font-weight: 400; font-size: 52px; line-height: 1; color: var(--ir-accent); }
 
-/* ── Fleet: every ledger face, wrapping. Tiles render at roughly 60–100px;
-   Home.vue passes Portrait sizes="80px" so every device, 3x phones included,
-   takes the 240px file. The column gap clears neighbouring tiles'
-   registration marks. ── */
+/* ── Fleet: every ledger face. Home.vue passes Portrait sizes="80px" so every
+   device, 3x phones included, takes the 240px file. ──
+   Tiles are 70px and up (to 120px) with a 14px column gap, which keeps
+   neighbouring frames' registration marks (5px past each edge) apart. The
+   fleet's own width decides how many fit per row, 4 to 12 (the container
+   queries below); Home.vue says, for each of those, how many columns this
+   fleet uses (--fleet-c<n>: balanced rows, or every column when it folds)
+   and at which ones it folds to three rows (data-folds). */
+.ir-fleet-box { container: ir-fleet / inline-size; display: flex; flex-direction: column; gap: 20px; }
 .ir-home .ir-fleet {
+  --ir-fleet-cols: var(--fleet-c4, 4);
   list-style: none; margin: 0; padding: 0;
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
-  gap: 22px 16px;
+  display: grid; grid-template-columns: repeat(var(--ir-fleet-cols), minmax(0, 120px));
+  gap: 22px 14px;
 }
 .ir-home .ir-fleet > li { margin: 0; padding: 0; min-width: 0; }
-.ir-home .ir-fleet-item { display: flex; flex-direction: column; gap: 8px; color: var(--ir-text); text-decoration: none; }
+.ir-home .ir-fleet-item {
+  display: flex; flex-direction: column; gap: 8px; color: var(--ir-text); text-decoration: none;
+  /* focus after "Show all" lands clear of the nav */
+  scroll-margin: calc(var(--vp-nav-height) + 16px) 0 24px;
+}
 .ir-home .ir-fleet-item:hover { color: var(--ir-text); }
 .ir-home .ir-fleet-item .ir-portrait { transition: border-color 0.15s; }
 .ir-home .ir-fleet-item:hover .ir-portrait { border-color: var(--ir-accent); }
@@ -226,8 +316,65 @@
 .ir-fleet-caption { display: flex; flex-direction: column; font-size: 11px; line-height: 1.35; color: var(--ir-neutral-700); }
 .ir-fleet-name { font-size: 13px; font-weight: 500; color: var(--ir-text); overflow-wrap: anywhere; }
 .ir-home .ir-fleet-item:hover .ir-fleet-name { text-decoration: underline; text-underline-offset: 3px; }
+.ir-fleet-foot { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px 16px; }
 .ir-fleet-note { font-size: 13px; color: var(--ir-neutral-700); max-width: 720px; }
 .ir-home .ir-fleet-note a { text-decoration: underline; }
+.ir-home .ir-fleet-more { scroll-margin: calc(var(--vp-nav-height) + 16px) 0 24px; }
+
+/* Per width: the column count, the rows hidden while folded (past the
+   third), and the toggle, shown only where this fleet folds. A fleet Back
+   returns to open (html.ir-fleet-open, config.ts) shows whole until Home.vue
+   takes over. */
+@container ir-fleet (width < 406px) {
+  :root:not(.ir-fleet-open) .ir-fleet-box.is-folded .ir-fleet > li:nth-child(n + 13) { display: none; }
+  .ir-fleet-box:not([data-folds~='4']) .ir-fleet-more { display: none; }
+}
+@container ir-fleet (406px <= width < 490px) {
+  .ir-home .ir-fleet { --ir-fleet-cols: var(--fleet-c5, 5); }
+  :root:not(.ir-fleet-open) .ir-fleet-box.is-folded .ir-fleet > li:nth-child(n + 16) { display: none; }
+  .ir-fleet-box:not([data-folds~='5']) .ir-fleet-more { display: none; }
+}
+@container ir-fleet (490px <= width < 574px) {
+  .ir-home .ir-fleet { --ir-fleet-cols: var(--fleet-c6, 6); }
+  :root:not(.ir-fleet-open) .ir-fleet-box.is-folded .ir-fleet > li:nth-child(n + 19) { display: none; }
+  .ir-fleet-box:not([data-folds~='6']) .ir-fleet-more { display: none; }
+}
+@container ir-fleet (574px <= width < 658px) {
+  .ir-home .ir-fleet { --ir-fleet-cols: var(--fleet-c7, 7); }
+  :root:not(.ir-fleet-open) .ir-fleet-box.is-folded .ir-fleet > li:nth-child(n + 22) { display: none; }
+  .ir-fleet-box:not([data-folds~='7']) .ir-fleet-more { display: none; }
+}
+@container ir-fleet (658px <= width < 742px) {
+  .ir-home .ir-fleet { --ir-fleet-cols: var(--fleet-c8, 8); }
+  :root:not(.ir-fleet-open) .ir-fleet-box.is-folded .ir-fleet > li:nth-child(n + 25) { display: none; }
+  .ir-fleet-box:not([data-folds~='8']) .ir-fleet-more { display: none; }
+}
+@container ir-fleet (742px <= width < 826px) {
+  .ir-home .ir-fleet { --ir-fleet-cols: var(--fleet-c9, 9); }
+  :root:not(.ir-fleet-open) .ir-fleet-box.is-folded .ir-fleet > li:nth-child(n + 28) { display: none; }
+  .ir-fleet-box:not([data-folds~='9']) .ir-fleet-more { display: none; }
+}
+@container ir-fleet (826px <= width < 910px) {
+  .ir-home .ir-fleet { --ir-fleet-cols: var(--fleet-c10, 10); }
+  :root:not(.ir-fleet-open) .ir-fleet-box.is-folded .ir-fleet > li:nth-child(n + 31) { display: none; }
+  .ir-fleet-box:not([data-folds~='10']) .ir-fleet-more { display: none; }
+}
+@container ir-fleet (910px <= width < 994px) {
+  .ir-home .ir-fleet { --ir-fleet-cols: var(--fleet-c11, 11); }
+  :root:not(.ir-fleet-open) .ir-fleet-box.is-folded .ir-fleet > li:nth-child(n + 34) { display: none; }
+  .ir-fleet-box:not([data-folds~='11']) .ir-fleet-more { display: none; }
+}
+@container ir-fleet (width >= 994px) {
+  .ir-home .ir-fleet { --ir-fleet-cols: var(--fleet-c12, 12); }
+  :root:not(.ir-fleet-open) .ir-fleet-box.is-folded .ir-fleet > li:nth-child(n + 37) { display: none; }
+  .ir-fleet-box:not([data-folds~='12']) .ir-fleet-more { display: none; }
+}
+/* Without JavaScript the toggle can't work: the whole fleet shows instead
+   (the server renders it folded, so readers with JavaScript see no shift) */
+@media (scripting: none) {
+  .ir-fleet-box.is-folded .ir-fleet > li:nth-child(n) { display: block !important; }
+  .ir-home .ir-fleet-more { display: none !important; }
+}
 
 /* ── Principle ── */
 .ir-principle {
@@ -235,11 +382,12 @@
   display: grid; grid-template-columns: 160px 1fr; gap: 24px; align-items: baseline;
 }
 .ir-principle-body { display: flex; flex-direction: column; gap: 10px; }
-.ir-principle-quote { font-family: var(--ir-font-heading); font-weight: 600; font-size: 40px; line-height: 1.1; letter-spacing: -0.015em; text-wrap: balance; }
+.ir-principle-quote { font-family: var(--ir-font-heading); font-weight: 400; font-size: 40px; line-height: 1.1; letter-spacing: -0.015em; text-wrap: balance; }
 
-/* ── Rules grid ── */
-/* The frame draws the outer edge and each cell its inner rules, so a short
-   last row (11 rules) still closes as a grid with one empty cell. */
+/* ── Rules grid: 3 across, 2 from 640px of section width down, 1 from 560px
+   (as the rule page's grid) ──
+   The frame draws the outer edge and each cell its inner rules, so a short
+   last row still closes as a grid with empty cells. */
 .ir-rules {
   display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
   border: 1px solid var(--ir-divider);
@@ -252,13 +400,25 @@
   transition: background-color 0.15s;
 }
 .ir-home .ir-rule:hover { background: var(--ir-accent-100); color: var(--ir-text); }
-@media (min-width: 769px) {
+.ir-home .ir-rule:active { background: color-mix(in srgb, var(--ir-accent) 14%, var(--ir-bg)); }
+@container ir-sec (width > 640px) {
   .ir-home .ir-rule:nth-child(3n) { border-right: 0; }
   .ir-home .ir-rule:nth-child(3n + 1):nth-last-child(-n + 3),
   .ir-home .ir-rule:nth-child(3n + 1):nth-last-child(-n + 3) ~ .ir-rule { border-bottom: 0; }
 }
+@container ir-sec (560px < width <= 640px) {
+  .ir-rules { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ir-home .ir-rule:nth-child(2n) { border-right: 0; }
+  .ir-home .ir-rule:nth-child(2n + 1):nth-last-child(-n + 2),
+  .ir-home .ir-rule:nth-child(2n + 1):nth-last-child(-n + 2) ~ .ir-rule { border-bottom: 0; }
+}
+@container ir-sec (width <= 560px) {
+  .ir-rules { grid-template-columns: minmax(0, 1fr); }
+  .ir-home .ir-rule { min-height: 0; border-right: 0; }
+  .ir-home .ir-rule:last-child { border-bottom: 0; }
+}
 .ir-rule-top { display: flex; justify-content: space-between; align-items: center; }
-.ir-rule-n { font-family: var(--ir-font-heading); font-weight: 600; font-size: 32px; line-height: 1; color: var(--ir-accent); }
+.ir-rule-n { font-family: var(--ir-font-heading); font-weight: 400; font-size: 32px; line-height: 1; color: var(--ir-accent); }
 .ir-home .ir-rule-title { font-family: var(--ir-font-heading); font-weight: 600; font-size: 20px; line-height: 1.2; letter-spacing: normal; }
 .ir-rule p, .ir-step p { font-size: 13.5px; color: var(--ir-neutral-800); text-wrap: pretty; }
 
@@ -287,7 +447,8 @@
   letter-spacing: normal; text-transform: none; color: var(--ir-neutral-700);
 }
 .ir-matrix td { height: 76px; }
-.ir-cell-n { display: block; font-family: var(--ir-font-heading); font-weight: 600; font-size: 22px; line-height: 1; color: var(--ir-accent-700); }
+/* a display figure: condensed at the regular weight, like the stats and rule numerals */
+.ir-cell-n { display: block; font-family: var(--ir-font-heading); font-weight: 400; font-size: 22px; line-height: 1; color: var(--ir-accent-700); }
 .ir-cell-names { display: block; margin-top: 6px; font-size: 12.5px; line-height: 1.4; font-weight: 500; }
 /* Keep "Chief of Staff" on one line when it fits; wrap inside only when it can't */
 .ir-cell-name { display: inline-block; max-width: 100%; overflow-wrap: anywhere; }
@@ -298,11 +459,15 @@
 
 /* ── Rollout ── */
 .ir-quote { margin: 0; padding: 0; border: 0; display: flex; flex-direction: column; gap: 6px; max-width: 680px; }
-.ir-quote > span:first-child { font-family: var(--ir-font-heading); font-weight: 600; font-size: 24px; line-height: 1.2; }
+.ir-quote > span:first-child { font-family: var(--ir-font-heading); font-weight: 400; font-size: 24px; line-height: 1.2; letter-spacing: -0.01em; }
+/* 3 across, then 1 from 640px of section width (as the rule page's step cards) */
 .ir-steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; margin-top: 8px; }
+@container ir-sec (width <= 640px) {
+  .ir-steps { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+}
 .ir-step { padding: 20px; display: flex; flex-direction: column; gap: 10px; }
 .ir-step-top { display: flex; justify-content: space-between; align-items: baseline; }
-.ir-step-n { font-family: var(--ir-font-heading); font-weight: 600; font-size: 30px; line-height: 1; color: var(--ir-accent); }
+.ir-step-n { font-family: var(--ir-font-heading); font-weight: 400; font-size: 30px; line-height: 1; color: var(--ir-accent); }
 
 /* ── Our gap: the one full steel field ── */
 .ir-gap {
@@ -312,32 +477,23 @@
   display: grid; grid-template-columns: 160px 1fr; gap: 24px; align-items: baseline;
 }
 .ir-home .ir-gap .ir-label { color: var(--ir-on-steel-label); }
+.ir-home .ir-gap :focus-visible { outline-color: var(--ir-on-steel-label); }
 .ir-gap > div { display: flex; flex-direction: column; gap: 14px; max-width: 760px; }
 .ir-gap-lead { font-family: var(--ir-font-heading); font-weight: 600; font-size: 34px; line-height: 1.12; letter-spacing: -0.015em; }
 .ir-gap p:not(.ir-gap-lead) { font-size: 15px; color: color-mix(in srgb, var(--ir-on-steel) 82%, transparent); }
 
-.ir-footer {
-  display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
-  border-top: 1px solid var(--ir-divider); padding-top: 20px;
-  font-size: 13px; color: var(--ir-neutral-700);
-}
-
 /* ── Responsive ── */
 @media (max-width: 1100px) {
   .ir-home .ir-hero-title { font-size: 80px; }
-  .ir-hero { grid-template-columns: 1fr; gap: 40px; }
-  .ir-plate { max-width: 480px; }
-  .ir-balance { grid-template-columns: 1fr; gap: 24px; }
+  /* The plate runs the full width under the copy (its stats in one row) */
+  .ir-hero { grid-template-columns: minmax(0, 1fr); gap: 40px; }
+  .ir-balance { grid-template-columns: minmax(0, 1fr); gap: 24px; }
 }
 @media (max-width: 768px) {
   .ir-home { padding: 32px 16px 32px; gap: 56px; }
-  .ir-home .ir-hero-title { font-size: 56px; }
+  .ir-home .ir-hero-title { font-size: clamp(44px, 15vw, 56px); }
   .ir-lede { font-size: 17px; }
-  .ir-home .ir-fleet { grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); gap: 20px 14px; }
-  .ir-rules, .ir-steps { grid-template-columns: 1fr; }
-  .ir-home .ir-rule { min-height: 0; border-right: 0; }
-  .ir-home .ir-rule:last-child { border-bottom: 0; }
-  .ir-principle, .ir-gap { grid-template-columns: 1fr; gap: 12px; padding: 24px; }
+  .ir-principle, .ir-gap { grid-template-columns: minmax(0, 1fr); gap: 12px; padding: 24px; }
   .ir-principle-quote { font-size: 30px; }
   .ir-gap-lead { font-size: 26px; }
   .ir-matrix thead th:first-child { width: 100px; }
@@ -351,6 +507,133 @@
   .ir-matrix thead th:first-child { width: 60px; }
   .ir-matrix td { height: 64px; }
 }
-@media (max-width: 480px) {
-  .ir-home .ir-fleet { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px 14px; }
+
+/* ── 404 (SiteNotFound.vue) ── */
+.ir-nf {
+  max-width: 1280px; margin: 0 auto; padding: 72px 48px 120px;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 28px;
+  color: var(--ir-text); font-family: var(--ir-font-body); font-size: 15px; line-height: 1.55;
+}
+.ir-nf :focus-visible { outline: 2px solid var(--ir-accent); outline-offset: 2px; }
+.ir-nf-plate { padding: 24px 32px 28px 28px; display: flex; flex-direction: column; gap: 14px; }
+.ir-nf .ir-nf-title { display: flex; flex-direction: column; gap: 14px; }
+.ir-nf-code {
+  font-weight: 400; font-size: 168px; line-height: 0.8; letter-spacing: -0.03em;
+  color: var(--ir-accent);
+}
+.ir-nf-text { font-size: 40px; line-height: 1.05; letter-spacing: -0.015em; }
+.ir-nf-lede { margin: 0; max-width: 560px; font-size: 17px; color: var(--ir-neutral-800); text-wrap: pretty; }
+.ir-nf-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+@media (max-width: 768px) {
+  .ir-nf { padding: 40px 16px 72px; gap: 24px; }
+  .ir-nf-plate { padding: 20px 22px 22px; }
+  .ir-nf-code { font-size: 120px; }
+  .ir-nf-text { font-size: 32px; }
+}
+
+/* ── Print, every page: the content alone, ink on paper ── */
+@media print {
+  /* The site's chrome, and every control that only works on screen: all the
+     button-styled links and buttons (.ir-btn: the hero's and the 404's
+     actions, "Full ledger", "Show all", the steel field's call to action),
+     the ledger's filter and its "Back to the roster" */
+  .VPNav, .VPLocalNav, .VPSidebar, .VPDoc .aside, .VPBackdrop, .VPSkipLink,
+  .VPNavScreen, .VPDocFooter .prev-next, .VPFooter,
+  .vp-doc .header-anchor, .ir-actions, .ir-nf-actions, .ir-btn,
+  .ir-ledger-seg, .ir-ledger-back { display: none !important; }
+  .VPContent, .VPContent.has-sidebar { margin: 0 !important; padding: 0 !important; }
+  .VPDoc, .VPDoc .container, .VPDoc .content, .VPDoc .content-container { padding: 0 !important; max-width: none !important; }
+  html, html.dark, body, .Layout, .VPContent {
+    background: #fff !important; color: #000 !important;
+  }
+  /* Black on white whatever the screen theme */
+  :root, :root.dark {
+    --ir-bg: #fff;
+    --ir-surface: #fff;
+    --ir-text: #000;
+    --ir-divider: #999;
+    --ir-neutral-100: #eee;
+    --ir-neutral-700: #333;
+    --ir-neutral-800: #222;
+    --ir-accent: #2c455d;
+    --ir-accent-100: #fff;
+    --ir-accent-300: #2c455d;
+    --ir-accent-600: #2c455d;
+    --ir-accent-700: #1d2d3d;
+    --ir-accent-800: #1d2d3d;
+    --ir-accent-900: #000;
+    --ir-primary-fill: #fff;
+    --ir-steel: #fff;
+    --ir-on-steel: #000;
+    --ir-on-steel-label: #1d2d3d;
+  }
+  .ir-home { padding: 0; gap: 32px; }
+  .ir-home-main { gap: 32px; }
+  /* The steel field (the landing's "Why this exists", the rule page's "Our
+     gap") prints as a ruled box, black ink on white (the steel tokens
+     above), so it reads the same with background graphics on or off */
+  .ir-gap, .ir-band--steel { background: #fff; color: #000; border: 1px solid #000; }
+  /* Pressed toggles and the current option (the ledger's filter and
+     expression switch) are filled on screen; the print tokens would make
+     that fill white under white text. An inked outline instead (the
+     ledger's selected card keeps its own frame) */
+  [aria-pressed='true']:not(.ir-ledger-card),
+  .ir-ledger .ir-ledger-expr-opt.is-current {
+    background: transparent !important; color: #000 !important; border: 2px solid #000 !important;
+  }
+  [aria-pressed='true']:not(.ir-ledger-card) * { color: #000 !important; }
+  /* The whole fleet, folded or not */
+  .ir-fleet-box.is-folded .ir-fleet > li:nth-child(n) { display: block !important; }
+  /* Frames, cards and table rows stay whole on a page; headings stay with
+     what follows them */
+  .ir-frame, .ir-rule, .ir-step, .ir-matrix tr, .ir-stat, .ir-fleet > li,
+  .ir-principle, .ir-gap, .ir-quote, .ir-docfoot { break-inside: avoid; }
+  h1, h2, h3, .ir-section-head { break-after: avoid; }
+  /* Where a link leads, for links that go somewhere off the page: the
+     footer's edit link and the rule cards' rule numbers are enough; tiles,
+     buttons and in-page jumps are not worth an address each */
+  :root .ir-docfoot .ir-docfoot-edit.ir-docfoot-edit::after {
+    content: ' (' attr(href) ')';
+    /* in .vp-doc the link's ::after is VitePress's 11px external-link icon
+       (whose selector this one has to outweigh) */
+    display: inline; width: auto; height: auto; margin: 0; background: none; color: inherit;
+    -webkit-mask-image: none; mask-image: none;
+    font-weight: 400; overflow-wrap: anywhere;
+  }
+  .ir-docfoot .ir-docfoot-edit .ir-sr { display: none; }
+  a { text-decoration-color: currentColor; }
+}
+
+/* ── Forced colours (Windows contrast themes): states drawn with fills or
+   tints get a system-colour outline or fill of their own ── */
+@media (forced-colors: active) {
+  :root :focus-visible { outline: 2px solid Highlight; outline-offset: 2px; }
+  /* Pressed toggles and current options: filled like a selection */
+  [aria-pressed='true']:not(.ir-ledger-card),
+  .ir-ledger .ir-ledger-expr-opt.is-current {
+    forced-color-adjust: none;
+    background: Highlight !important; color: HighlightText !important; border-color: Highlight !important;
+  }
+  [aria-pressed='true']:not(.ir-ledger-card) * { color: HighlightText !important; }
+  /* A pressed card (portrait, tags) keeps its own colours inside a thick
+     Highlight frame (its ::after; focus keeps the outline) */
+  .ir-ledger-card[aria-pressed='true']::after {
+    forced-color-adjust: none;
+    border: 4px solid Highlight !important;
+  }
+  /* Current page in the nav, sidebar and outline: underline, not just colour */
+  .VPNavBarMenuLink.active, .VPNavScreenMenuLink.active,
+  .VPSidebarItem.is-active > .item .link > .text,
+  .VPDocAsideOutline .outline-link.active { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 4px; }
+  .VPSidebarItem .indicator, .VPDocAsideOutline .outline-marker { background: Highlight !important; }
+  /* Open matrix cells: the hatch is a background image the theme drops, so
+     the cell gets a dashed rule of its own (and keeps its "Open" label) */
+  .ir-matrix td.is-open { outline: 1px dashed CanvasText; outline-offset: -5px; }
+  .ir-matrix td .ir-open { color: GrayText; }
+  /* Pending portraits and unshown expressions: hatched the same way */
+  .ir-portrait-pending, .ir-ledger-expr-opt.is-off { outline: 1px dashed GrayText; outline-offset: -4px; }
+  /* Filled buttons and the steel field keep a visible edge */
+  .ir-btn-primary, .ir-gap, .ir-tag-accent, .ir-tag-neutral, .VPSwitch .check { border: 1px solid CanvasText; }
+  .VPSwitch .check { background: CanvasText !important; }
+  .VPSwitch .icon [class^='vpi-'] { color: Canvas !important; }
 }

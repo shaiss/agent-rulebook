@@ -36,10 +36,27 @@
 .ir-ledger :focus-visible { outline: 2px solid var(--ir-accent); outline-offset: 2px; }
 .ir-ledger-empty { padding: 28px 40px; color: var(--ir-neutral-700); }
 
+/* The site's one button size: 10px 18px, Barlow Condensed 600 15px/1.2 and a
+   1px hairline, 40px tall. The filter and the expression switch are rows of
+   such buttons sharing their hairlines. */
+.ir-ledger-seg-btn, .ir-ledger-expr-opt, .ir-ledger-back {
+  padding: 10px 18px;
+  font-family: var(--ir-font-heading); font-weight: 600; font-size: 15px; line-height: 1.2;
+  letter-spacing: normal;
+  white-space: nowrap;
+  border: 0;
+  background: transparent;
+}
+
 /* ── Header ── */
+/* The filter sits under the title until there is room for both side by side
+   in any font, so a late web font never moves it (or the roster under it) */
 .ir-ledger-head {
   padding: 36px 40px 24px;
-  display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 20px 24px;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 20px;
+}
+@media (min-width: 1100px) {
+  .ir-ledger-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 24px; }
 }
 .ir-ledger-head-copy { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
 .ir-ledger-crumbs ol {
@@ -50,21 +67,31 @@
 .ir-ledger-crumbs [aria-current] { color: var(--ir-text); }
 .ir-ledger .ir-ledger-title { font-size: 56px; line-height: 1; letter-spacing: -0.02em; }
 .ir-ledger-sub { font-size: 14px; color: var(--ir-neutral-700); }
+/* Rule 01, said where the faces are */
+.ir-ledger-ai {
+  margin-top: 2px;
+  padding-left: 10px; border-left: 2px solid var(--ir-accent);
+  font-size: 13px; line-height: 1.45; color: var(--ir-neutral-800);
+}
 
 /* Gender filter: a segmented control of toggle buttons */
-.ir-ledger-seg { display: flex; border: 1px solid var(--ir-divider); }
+.ir-ledger-seg { display: flex; border: 1px solid var(--ir-divider); max-width: 100%; }
 .ir-ledger-seg-btn {
-  position: relative;
-  display: flex; align-items: baseline; gap: 6px;
-  padding: 8px 14px; font-size: 13px; line-height: 1.3;
-  background: transparent;
+  display: inline-flex; align-items: baseline; justify-content: center; gap: 6px;
+  cursor: pointer;
 }
 .ir-ledger-seg-btn + .ir-ledger-seg-btn { border-left: 1px solid var(--ir-divider); }
 .ir-ledger-seg-btn:hover { background: color-mix(in srgb, var(--ir-text) 7%, transparent); }
+.ir-ledger-seg-btn:active { background: color-mix(in srgb, var(--ir-text) 14%, transparent); }
 .ir-ledger-seg-btn:focus-visible { z-index: 1; }
-.ir-ledger-seg-n { font-size: 11px; color: var(--ir-neutral-700); }
+.ir-ledger-seg-n {
+  font-family: var(--ir-font-body); font-weight: 400; font-size: 12px; line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--ir-neutral-700);
+}
 .ir-ledger .ir-ledger-seg-btn[aria-pressed='true'] { background: var(--ir-primary-fill); color: var(--ir-bg); }
 .ir-ledger .ir-ledger-seg-btn[aria-pressed='true']:hover { background: var(--ir-primary-fill-hover); }
+.ir-ledger .ir-ledger-seg-btn[aria-pressed='true']:active { background: var(--ir-primary-fill-active); }
 .ir-ledger-seg-btn[aria-pressed='true'] .ir-ledger-seg-n { color: var(--ir-bg); }
 
 /* ── Roster + entry ── */
@@ -87,11 +114,13 @@
   text-align: left;
   border: 1px solid var(--ir-divider);
   background: transparent;
+  cursor: pointer;
   transition: background-color 0.15s;
   /* keyboard focus never lands under the fixed nav */
   scroll-margin: calc(var(--vp-nav-height) + 16px) 0 16px;
 }
 .ir-ledger-card:hover { background: var(--ir-surface); }
+.ir-ledger-card:active { background: color-mix(in srgb, var(--ir-text) 10%, transparent); }
 /* Selected: a 2px accent frame drawn over the hairline (focus keeps its own outer ring) */
 .ir-ledger-card[aria-pressed='true']::after {
   content: '';
@@ -109,8 +138,10 @@
 .ir-ledger-tags .ir-tag { line-height: 1.4; }
 .ir-ledger-card-heritage { font-size: 12px; line-height: 1.4; color: var(--ir-neutral-700); overflow-wrap: anywhere; }
 
-/* Entry: heads the right-hand column side by side, follows the roster when
-   stacked. It never scrolls on its own. */
+/* Entry: follows the roster when stacked (below 960px). Side by side it is
+   sticky beside the roster at all times; at most a viewport tall, it scrolls
+   on its own when a long row doesn't fit (and the wheel carries on to the
+   page at its ends). */
 .ir-ledger-entry {
   min-width: 0;
   padding: 28px 32px 40px;
@@ -118,12 +149,6 @@
   /* clears the fixed nav side by side, and VitePress's 48px "Return to top"
      bar (fixed below 960px once scrolled) when stacked */
   scroll-margin-top: var(--vp-nav-height);
-}
-@media (min-width: 960px) {
-  .ir-ledger-entry { align-self: start; }
-  /* Sticky only while the whole entry fits under the nav (LedgerRoster.vue
-     measures it); a taller entry stays put and the page scrolls to it */
-  .ir-ledger-entry.is-sticky { position: sticky; top: var(--vp-nav-height); }
 }
 .ir-ledger-entry-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
 .ir-ledger-entry-media, .ir-ledger-entry-info { display: flex; flex-direction: column; gap: 22px; min-width: 0; }
@@ -134,22 +159,35 @@
   background: var(--ir-accent-100); color: var(--ir-accent-900);
 }
 
-.ir-ledger-expr { display: flex; flex-direction: column; gap: 6px; }
+.ir-ledger-ident { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.ir-ledger .ir-ledger-name { font-size: 36px; line-height: 1.05; overflow-wrap: anywhere; }
+.ir-ledger-name { scroll-margin-top: calc(var(--vp-nav-height) + 16px); }
+.ir-ledger-name:focus-visible { outline-offset: 4px; }
+.ir-ledger-ident-heritage { font-size: 12.5px; line-height: 1.4; color: var(--ir-neutral-700); overflow-wrap: anywhere; }
+
+/* Expression switch: four cells on one line, two by two when narrow. The
+   switch's own width decides, never its labels', so a font swap can't
+   rearrange it. */
+.ir-ledger-expr { display: flex; flex-direction: column; gap: 6px; container-type: inline-size; }
 .ir-ledger-expr-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
-/* Equal cells while every label fits on one line; a cell never squeezes its
-   label onto two */
 .ir-ledger-expr-opts {
-  display: grid; grid-template-columns: repeat(4, minmax(max-content, 1fr));
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
   border: 1px solid var(--ir-divider);
 }
 .ir-ledger-expr-opt {
-  display: block;
-  padding: 7px 4px;
-  font-size: 12px; line-height: 1.3; text-align: center; white-space: nowrap;
-  border: 0;
-  background: transparent;
+  display: flex; justify-content: center;
+  min-width: 0;
+  padding-inline: 6px;
+  text-align: center;
 }
-.ir-ledger-expr-opt + .ir-ledger-expr-opt { border-left: 1px solid var(--ir-divider); }
+.ir-ledger-expr-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.ir-ledger-expr-opt:nth-child(even) { border-left: 1px solid var(--ir-divider); }
+.ir-ledger-expr-opt:nth-child(n + 3) { border-top: 1px solid var(--ir-divider); }
+@container (min-width: 330px) {
+  .ir-ledger-expr-opts { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .ir-ledger-expr-opt:nth-child(n + 3) { border-top: 0; }
+  .ir-ledger-expr-opt + .ir-ledger-expr-opt { border-left: 1px solid var(--ir-divider); }
+}
 /* The state on show: an indicator, filled like a pressed segment */
 .ir-ledger .ir-ledger-expr-opt.is-current { background: var(--ir-primary-fill); color: var(--ir-bg); }
 /* Not generated (or not shown) yet: hatched like the site's other open/pending slots */
@@ -160,14 +198,13 @@
 .ir-ledger-expr-opt:disabled { cursor: not-allowed; }
 .ir-ledger-expr-note { font-size: 12px; line-height: 1.4; color: var(--ir-neutral-700); }
 
-.ir-ledger .ir-ledger-name { font-size: 36px; line-height: 1.05; }
-.ir-ledger-name { scroll-margin-top: calc(var(--vp-nav-height) + 16px); }
-.ir-ledger-name:focus-visible { outline-offset: 4px; }
+/* The row's fields as written: label beside value; packed two across beside the roster */
 .ir-ledger-dl {
   margin: 0;
-  display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 8px 12px;
+  display: flex; flex-direction: column; gap: 8px;
   font-size: 13.5px; line-height: 1.45;
 }
+.ir-ledger-dl > div { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 12px; }
 .ir-ledger-dl dt { color: var(--ir-neutral-700); }
 .ir-ledger-dt-q { display: block; font-size: 12px; }
 .ir-ledger-dl dd { margin: 0; overflow-wrap: anywhere; }
@@ -200,17 +237,57 @@
 }
 .ir-ledger-quote figcaption { font-size: 11px; line-height: 1.4; color: var(--ir-neutral-700); }
 
-/* Whenever the entry isn't beside the roster in view (stacked, or too tall to stick) */
+/* Only while the entry is stacked under the roster */
 .ir-ledger-back {
   display: inline-flex;
   align-self: flex-start;
-  padding: 10px 18px;
-  font-family: var(--ir-font-heading); font-weight: 600; font-size: 15px; line-height: 1.2;
   border: 1px solid var(--ir-divider);
-  background: transparent;
+  cursor: pointer;
 }
 .ir-ledger-back:hover { background: color-mix(in srgb, var(--ir-text) 7%, transparent); }
-.ir-ledger-entry.is-sticky .ir-ledger-back { display: none; }
+.ir-ledger-back:active { background: color-mix(in srgb, var(--ir-text) 14%, transparent); }
+
+/* Side by side: portrait and name share a row, the fields pack two across,
+   and the whole entry stays in view while the roster scrolls */
+@media (min-width: 960px) {
+  .ir-ledger-entry {
+    position: sticky; top: var(--vp-nav-height);
+    align-self: start;
+    max-height: calc(100vh - var(--vp-nav-height));
+    max-height: calc(100dvh - var(--vp-nav-height));
+    overflow-y: auto;
+    scrollbar-width: thin;
+    /* Scroll shadows, as on the rule page's tables: a soft edge on whichever
+       end has more entry, covered by the "local" ground layers at that end */
+    background:
+      linear-gradient(var(--ir-bg) 40%, transparent) top / 100% 32px no-repeat local,
+      linear-gradient(transparent, var(--ir-bg) 60%) bottom / 100% 32px no-repeat local,
+      linear-gradient(color-mix(in srgb, var(--ir-text) 14%, transparent), transparent) top / 100% 12px no-repeat scroll,
+      linear-gradient(transparent, color-mix(in srgb, var(--ir-text) 14%, transparent)) bottom / 100% 12px no-repeat scroll;
+    display: grid; grid-template-columns: minmax(0, 11fr) minmax(0, 12fr); gap: 14px 16px;
+    align-content: start;
+    padding: 24px 32px;
+  }
+  .ir-ledger-entry-media, .ir-ledger-entry-info { display: contents; }
+  .ir-ledger-entry-media > *, .ir-ledger-entry-info > *, .ir-ledger-entry-top { grid-column: 1 / -1; }
+  .ir-ledger-entry-top { grid-row: 1; }
+  .ir-ledger-entry-media > .ir-portrait { grid-row: 2; grid-column: 1; }
+  .ir-ledger-ident { grid-row: 2; grid-column: 2; align-self: end; gap: 6px; }
+  .ir-ledger .ir-ledger-name { font-size: 30px; }
+  .ir-ledger-note { margin-top: 0; }
+  .ir-ledger-check { padding-top: 14px; }
+  /* dense: a short field after a long one fills the gap beside the one before */
+  .ir-ledger-dl {
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-flow: row dense; gap: 10px 16px;
+    padding-top: 14px; border-top: 1px solid var(--ir-divider);
+    font-size: 13px; line-height: 1.4;
+  }
+  .ir-ledger-dl > div { display: block; }
+  .ir-ledger-dl > .is-long { grid-column: 1 / -1; }
+  .ir-ledger-dl dt { font-size: 12px; }
+  .ir-ledger-dt-q { display: inline; font-size: inherit; }
+  .ir-ledger-back { display: none; }
+}
 
 /* ── Tallies ── */
 .ir-ledger-tallies {
@@ -242,8 +319,13 @@
 .ir-ledger-gaps li::marker { color: var(--ir-accent); }
 .ir-ledger-tally .ir-meta { margin-top: 4px; }
 
+/* ── Page foot (SiteFooter.vue, styled in style.css): the ledger's gutters ── */
+.ir-ledger .ir-docfoot { padding: 20px 40px 40px; }
+.ir-ledger .ir-docfoot > p { line-height: 1.55; }
+.ir-ledger .ir-docfoot-edit { text-decoration-thickness: auto; }
+
 /* ── Responsive ── */
-@media (max-width: 1180px) {
+@media (max-width: 1179px) {
   .ir-ledger-body { grid-template-columns: minmax(0, 1fr) 340px; }
   .ir-ledger-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .ir-ledger-entry { padding-inline: 28px; }
@@ -272,16 +354,59 @@
   .ir-ledger-entry { padding: 24px 16px 32px; }
   .ir-ledger-empty { padding: 20px 16px; }
   .ir-ledger-tally:nth-of-type(n) { padding: 20px 16px 24px; }
+  .ir-ledger .ir-docfoot { padding: 20px 16px 32px; }
 }
+/* Phones: three compact cards across (portrait, name, then gender and age in
+   small type), so the roster stays short and the entry close */
 @media (max-width: 639px) {
-  .ir-ledger-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 12px; }
-  .ir-ledger-card-text { padding: 8px 10px 10px; }
-  .ir-ledger-card-name { font-size: 18px; }
+  .ir-ledger-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px 10px; }
+  .ir-ledger-card-text { gap: 2px; padding: 6px 8px 8px; }
+  .ir-ledger-card-name { font-size: 15px; line-height: 1.15; }
+  .ir-ledger-card .ir-ledger-tags { gap: 0; }
+  .ir-ledger-card .ir-tag {
+    padding: 0; background: none;
+    font-size: 11px; line-height: 1.35; letter-spacing: normal; color: var(--ir-neutral-700);
+  }
+  .ir-ledger-card .ir-tag + .ir-tag::before { content: '·'; content: '·' / ''; margin: 0 4px; }
+  .ir-ledger-card-heritage { display: none; }
   .ir-ledger .ir-ledger-name { font-size: 32px; }
-  /* Full-width filter; counts drop under their labels */
-  .ir-ledger-seg { width: 100%; }
-  .ir-ledger-seg-btn { flex: 1 1 0; flex-direction: column; align-items: center; gap: 0; padding: 7px 4px; }
   .ir-ledger-tallies { grid-template-columns: minmax(0, 1fr); }
   .ir-ledger-tally:nth-of-type(n) { border-left: 0; }
   .ir-ledger-tally:nth-of-type(n + 2) { border-top: 1px solid var(--ir-divider); }
+}
+/* Too narrow for the filter on one line: two by two, full width */
+@media (max-width: 559px) {
+  .ir-ledger-seg { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; }
+  .ir-ledger-seg-btn { min-width: 0; padding-inline: 8px; }
+  .ir-ledger-seg-btn + .ir-ledger-seg-btn { border-left: 0; }
+  .ir-ledger-seg-btn:nth-child(even) { border-left: 1px solid var(--ir-divider); }
+  .ir-ledger-seg-btn:nth-child(n + 3) { border-top: 1px solid var(--ir-divider); }
+}
+
+/* ── Forced colours: states drawn with system colours, not fills that get stripped ── */
+@media (forced-colors: active) {
+  .ir-ledger .ir-ledger-seg-btn[aria-pressed='true'],
+  .ir-ledger .ir-ledger-expr-opt.is-current {
+    forced-color-adjust: none;
+    background: Highlight; color: HighlightText;
+  }
+  .ir-ledger .ir-ledger-seg-btn[aria-pressed='true'] .ir-ledger-seg-n { color: HighlightText; }
+  .ir-ledger-card[aria-pressed='true']::after {
+    forced-color-adjust: none;
+    inset: -2px; border: 4px solid Highlight;
+  }
+  .ir-ledger-expr-opt.is-off { color: GrayText; }
+  .ir-ledger-bar > span { forced-color-adjust: none; background: CanvasText; }
+}
+
+/* ── Print: the roster, the entry and the tallies; no controls (the filter
+   and "Back to the roster" go with the site's other controls, style.css) ── */
+@media print {
+  .ir-ledger-expr { display: none; }
+  .ir-ledger-entry { position: static; max-height: none; overflow: visible; background: none; }
+  .ir-ledger-entry, .ir-ledger-grid > li, .ir-ledger-tally, .ir-ledger-quote, .ir-ledger-check,
+  .ir-ledger-dl > div { break-inside: avoid; }
+  .ir-ledger-head, .ir-ledger-ident, .ir-ledger-entry-top { break-after: avoid; }
+  /* the tally bars are fills, which printers drop by default */
+  .ir-ledger-bar > span { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }

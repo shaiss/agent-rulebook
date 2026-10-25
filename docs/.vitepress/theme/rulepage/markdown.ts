@@ -40,10 +40,21 @@ export default function rulebookMarkdown(md: MarkdownIt) {
     if (state.inlineMode || state.env?.relativePath !== PAGE) return
     try {
       state.tokens = transform(md, state)
+      state.env.irRulepage = true
     } catch (err) {
       console.warn(`[rulepage] ${PAGE}: falling back to plain markdown.`, err)
     }
   })
+
+  // VitePress makes every table a tab stop (<table tabindex="0">), since its
+  // tables scroll sideways. Here the ledger table scrolls inside its own named
+  // region (RuleLedgerTable.vue) and the other tables wrap to fit the column
+  // (.ir-fit), so a focusable table would only be an extra, nameless tab stop.
+  // This plugin runs after VitePress installs its rule; other pages, and this
+  // one if the transform fell back, keep it.
+  const tableOpen = md.renderer.rules.table_open
+  md.renderer.rules.table_open = (tokens, idx, options, env, self) =>
+    env?.irRulepage || !tableOpen ? self.renderToken(tokens, idx, options) : tableOpen(tokens, idx, options, env, self)
 }
 
 function transform(md: MarkdownIt, state: StateCore): Token[] {
@@ -58,6 +69,7 @@ function transform(md: MarkdownIt, state: StateCore): Token[] {
     t.content = content
     return t
   }
+  markHeadingDates(tokens)
   const html = (content: string) => Object.assign(make('html_block', '', 0, content + '\n'), { block: true })
   const text = (content: string) => make('text', '', 0, content)
   /** Inline markdown, rendered as the rest of the page is */
@@ -92,11 +104,12 @@ function transform(md: MarkdownIt, state: StateCore): Token[] {
   if (intro.length) out.push(html('<header class="ir-sec ir-sec--intro"><RuleCrumbs />'), ...header(intro), html('</header>'))
   for (const s of secs) {
     const framed = s.kind === 'principle'
-    const cls = `ir-sec ir-sec--${esc(s.slug)}${s.kind ? ` ir-kind--${s.kind}` : ''}${framed ? ' blueprint' : ''}`
+    const cls = `ir-sec ir-sec--${esc(s.slug)}${s.kind ? ` ir-kind--${s.kind}` : ''}${framed ? ' ir-frame' : ''}`
     out.push(html(`<section class="${cls}">${framed ? CORNERS : ''}`), ...section(s.kind, s.body), html('</section>'))
   }
-  // 2a's page foot: the edit link and "Last updated" side by side (RuleFooter.vue)
-  out.push(html('<RuleFooter />'))
+  // 2a's page foot: the edit link and "Last updated" side by side, the site's
+  // one page foot (SiteFooter.vue, registered globally in index.ts)
+  out.push(html('<SiteFooter />'))
   return out
 
   // ── Page header: h1 without "(draft)", then status tags, then the intro as lede ──
@@ -271,7 +284,7 @@ function transform(md: MarkdownIt, state: StateCore): Token[] {
     return ts
   }
 
-  // ── Rollout: Shai's ask as a pull quote, the steps as blueprint cards ──
+  // ── Rollout: Shai's ask as a pull quote, the steps as framed cards ──
   function rollout(ts: Token[]): Token[] {
     const res: Token[] = []
     const q = book.rollout.quote
@@ -302,7 +315,7 @@ function transform(md: MarkdownIt, state: StateCore): Token[] {
         let at = i
         for (const [k, [a, b]] of listItems(ts, i).entries()) {
           res.push(...ts.slice(at, a))
-          ts[a].attrJoin('class', 'ir-stepcard blueprint')
+          ts[a].attrJoin('class', 'ir-stepcard ir-frame')
           const n = Number(ts[a].info) || start + k
           res.push(ts[a], html(`${CORNERS}<span class="ir-stepcard-n"><span class="ir-sr">Step </span>${n}</span>`))
           for (const x of ts.slice(a + 1, b)) {
@@ -336,18 +349,14 @@ function transform(md: MarkdownIt, state: StateCore): Token[] {
     const rows = body.slice(ti, tend).filter((t) => t.type === 'tr_open').length - 1
     const after = body.slice(tend + 1)
     for (const t of after) if (t.type === 'paragraph_open' && t.level === 0) t.attrJoin('class', 'ir-note')
+    // The table behind a disclosure, in a named scroll region (RuleLedgerTable.vue)
     return [
       ...head,
       ...body.slice(0, ti),
       html('<LedgerStrip />'),
-      html(
-        '<details class="ir-ledger-table">' +
-          `<summary><span id="ir-ledger-table-title" class="ir-summary-title">Ledger table</span><span class="ir-count">${plural(rows, 'row')}</span></summary>` +
-          // Wider than the column: a focusable scroll box, so keys can scroll it too
-          '<div class="ir-table-scroll" role="region" aria-labelledby="ir-ledger-table-title" tabindex="0">'
-      ),
+      html(`<RuleLedgerTable :rows="${rows}">`),
       ...body.slice(ti, tend + 1),
-      html('</div></details>'),
+      html('</RuleLedgerTable>'),
       ...after
     ]
   }
@@ -406,12 +415,15 @@ function transform(md: MarkdownIt, state: StateCore): Token[] {
    * no wrap), then prose columns get a minimum width by how long their values
    * run, on average and at their longest: .ir-short (8rem), .ir-mid (10rem),
    * .ir-wide (15rem), .ir-xwide (22rem). A table wider than the column
-   * scrolls sideways inside its own box. A cell that opens with an ISO date
-   * keeps the date on one line.
+   * scrolls sideways inside its own box. Every other table (e.g. the fleet
+   * tally) is .ir-fit: it keeps the browser's layout and wraps to fit the
+   * column, down to 320px. A cell that opens with an ISO date keeps the date
+   * on one line.
    */
   function markTables(ts: Token[], widths: boolean) {
     for (let i = 0; i < ts.length; i++) {
       if (ts[i].type !== 'table_open') continue
+      if (!widths) ts[i].attrJoin('class', 'ir-fit')
       const end = closeOf(ts, i)
       const rows: { open: Token; inline: Token; text: string }[][] = []
       for (let j = i; j < end; j++) {
@@ -473,6 +485,41 @@ function transform(md: MarkdownIt, state: StateCore): Token[] {
 }
 
 // ── Token helpers ──
+
+/**
+ * ISO dates in h2–h4 ("Fleet tally (taxonomy v2, 2026-10-24)") stay on one
+ * line: browsers break dates at their hyphens. In the heading a nowrap
+ * <time> does it. VitePress builds the outline's link text from the
+ * heading's text, skipping .ignore-header elements, so the outline (whose
+ * links wrap on this page) reads a hidden copy of the date instead, joined at
+ * its hyphens by invisible word joiners (U+2060).
+ */
+const WJ_HYPHEN = '-\u2060'
+function markHeadingDates(ts: Token[]) {
+  for (let i = 0; i < ts.length; i++) {
+    if (ts[i].type !== 'heading_open' || !/^h[234]$/.test(ts[i].tag)) continue
+    const inline = ts[i + 1]
+    if (inline?.type !== 'inline' || !inline.children) continue
+    inline.children = inline.children.flatMap((c) => {
+      if (c.type !== 'text') return [c]
+      // split() with a capture group: dates sit at the odd indexes
+      const parts = c.content.split(/\b(\d{4}-\d\d-\d\d)\b/)
+      if (parts.length === 1) return [c]
+      return parts
+        .map((s, k) =>
+          k % 2
+            ? Object.assign(clone(c), {
+                type: 'html_inline',
+                content:
+                  `<time class="ir-date ignore-header" datetime="${s}">${s}</time>` +
+                  `<span class="ir-outline-text" hidden>${s.replace(/-/g, WJ_HYPHEN)}</span>`
+              })
+            : Object.assign(clone(c), { content: s })
+        )
+        .filter((t) => t.content)
+    })
+  }
+}
 
 function clone(t: Token): Token {
   const c: Token = Object.assign(Object.create(Object.getPrototypeOf(t)), t)

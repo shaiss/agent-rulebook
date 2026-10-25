@@ -33,6 +33,7 @@ export function ruleLink(re: RegExp, n: number, whole = false) {
 
 // The rules this page names, found by their leads so a renumbering follows along
 export const RULES = {
+  invented: [/invented person|real person/i, 1],
   distinct: [/look\s*-?\s*alike/i, 2],
   blend: [/even blend|balanced/i, 3],
   gender: [/^gender\b/i, 6],

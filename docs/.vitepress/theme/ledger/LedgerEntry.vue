@@ -5,14 +5,18 @@ import { GENDERS, type Agent } from '../../data/parse'
 import { RULES, ruleLink, sectionHref } from './links'
 import { heritageMatch, notesFor } from './notes'
 
-// One ledger row in full: portrait, the rule-09 expression switch, the rule-02
-// check against agents in the same gender × age cell (with the ledger's own
-// notes on documented exceptions), then the row's fields as written.
+// One ledger row in full: portrait and name, the rule-09 expression switch,
+// the rule-02 check against agents in the same gender × age cell (with the
+// ledger's own notes on documented exceptions), then the row's fields as
+// written. Side by side with the roster (ledger.css) the portrait and name
+// share a row and the fields pack two to a line, so the entry fits beside
+// the roster on common screens.
 
 const props = defineProps<{ agent: Agent }>()
 defineEmits<{ back: [] }>()
 
 const heritageOf = (a: Agent) => a.heritage || a.depicted
+const genderName = (a: Agent) => GENDERS.find((g) => g.key === a.gender)?.label ?? a.genderLabel
 
 // Only the base portrait exists, so the switch shows its states without faking any
 const EXPRESSIONS = ['Steady', 'Focused', 'Concerned', 'Quietly proud']
@@ -27,6 +31,10 @@ const names = data.agents.map((a) => a.name)
 
 const setDate = computed(() => /\b\d{4}-\d{2}-\d{2}\b/.exec(props.agent.set)?.[0] ?? props.agent.set)
 
+// Side by side the fields pack two across; a value longer than this (about
+// two half-width lines) or a qualified label takes a full line
+const LONG = 36
+
 const fields = computed(() => {
   const a = props.agent
   return [
@@ -37,7 +45,9 @@ const fields = computed(() => {
     { k: 'Hair', v: a.hair },
     { k: 'Setting/clothing', v: a.setting },
     { k: 'Set', v: a.set }
-  ].filter((f) => f.v)
+  ]
+    .filter((f) => f.v)
+    .map((f) => ({ ...f, long: !!f.q || (f.v ?? '').length > LONG }))
 })
 
 const FLAG = { same: 'same', overlap: 'check' } as const
@@ -73,7 +83,13 @@ const otherNotes = computed(() => notes.value.filter((q) => !q.rule2))
   </div>
 
   <div class="ir-ledger-entry-media">
-    <Portrait :key="agent.slug" :agent="agent" eager sizes="(max-width: 639px) 92vw, (max-width: 959px) 300px, 336px" />
+    <!-- Full width on phones, 300px stacked from 640px, about 150px beside the roster -->
+    <Portrait
+      :key="agent.slug"
+      :agent="agent"
+      eager
+      sizes="(max-width: 639px) calc(100vw - 32px), (max-width: 959px) 300px, 160px"
+    />
 
     <p v-if="agent.portraitStatus === 'mismatch'" class="ir-ledger-note">
       {{ agent.name }}'s portrait changed after this ledger row was written. The new one appears here once the
@@ -98,37 +114,45 @@ const otherNotes = computed(() => notes.value.filter((q) => !q.rule2))
       <div class="ir-ledger-expr-opts">
         <!-- The one state that exists: an indicator, not a toggle -->
         <span class="ir-ledger-expr-opt" :class="agent.portrait ? 'is-current' : 'is-off'">
-          {{ EXPRESSIONS[0] }}<span v-if="agent.portrait" class="ir-sr">, shown</span>
+          <span class="ir-ledger-expr-text">{{ EXPRESSIONS[0] }}</span
+          ><span v-if="agent.portrait" class="ir-sr">, shown</span>
         </span>
         <button v-for="e in EXPRESSIONS.slice(1)" :key="e" type="button" class="ir-ledger-expr-opt is-off" disabled>
-          {{ e }}
+          <span class="ir-ledger-expr-text">{{ e }}</span>
         </button>
       </div>
       <p id="ir-ledger-expr-note" class="ir-ledger-expr-note">
-        <template v-if="agent.portrait">Only the base portrait exists. The other expressions aren't generated yet.</template>
-        <template v-else>No portrait shown yet, so no expression is either. The others aren't generated yet.</template>
+        <template v-if="agent.portrait">Only the base portrait exists so far.</template>
+        <template v-else>No portrait is shown yet, so no expression is.</template>
       </p>
     </div>
   </div>
 
   <div class="ir-ledger-entry-info">
-    <h2 id="ir-ledger-name" class="ir-ledger-name" tabindex="-1">{{ agent.name }}</h2>
+    <div class="ir-ledger-ident">
+      <h2 id="ir-ledger-name" class="ir-ledger-name" tabindex="-1">{{ agent.name }}</h2>
+      <p class="ir-ledger-tags">
+        <span class="ir-tag ir-tag-accent">{{ genderName(agent) }}</span>
+        <span class="ir-tag ir-tag-neutral">{{ agent.age ?? agent.ageLabel }}</span>
+      </p>
+      <p class="ir-ledger-ident-heritage">{{ heritageOf(agent) }}</p>
+    </div>
 
     <div class="ir-ledger-check">
       <h3 class="ir-label ir-label-muted">
         <a :href="distinct.href">Rule {{ distinct.label }}</a> check · same gender and age band
       </h3>
       <template v-if="cell">
-        <span class="ir-meta">{{ cell.label }} · {{ others }}</span>
+        <span class="ir-meta">{{ cell.label }} · {{ others }}<template v-if="cell.peers.length">, compared by {{ kind }}</template></span>
         <ul class="ir-ledger-peers" role="list">
           <li class="is-self">
             <span class="ir-ledger-peer-name">{{ agent.name }} <span class="ir-ledger-peer-self">(this entry)</span></span>
-            <span class="ir-ledger-peer-val">{{ kind }} · {{ heritageOf(agent) }}</span>
+            <span class="ir-ledger-peer-val">{{ heritageOf(agent) }}</span>
           </li>
           <li v-for="p in cell.peers" :key="p.slug" :class="p.match && `is-${p.match}`">
             <span class="ir-ledger-peer-name">{{ p.name }}</span>
             <span class="ir-ledger-peer-val">
-              <strong v-if="p.flag" class="ir-ledger-peer-flag">{{ p.flag }}</strong> {{ kind }} · {{ p.value }}
+              <strong v-if="p.flag" class="ir-ledger-peer-flag">{{ p.flag }} ·</strong> {{ p.value }}
             </span>
           </li>
         </ul>
@@ -145,10 +169,10 @@ const otherNotes = computed(() => notes.value.filter((q) => !q.rule2))
     </div>
 
     <dl class="ir-ledger-dl">
-      <template v-for="f in fields" :key="f.k">
+      <div v-for="f in fields" :key="f.k" :class="{ 'is-long': f.long }">
         <dt>{{ f.k }} <span v-if="f.q" class="ir-ledger-dt-q">({{ f.q }})</span></dt>
         <dd>{{ f.v }}</dd>
-      </template>
+      </div>
     </dl>
 
     <figure v-for="(q, i) in otherNotes" :key="i" class="ir-ledger-quote">

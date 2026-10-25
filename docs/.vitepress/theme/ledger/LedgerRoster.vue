@@ -42,9 +42,18 @@ const entry = ref<HTMLElement>()
 const sticky = ref(false)
 const wide = () => matchMedia('(min-width: 960px)').matches
 const navHeight = () => parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--vp-nav-height')) || 64
+// Measure the entry as it would be when sticky (its Back button is hidden
+// then), so the result doesn't depend on the current state.
+function stickyHeight(el: HTMLElement) {
+  const back = el.querySelector<HTMLElement>('.ir-ledger-back')
+  const prev = back?.previousElementSibling
+  if (!back || !back.offsetParent || !prev) return el.offsetHeight
+  // The button's footprint includes the gap above it
+  return el.offsetHeight - (back.getBoundingClientRect().bottom - prev.getBoundingClientRect().bottom)
+}
 function updateSticky() {
   const el = entry.value
-  sticky.value = !!el && wide() && el.offsetHeight <= innerHeight - navHeight()
+  sticky.value = !!el && wide() && stickyHeight(el) <= innerHeight - navHeight()
 }
 
 const motion = (): ScrollBehavior =>

@@ -91,7 +91,7 @@
   /* keyboard focus never lands under the fixed nav */
   scroll-margin: calc(var(--vp-nav-height) + 16px) 0 16px;
 }
-.ir-ledger-card:hover { background: var(--ir-neutral-100); }
+.ir-ledger-card:hover { background: var(--ir-surface); }
 /* Selected: a 2px accent frame drawn over the hairline (focus keeps its own outer ring) */
 .ir-ledger-card[aria-pressed='true']::after {
   content: '';

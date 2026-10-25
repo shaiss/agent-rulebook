@@ -38,6 +38,7 @@ export interface Rule {
 export interface Portrait {
   slug: string
   small: string
+  medium: string
   large: string
 }
 
@@ -279,7 +280,12 @@ export function parseRulebook(md: string, manifest: ManifestEntry[], avatarBase 
       setting: at(row, idx.setting),
       set: at(row, idx.set),
       portrait: matches
-        ? { slug: m!.slug, small: `${avatarBase}${m!.slug}-240.jpg`, large: `${avatarBase}${m!.slug}-720.jpg` }
+        ? {
+            slug: m!.slug,
+            small: `${avatarBase}${m!.slug}-240.jpg`,
+            medium: `${avatarBase}${m!.slug}-480.jpg`,
+            large: `${avatarBase}${m!.slug}-720.jpg`
+          }
         : null,
       portraitStatus: !m ? 'missing' : matches ? 'ok' : 'mismatch'
     }

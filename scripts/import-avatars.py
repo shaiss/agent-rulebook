@@ -5,7 +5,7 @@ Usage: python3 scripts/import-avatars.py <agents-dir>
 
 <agents-dir> holds one folder per agent (<slug>/avatar.jpg + <slug>/identity.json).
 For each agent this writes two re-encoded copies to docs/public/avatars/
-(<slug>-240.jpg and <slug>-720.jpg) with every metadata segment stripped
+(<slug>-240.jpg, -480.jpg and -720.jpg) with every metadata segment stripped
 (EXIF, XMP, ICC, comments, C2PA/JUMBF), and records only the fields the
 site needs to pair a portrait with its ledger row in
 docs/.vitepress/data/avatars.json. Nothing else from identity.json is kept.
@@ -23,7 +23,10 @@ from PIL import Image
 ROOT = Path(__file__).resolve().parent.parent
 OUT_IMG = ROOT / 'docs' / 'public' / 'avatars'
 OUT_MANIFEST = ROOT / 'docs' / '.vitepress' / 'data' / 'avatars.json'
-SIZES = (240, 720)
+SIZES = (240, 480, 720)
+SLUG_RE = re.compile(r'[a-z][a-z0-9]*(?:-[a-z0-9]+)*')
+# Folder names that look like ids (UUIDs, long hex) must not become public URLs
+ID_LIKE_RE = re.compile(r'(?:[0-9a-f]{8,}|[0-9a-f-]{20,})')
 
 
 def gender_key(text):
@@ -50,6 +53,8 @@ def main(src):
     manifest = []
     for folder in sorted(p for p in Path(src).iterdir() if (p / 'avatar.jpg').exists()):
         slug = folder.name
+        if not SLUG_RE.fullmatch(slug) or ID_LIKE_RE.search(slug):
+            sys.exit(f'refusing to publish {slug!r}: slugs must be readable names like "car-guru"')
         identity = json.loads((folder / 'identity.json').read_text())
         with Image.open(folder / 'avatar.jpg') as im:
             im = im.convert('RGB')

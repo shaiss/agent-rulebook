@@ -30,6 +30,11 @@
   --ir-primary-fill-hover: var(--ir-accent-800);
   --ir-primary-fill-active: var(--ir-accent-900);
 
+  /* The one full steel field a page may carry ("Why this exists", "Our gap") */
+  --ir-steel: #1d2d3d;
+  --ir-on-steel: #f2f2f3;
+  --ir-on-steel-label: #b5d9fd;
+
   /* VitePress mapping */
   --vp-font-family-base: var(--ir-font-body);
   --vp-c-bg: var(--ir-bg);
@@ -71,6 +76,10 @@
 
   --ir-primary-fill: var(--ir-accent);
   --ir-primary-fill-hover: var(--ir-accent-600);
+
+  /* Kept clearly off the dark ground and off the accent-100 tint bands */
+  --ir-steel: #2c455d;
+  --ir-on-steel: #e7e8ea;
   --ir-primary-fill-active: var(--ir-accent-800);
 
   --vp-c-tip-1: var(--ir-accent-700);
@@ -165,8 +174,8 @@
 .ir-home .ir-btn-secondary:active { background: color-mix(in srgb, var(--ir-text) 14%, transparent); }
 .ir-home .ir-btn-ghost { border-color: transparent; color: var(--ir-accent-700); }
 .ir-home .ir-btn-ghost:hover { background: color-mix(in srgb, var(--ir-accent) 10%, transparent); }
-.ir-home .ir-btn-inverse { border-color: var(--ir-accent-300); color: #f2f2f3; align-self: flex-start; }
-.ir-home .ir-btn-inverse:hover { background: color-mix(in srgb, #f2f2f3 12%, transparent); color: #f2f2f3; }
+.ir-home .ir-btn-inverse { border-color: var(--ir-on-steel-label); color: var(--ir-on-steel); align-self: flex-start; }
+.ir-home .ir-btn-inverse:hover { background: color-mix(in srgb, var(--ir-on-steel) 12%, transparent); color: var(--ir-on-steel); }
 
 .ir-tag { display: inline-flex; align-items: center; font-size: 11px; letter-spacing: 0.02em; padding: 3px 10px; }
 .ir-tag-accent { background: var(--ir-accent-100); color: var(--ir-accent-800); }
@@ -298,14 +307,14 @@
 /* ── Our gap: the one full steel field ── */
 .ir-gap {
   padding: 40px 40px 44px;
-  background: #1d2d3d;
-  color: #f2f2f3;
+  background: var(--ir-steel);
+  color: var(--ir-on-steel);
   display: grid; grid-template-columns: 160px 1fr; gap: 24px; align-items: baseline;
 }
-.ir-home .ir-gap .ir-label { color: #b5d9fd; }
+.ir-home .ir-gap .ir-label { color: var(--ir-on-steel-label); }
 .ir-gap > div { display: flex; flex-direction: column; gap: 14px; max-width: 760px; }
 .ir-gap-lead { font-family: var(--ir-font-heading); font-weight: 600; font-size: 34px; line-height: 1.12; letter-spacing: -0.015em; }
-.ir-gap p:not(.ir-gap-lead) { font-size: 15px; color: color-mix(in srgb, #f2f2f3 78%, transparent); }
+.ir-gap p:not(.ir-gap-lead) { font-size: 15px; color: color-mix(in srgb, var(--ir-on-steel) 82%, transparent); }
 
 .ir-footer {
   display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;

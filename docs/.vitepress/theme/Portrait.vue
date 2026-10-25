@@ -38,7 +38,7 @@ const pendingNote = computed(() =>
     <img
       v-if="agent.portrait"
       :src="withBase(agent.portrait.large)"
-      :srcset="`${withBase(agent.portrait.small)} 240w, ${withBase(agent.portrait.large)} 720w`"
+      :srcset="`${withBase(agent.portrait.small)} 240w, ${withBase(agent.portrait.medium)} 480w, ${withBase(agent.portrait.large)} 720w`"
       :sizes="sizes"
       :alt="`Portrait of ${agent.name} (AI-generated image of an invented person)`"
       width="720"

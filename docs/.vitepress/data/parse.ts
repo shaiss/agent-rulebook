@@ -23,7 +23,7 @@ export interface Quote {
 
 export interface Rule {
   n: number
-  /** Short lead (the rule's first sentence or clause), or null when it runs long */
+  /** Short lead (the rule's first sentence or clause), or null when neither is short */
   lead: string | null
   /** Everything after the lead, with quotes and status notes taken out */
   body: string
@@ -76,6 +76,8 @@ export interface Rulebook {
   rollout: { quote: Quote | null; steps: string[] }
   columns: string[]
   agents: Agent[]
+  /** Paragraphs in the Ledger section outside the table (e.g. documented rule-2 exceptions) */
+  ledgerNotes: string[]
   hasHeritageColumn: boolean
   sections: { title: string; slug: string }[]
   /** Dates mentioned in the rules text, for "Set / Refined" tags */
@@ -167,13 +169,20 @@ export function parseRuleText(n: number, raw: string): Rule {
   })
   text = text.replace(/\s+([.,;:])/g, '$1').replace(/\s{2,}/g, ' ').trim()
 
+  // Lead: the first sentence (or the part before a colon); when that runs
+  // long, the first clause. The rest becomes the body.
   let lead: string | null = null
   let body = text
   const end = /[.:](\s|$)/.exec(text)
+  const comma = text.indexOf(', ')
   if (end && end.index <= 80) {
     lead = text.slice(0, end.index)
     body = text.slice(end.index + 1).trim()
+  } else if (comma > 0 && comma <= 70) {
+    lead = text.slice(0, comma)
+    body = text.slice(comma + 1).trim()
   }
+  body = body.charAt(0).toUpperCase() + body.slice(1)
   return { n, lead, body, status, statusNote, quotes, notes }
 }
 
@@ -273,6 +282,12 @@ export function parseRulebook(md: string, manifest: ManifestEntry[], avatarBase 
     }
   })
 
+  const ledgerNotes = (ledgerSec?.body ?? '')
+    .split(/\n\s*\n/)
+    .map((p) => p.trim())
+    .filter((p) => p && !p.startsWith('|') && !p.startsWith('#'))
+    .map(stripInline)
+
   const rulesDates = [...(rulesSec?.body ?? '').matchAll(DATE_RE)].map((d) => d[1]).sort()
   const allDates = [...md.matchAll(DATE_RE)].map((d) => d[1]).sort()
 
@@ -285,6 +300,7 @@ export function parseRulebook(md: string, manifest: ManifestEntry[], avatarBase 
     rollout,
     columns,
     agents,
+    ledgerNotes,
     hasHeritageColumn: idx.heritage >= 0,
     sections: secs.map((s) => ({ title: s.title, slug: headingSlug(s.title) })),
     setDate: rulesDates[0] ?? null,

@@ -17,6 +17,7 @@
 .blueprint > .corner.br { bottom: -6px; right: -6px; }
 
 .ir-portrait {
+  display: block;
   position: relative;
   aspect-ratio: 1 / 1;
   container-type: inline-size;
@@ -34,13 +35,14 @@
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
   padding: 6px;
   text-align: center;
-  background: repeating-linear-gradient(135deg, transparent 0 6px, color-mix(in srgb, var(--ir-accent) 10%, transparent) 6px 7px);
+  background-color: var(--ir-surface);
+  background-image: repeating-linear-gradient(135deg, transparent 0 6px, color-mix(in srgb, var(--ir-accent) 10%, transparent) 6px 7px);
 }
 .ir-portrait-monogram {
   font-family: var(--ir-font-heading); font-weight: 600; font-size: clamp(14px, 28cqi, 40px); line-height: 1;
   color: var(--ir-accent-700);
 }
 .ir-portrait-note {
-  font-size: 10px; line-height: 1.25; letter-spacing: 0.02em;
+  font-size: 11px; line-height: 1.25; letter-spacing: 0.02em;
   color: var(--ir-neutral-700);
 }

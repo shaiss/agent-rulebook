@@ -1,0 +1,32 @@
+/* VitePress's chrome: what the theme adds to its menus (Layout.vue), and
+   what is left of its bars without JavaScript. */
+
+/* The nav bar's "…" menu, dismissed with Escape while the pointer holds it
+   open by hover (Layout.vue): hidden until the pointer leaves it or it is
+   opened again */
+.VPFlyout.ir-dismissed .menu { opacity: 0 !important; visibility: hidden !important; }
+
+/* ── Without JavaScript ──
+   VitePress's controls that only work once the page runs are hidden: the
+   menu button below 768px (the only way to Home, Rules and Ledger there),
+   the "…" menu from 768px and the appearance switch from 1280px, which also
+   has no name until then. The nav bar's own links show at every width in
+   their place, and the GitHub link beside them from 768px, where it sat in
+   the "…" menu (below that, the links alone fit at 320px). The sidebar's
+   group labels (from 960px, where the sidebar shows) are buttons that open
+   and close their group: they stay on screen, and to assistive technology,
+   as the headings they hold, and leave the tab order with their carets
+   (hidden, nothing in them can take focus). */
+@media (scripting: none) {
+  .VPNavBar .VPNavBarHamburger,
+  .VPNavBar .VPNavBarExtra,
+  .VPNavBar .VPNavBarAppearance { display: none !important; }
+  .VPNavBar .VPNavBarMenu { display: flex !important; }
+}
+@media (scripting: none) and (min-width: 768px) {
+  .VPNavBar .VPNavBarSocialLinks { display: flex !important; }
+}
+@media (scripting: none) and (min-width: 960px) {
+  .VPSidebarItem.collapsible > .item { visibility: hidden; }
+  .VPSidebarItem.collapsible > .item > .text { visibility: visible; }
+}

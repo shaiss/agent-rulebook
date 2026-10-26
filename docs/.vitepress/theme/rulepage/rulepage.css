@@ -28,6 +28,14 @@
      always has an outline, so hold the bar's place from the first paint. */
   .ir-rulepage .VPLocalNav.has-sidebar.empty { display: block; }
 }
+/* Its outline button, too, renders on the server as "Return to top" (VitePress
+   reads the headings only once mounted) and becomes "On this page ›" on
+   hydration, so the bar's label swapped on every load below 1280px. Until
+   then the button keeps its place blank: it can't do anything before the
+   page runs either. */
+@media (scripting: enabled) {
+  .ir-rulepage .VPLocalNavOutlineDropdown > button:not(:has(.menu-text)) { visibility: hidden; }
+}
 /* Without JavaScript the bar ("Menu", "Return to top") never fills in, and
    neither of its buttons can do anything: the sidebar "Menu" opens can't
    open, and from 768px the nav bar's plain links stand in for it. So it is

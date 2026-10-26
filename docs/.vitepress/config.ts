@@ -1,4 +1,6 @@
+import { readFileSync } from 'node:fs'
 import { defineConfig, type HeadConfig } from 'vitepress'
+import { parseRulebook } from './data/parse'
 import rulebookMarkdown from './theme/rulepage/markdown'
 
 // Barlow and Barlow Condensed are self-hosted (theme/fonts.css, from
@@ -17,9 +19,18 @@ const restoreUi = `(()=>{try{var n=performance.getEntriesByType('navigation')[0]
 const RULE_PAGE_DESCRIPTION =
   "The avatar rules: how each agent's portrait, an AI-generated image of an invented person, is chosen, kept unlike every other face and balanced across the fleet."
 
-/** The 404 page without JavaScript: SiteNotFound.vue's markup, kept in step with it by hand */
-const notFoundFallback = (base: string) => {
+/**
+ * The 404 page without JavaScript: SiteNotFound.vue's markup and the page
+ * foot Layout.vue puts after it (SiteFooter.vue, kind "nf": the 404 has no
+ * page to edit, so only the date), kept in step with them by hand
+ */
+const notFoundFallback = (base: string, updated: string | null) => {
   const corners = '<i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>'
+  const foot = updated
+    ? `<div class="ir-pagefoot ir-pagefoot--nf"><footer class="ir-docfoot">
+<p class="ir-docfoot-updated">Last updated <time datetime="${updated}">${updated}</time></p>
+</footer></div>`
+    : ''
   return `<noscript><main class="ir-nf">
 <div class="ir-nf-plate ir-frame">${corners}<span class="ir-label">Error</span>
 <h1 class="ir-nf-title"><span class="ir-nf-code">404</span> <span class="ir-nf-text">Page not found</span></h1></div>
@@ -28,8 +39,12 @@ const notFoundFallback = (base: string) => {
 <a class="ir-btn ir-btn-primary ir-frame" href="${base}">${corners}Home</a>
 <a class="ir-btn ir-btn-secondary" href="${base}rules/avatars">Avatar rules</a>
 <a class="ir-btn ir-btn-secondary" href="${base}ledger">Ledger</a>
-</nav></main></noscript>`
+</nav></main>
+${foot}</noscript>`
 }
+
+/** The page foot's date, as SiteFooter.vue has it (data/rulebook.data.ts): the latest the rulebook mentions */
+const updatedDate = () => parseRulebook(readFileSync(new URL('../rules/avatars.md', import.meta.url), 'utf8'), []).updatedDate
 
 export default defineConfig({
   title: 'Agent Rulebook',
@@ -61,10 +76,11 @@ export default defineConfig({
   // VitePress writes 404.html with an empty app root and draws the page in
   // the browser, so without JavaScript a mistyped address showed a blank
   // page. Beside the root (not in it: hydration doesn't see it), a noscript
-  // copy of SiteNotFound.vue: same classes, same words, same three links.
+  // copy of SiteNotFound.vue and its page foot: same classes, same words,
+  // same three links, and the page's one contentinfo.
   transformHtml(html, _id, { page, siteData }) {
     if (page !== '404.md') return
-    return html.replace('<div id="app"></div>', `<div id="app"></div>${notFoundFallback(siteData.base)}`)
+    return html.replace('<div id="app"></div>', `<div id="app"></div>${notFoundFallback(siteData.base, updatedDate())}`)
   },
   themeConfig: {
     nav: [

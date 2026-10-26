@@ -53,19 +53,105 @@ const COVERED = {
 }
 const ALL_COVERED = [...new Set([...COVERED.screen, ...COVERED.sidebar])]
 let narrow: MediaQueryList | undefined
+let overlay: keyof typeof COVERED | null = null
 const hamburger = () => document.querySelector<HTMLElement>('.VPNavBarHamburger')
 const sidebarOpen = () => !!narrow?.matches && !!document.querySelector('.VPSidebar.open')
 function syncOverlay(force?: 'none') {
   const open = force ? null : hamburger()?.classList.contains('active') ? 'screen' : sidebarOpen() ? 'sidebar' : null
+  const was = overlay
+  overlay = open
   const covered = open ? COVERED[open] : []
   for (const sel of ALL_COVERED) {
     const inert = covered.includes(sel)
     document.querySelectorAll(sel).forEach((el) => el.toggleAttribute('inert', inert))
   }
+  // The drawer has just opened: "Menu", under it, has gone inert and taken
+  // focus with it (to the page). Focus goes into the drawer instead, to its
+  // nav, as VitePress means to (it focuses the drawer's aside, which can't
+  // take focus). The menu over the window keeps focus on its own button.
+  if (open === 'sidebar' && was !== 'sidebar') {
+    const nav = document.querySelector<HTMLElement>('#VPSidebarNav')
+    if (nav && !nav.contains(document.activeElement)) nav.focus({ preventScroll: true })
+  }
+}
+
+// The rule page's "On this page" (below 1280px) opens a list over the top of
+// the page. VitePress closes it on a click outside, Escape or a new page, but
+// not when keyboard focus leaves it, so Tab went on to the headings' "#"
+// links under the open list; and its toggle said nothing of its state. The
+// toggle gets aria-expanded (and aria-controls while the list is there), the
+// list is named as the page's navigation it is, and it closes as soon as
+// focus lands anywhere outside it: Tab on out of it, or on from wherever
+// focus was when a click opened it (Safari doesn't focus a clicked button).
+// (Its "Return to top" form, before the outline is read, toggles nothing.)
+function syncOutline() {
+  const box = document.querySelector('.VPLocalNavOutlineDropdown')
+  const button = box?.querySelector<HTMLElement>(':scope > button')
+  if (!box || !button) return
+  const label = button.querySelector('.menu-text')
+  if (!label) {
+    button.removeAttribute('aria-expanded')
+    button.removeAttribute('aria-controls')
+    return
+  }
+  const open = button.classList.contains('open')
+  button.setAttribute('aria-expanded', String(open))
+  const items = box.querySelector<HTMLElement>(':scope > .items')
+  if (items) {
+    if (!items.id) items.id = 'ir-outline-list'
+    items.setAttribute('role', 'navigation')
+    items.setAttribute('aria-label', label.textContent?.trim() || 'On this page')
+  }
+  if (open && items) button.setAttribute('aria-controls', items.id)
+  else button.removeAttribute('aria-controls')
+}
+
+function onFocusIn(e: FocusEvent) {
+  const box = document.querySelector('.VPLocalNavOutlineDropdown')
+  if (!box || !(e.target instanceof Node) || box.contains(e.target)) return
+  const button = box.querySelector<HTMLElement>(':scope > button')
+  if (!button?.classList.contains('open')) return
+  // At once, not faded out over what focus has moved to (as VitePress does
+  // when one of its links is followed)
+  const items = box.querySelector<HTMLElement>(':scope > .items')
+  if (items) items.style.transition = 'none'
+  button.click()
+}
+
+// The nav bar's "…" (768px to 1279px) opens its menu on hover as well as on
+// a click, and VitePress gave neither a way out by keyboard: Escape left it
+// open, and a menu opened by hover stayed over the page until the pointer
+// moved (WCAG 1.4.13). Escape closes it, and hides one held open by hover
+// until the pointer leaves it or it is opened again (chrome.css).
+function dismissFlyouts() {
+  document.querySelectorAll<HTMLElement>('.VPNav .VPFlyout').forEach((flyout) => {
+    const button = flyout.querySelector<HTMLElement>(':scope > .button')
+    const expanded = button?.getAttribute('aria-expanded') === 'true'
+    const hovered = flyout.matches(':hover')
+    if (!button || (!expanded && !hovered)) return
+    const hadFocus = flyout.contains(document.activeElement)
+    if (expanded) button.click()
+    if (hadFocus) button.focus()
+    if (hovered && !flyout.classList.contains('ir-dismissed')) {
+      flyout.classList.add('ir-dismissed')
+      const done = new AbortController()
+      const restore = () => {
+        flyout.classList.remove('ir-dismissed')
+        done.abort()
+      }
+      flyout.addEventListener('mouseleave', restore, { signal: done.signal })
+      button.addEventListener('click', restore, { signal: done.signal })
+    }
+  })
 }
 
 function onKey(e: KeyboardEvent) {
   if (e.key === 'Escape') {
+    dismissFlyouts()
+    // VitePress closes "On this page" on Escape (just after this), and focus
+    // in its list would fall to the page: back to the toggle first
+    const outline = (document.activeElement as Element | null)?.closest?.('.VPLocalNavOutlineDropdown')
+    outline?.querySelector<HTMLElement>(':scope > button')?.focus()
     const button = hamburger()
     if (button?.classList.contains('active')) {
       button.click()
@@ -94,6 +180,7 @@ onMounted(() => {
   // was left, if a reload or a Back from another site brought it back (entry-state.ts)
   restorePlace()
   syncSidebarGroups()
+  syncOutline()
   narrow = matchMedia('(max-width: 959px)')
   narrow.addEventListener('change', onNarrow)
   syncOverlay()
@@ -101,16 +188,19 @@ onMounted(() => {
   // menus open and close by class
   observer = new MutationObserver((records) => {
     if (records.some((r) => r.type === 'childList' || (r.target as Element).closest?.('.VPSidebar'))) syncSidebarGroups()
+    syncOutline()
     syncOverlay()
   })
   const root = document.querySelector('.Layout')
   if (root) observer.observe(root, { subtree: true, childList: true, attributes: true, attributeFilter: ['class'] })
   document.addEventListener('keydown', onKey)
+  document.addEventListener('focusin', onFocusIn)
 })
 onBeforeUnmount(() => {
   observer?.disconnect()
   narrow?.removeEventListener('change', onNarrow)
   document.removeEventListener('keydown', onKey)
+  document.removeEventListener('focusin', onFocusIn)
 })
 </script>
 

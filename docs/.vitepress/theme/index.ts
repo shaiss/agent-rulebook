@@ -15,6 +15,7 @@ import { registerRulePage } from './rulepage/register'
 import { registerLedger } from './ledger/register'
 import './fonts.css'
 import './style.css'
+import './chrome.css'
 import './portrait.css'
 import './rulepage/rulepage.css'
 import './ledger/ledger.css'
@@ -47,6 +48,23 @@ function calmScrolling() {
   wrap(Element.prototype, ['scrollTo', 'scroll', 'scrollBy', 'scrollIntoView'])
 }
 
+/**
+ * A #hash with a broken percent-escape (a link cut short in the middle of a
+ * non-Latin heading's address) names nothing on any page, and VitePress's
+ * router and outline decode it unguarded: a warning and an uncaught error in
+ * the console on every load. Before the router's first look at the address,
+ * drop such a fragment from it (the entry and its state stay as they are).
+ */
+function dropMalformedHash() {
+  try {
+    decodeURIComponent(location.hash)
+  } catch {
+    try {
+      history.replaceState(history.state, '', location.pathname + location.search)
+    } catch {} // history blocked: the page still works
+  }
+}
+
 export default {
   extends: DefaultTheme,
   Layout,
@@ -56,6 +74,7 @@ export default {
     registerRulePage(app)
     registerLedger(app)
     if (inBrowser) {
+      dropMalformedHash()
       calmScrolling()
       // Back, Forward and a reload bring each page back as it was left: its UI
       // state and the reader's place (entry-state.ts)

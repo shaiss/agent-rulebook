@@ -63,11 +63,23 @@ export function writeEntry<T>(name: string, value: T) {
 // the place was lost, and VitePress's first render of a document always
 // starts at the top. So the theme keeps every entry's scrollPosition current
 // itself, in VitePress's own terms:
-// - once the page comes to rest after scrolling (as few writes as will do:
-//   browsers cap how often a page may touch its history), as the document
-//   is put away (a reload, a link to another site) and as it is hidden,
-//   which on a phone may be the last it hears before the tab is discarded;
+// - as soon as a scroll ends (scrollend; where a browser lacks it, once the
+//   page has rested for a moment), so a Back or Forward pressed straight
+//   after finds it written: the entry has already changed by the time the
+//   page hears of it. One write per scroll, as few as will do: browsers cap
+//   how often a page may touch its history;
+// - once the window has been resized (the same offset is somewhere else in
+//   the new layout, and the place is only good at the width it was taken at);
+// - as the document is put away (beforeunload, the last write Chromium keeps
+//   across a reload; pagehide, for a link to another site) and as it is
+//   hidden, which on a phone may be the last it hears before the tab is
+//   discarded;
 // - on the entry an in-page #anchor jump or a link leaves (the push wrapper).
+// The very top is written as the smallest number above 0 (AT_TOP), which
+// still scrolls to 0: VitePress takes a scrollPosition of 0 for "not known"
+// and goes to the entry's #hash target instead, so an #anchor entry the
+// reader left at the top came back at its anchor. A 0 that VitePress wrote
+// itself still means what it did.
 // And when a reload or a Back or Forward from another site loads the
 // document afresh, it puts the reader back there itself (restorePlace),
 // once the page has re-applied the entry's UI state. The browser's own
@@ -78,11 +90,14 @@ export function writeEntry<T>(name: string, value: T) {
 /** The original replaceState: the place is written without the wrapper's carrying */
 let replaceRaw: History['replaceState'] | null = null
 
+/** The scrollPosition of an entry left at the very top: "known, and 0", where VitePress reads 0 as "not known" */
+const AT_TOP = Number.MIN_VALUE
+
 /** The current entry with the reader's place on it: where the window is scrolled, and at what width */
 function placed(state: unknown): State {
   const s = isObject(state) ? state : {}
   const ir = isObject(s[ENTRY_KEY]) ? (s[ENTRY_KEY] as State) : {}
-  return { ...s, scrollPosition: Math.round(scrollY), [ENTRY_KEY]: { ...ir, [PLACE]: { w: innerWidth } } }
+  return { ...s, scrollPosition: Math.round(scrollY) || AT_TOP, [ENTRY_KEY]: { ...ir, [PLACE]: { w: innerWidth } } }
 }
 
 function recordPlace() {
@@ -125,9 +140,10 @@ function placeToRestore(): number | null {
  * Whether the page about to mount is brought back to a recorded place rather
  * than to its #hash target or the top: on the document's first render, the
  * place restorePlace() puts the reader back at; on a client-side Back or
- * Forward, the scrollPosition VitePress scrolls to (if it isn't 0). Pages
- * that align a #hash target or hold one in view as they open check this, and
- * stand aside.
+ * Forward, the scrollPosition VitePress scrolls to (if it isn't its 0 for
+ * "not known": the top, as the theme writes it, is AT_TOP). Pages that align
+ * a #hash target or hold one in view as they open check this, and stand
+ * aside.
  */
 export function landsAtPlace(): boolean {
   if (!rendered) return restoring
@@ -233,7 +249,13 @@ export function keepEntryState() {
     at = location.pathname
     resting = setTimeout(record, 400)
   }
-  addEventListener('scroll', recordAtRest, { passive: true })
+  if ('onscrollend' in window) {
+    // The scroll's own page: a scrollend that comes once the router has
+    // moved on to another page is the old page's, and isn't written there
+    addEventListener('scroll', () => (at = location.pathname), { passive: true })
+    addEventListener('scrollend', record)
+  } else addEventListener('scroll', recordAtRest, { passive: true })
+  addEventListener('resize', recordAtRest)
   // Back or Forward: the entry is already another; what was pending belonged to the one left
   addEventListener('popstate', () => clearTimeout(resting))
   // A new #hash entry with no place yet (an in-page link, or a #hash the
@@ -246,7 +268,11 @@ export function keepEntryState() {
     at = location.pathname
     record()
   }
-  // pagehide: a reload or a navigation to another site (it keeps the page eligible for the back/forward cache, as beforeunload may not)
+  // A reload or a navigation to another site: beforeunload, the last write
+  // Chromium keeps across a reload (it drops one made in pagehide), and
+  // pagehide for the browsers that skip beforeunload. Neither keeps the page
+  // out of the back/forward cache, as an unload listener would.
+  addEventListener('beforeunload', leave)
   addEventListener('pagehide', leave)
   document.addEventListener('visibilitychange', () => document.visibilityState === 'hidden' && leave())
 }

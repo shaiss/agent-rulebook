@@ -3,7 +3,9 @@ import { withBase } from 'vitepress'
 
 // The 404 page (Layout.vue's not-found slot, which puts the site's page foot
 // after it), in the landing's grammar: a big condensed numeral, one line, and
-// the three places worth going instead.
+// the three places worth going instead. VitePress draws the 404 in the
+// browser only, so config.ts writes a noscript copy of this markup into
+// 404.html: a change here goes there too.
 const links = [
   { text: 'Home', href: withBase('/'), primary: true },
   { text: 'Avatar rules', href: withBase('/rules/avatars') },

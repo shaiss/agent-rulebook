@@ -234,7 +234,9 @@
   font-size: 15px;
   line-height: 1.55;
 }
-.ir-home-main { display: flex; flex-direction: column; gap: inherit; }
+/* The page's column is a container too: the principle and the steel field
+   keep their label column until it is 560px wide, as the rule page's do */
+.ir-home-main { display: flex; flex-direction: column; gap: inherit; container: ir-main / inline-size; }
 .ir-home h1, .ir-home h2, .ir-home h3, .ir-home .ir-label,
 .ir-nf h1, .ir-nf .ir-label {
   font-family: var(--ir-font-heading);
@@ -296,10 +298,19 @@
   gap: 56px;
   align-items: end;
 }
-.ir-hero-copy { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
-/* break-word only if a word can't fit the line at all (a wide fallback face
-   on a narrow phone); it never changes how the column is sized */
-.ir-home .ir-hero-title { font-size: 104px; line-height: 0.92; letter-spacing: -0.025em; overflow-wrap: break-word; }
+.ir-hero-copy { display: flex; flex-direction: column; gap: 20px; min-width: 0; container-type: inline-size; }
+/* One line beside the plate: 104px where the copy column has room for it
+   (748px, a 1280px window), and below that as large as the column allows
+   ("Humanizing AI agents" is 7.12 × its size wide, so 7.18 leaves a hair),
+   never a lone word on a second line. From 1100px down the stacked hero sets
+   its own sizes (below). Balance is the backstop: should a face ever run
+   wider, the break is "Humanizing / AI agents". break-word only if a word
+   can't fit the line at all (a wide fallback face on a narrow phone); it
+   never changes how the column is sized. */
+.ir-home .ir-hero-title {
+  font-size: 104px; font-size: clamp(72px, calc(100cqi / 7.18), 104px);
+  line-height: 0.92; letter-spacing: -0.025em; overflow-wrap: break-word; text-wrap: balance;
+}
 .ir-lede { font-size: 19px; max-width: 620px; color: var(--ir-neutral-800); text-wrap: pretty; }
 .ir-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 8px; }
 
@@ -328,32 +339,46 @@
    headings stay semibold */
 .ir-stat dd { margin: 0; font-family: var(--ir-font-heading); font-weight: 400; font-size: 52px; line-height: 1; color: var(--ir-accent); }
 
-/* ── Fleet: every ledger face. Home.vue passes Portrait sizes="80px" so every
-   device, 3x phones included, takes the 240px file. ──
+/* ── Fleet: every ledger face. Home.vue gives Portrait the tile's real width
+   as its sizes (from the same column counts as below), so a 3x screen takes
+   the 480px file once a tile is wider than 80px. ──
    Tiles are 70px and up (to 120px) with a 14px column gap, which keeps
    neighbouring frames' registration marks (5px past each edge) apart. The
    fleet's own width decides how many fit per row, 4 to 12 (the container
    queries below); Home.vue says, for each of those, how many columns this
-   fleet uses (--fleet-c<n>: balanced rows, or every column when it folds)
-   and at which ones it folds to three rows (data-folds). */
+   fleet uses (--fleet-c<n>: balanced rows; when it folds, every column or
+   one fewer, whichever leaves the fuller last row once opened), at which
+   ones it folds to three rows (data-folds), and at which of those it uses
+   one column fewer (data-folds-short).
+   Each tile is a subgrid of three rows (portrait, name, age), as the rule
+   page's strip: in every row of tiles the names share one band and the
+   ages one baseline, however many lines a name takes. The row gap is each
+   tile's bottom padding (the list's negative margin takes the last one
+   back): a subgrid shares its parent's gaps, so a real row gap would also
+   open up between a portrait and its caption. */
 .ir-fleet-box { container: ir-fleet / inline-size; display: flex; flex-direction: column; gap: 20px; }
 .ir-home .ir-fleet {
   --ir-fleet-cols: var(--fleet-c4, 4);
-  list-style: none; margin: 0; padding: 0;
+  list-style: none; margin: 0 0 -22px; padding: 0;
   display: grid; grid-template-columns: repeat(var(--ir-fleet-cols), minmax(0, 120px));
-  gap: 22px 14px;
+  column-gap: 14px;
 }
-.ir-home .ir-fleet > li { margin: 0; padding: 0; min-width: 0; }
+.ir-home .ir-fleet > li {
+  margin: 0; padding: 0 0 22px; min-width: 0;
+  display: grid; grid-row: span 3; grid-template-rows: subgrid;
+}
 .ir-home .ir-fleet-item {
-  display: flex; flex-direction: column; gap: 8px; color: var(--ir-text); text-decoration: none;
+  grid-row: 1 / -1;
+  display: grid; grid-template-rows: subgrid; align-content: start;
+  color: var(--ir-text); text-decoration: none;
   /* focus after "Show all" lands clear of the nav (--ir-bars) */
   scroll-margin: calc(var(--ir-bars) + 16px) 0 24px;
 }
 .ir-home .ir-fleet-item:hover { color: var(--ir-text); }
-.ir-home .ir-fleet-item .ir-portrait { transition: border-color 0.15s; }
+.ir-home .ir-fleet-item .ir-portrait { margin-bottom: 8px; transition: border-color 0.15s; }
 .ir-home .ir-fleet-item:hover .ir-portrait { border-color: var(--ir-accent); }
 .ir-home .ir-fleet-item:active .ir-portrait { border-color: var(--ir-accent-800); }
-.ir-fleet-caption { display: flex; flex-direction: column; font-size: 11px; line-height: 1.35; color: var(--ir-neutral-700); }
+.ir-fleet-caption { display: contents; font-size: 11px; line-height: 1.35; color: var(--ir-neutral-700); }
 .ir-fleet-name { font-size: 13px; font-weight: 500; color: var(--ir-text); overflow-wrap: anywhere; }
 .ir-home .ir-fleet-item:hover .ir-fleet-name { text-decoration: underline; text-underline-offset: 3px; }
 .ir-fleet-foot { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px 16px; }
@@ -361,10 +386,10 @@
 .ir-home .ir-fleet-note a { text-decoration: underline; }
 .ir-home .ir-fleet-more { scroll-margin: calc(var(--ir-bars) + 16px) 0 24px; }
 
-/* Per width: the column count, the rows hidden while folded (past the
-   third), and the toggle, shown only where this fleet folds. A fleet Back
-   returns to open (html.ir-fleet-open, config.ts) shows whole until Home.vue
-   takes over. */
+/* Per width: the column count, the rows hidden while folded (past the third
+   row: of that many columns, or of one fewer where data-folds-short says so),
+   and the toggle, shown only where this fleet folds. A fleet Back returns to
+   open (html.ir-fleet-open, config.ts) shows whole until Home.vue takes over. */
 @container ir-fleet (width < 406px) {
   :root:not(.ir-fleet-open) .ir-fleet-box.is-folded .ir-fleet > li:nth-child(n + 13) { display: none; }
   .ir-fleet-box:not([data-folds~='4']) .ir-fleet-more { display: none; }
@@ -372,47 +397,55 @@
 @container ir-fleet (406px <= width < 490px) {
   .ir-home .ir-fleet { --ir-fleet-cols: var(--fleet-c5, 5); }
   :root:not(.ir-fleet-open) .ir-fleet-box.is-folded .ir-fleet > li:nth-child(n + 16) { display: none; }
+  :root:not(.ir-fleet-open) .ir-fleet-box.is-folded[data-folds-short~='5'] .ir-fleet > li:nth-child(n + 13) { display: none; }
   .ir-fleet-box:not([data-folds~='5']) .ir-fleet-more { display: none; }
 }
 @container ir-fleet (490px <= width < 574px) {
   .ir-home .ir-fleet { --ir-fleet-cols: var(--fleet-c6, 6); }
   :root:not(.ir-fleet-open) .ir-fleet-box.is-folded .ir-fleet > li:nth-child(n + 19) { display: none; }
+  :root:not(.ir-fleet-open) .ir-fleet-box.is-folded[data-folds-short~='6'] .ir-fleet > li:nth-child(n + 16) { display: none; }
   .ir-fleet-box:not([data-folds~='6']) .ir-fleet-more { display: none; }
 }
 @container ir-fleet (574px <= width < 658px) {
   .ir-home .ir-fleet { --ir-fleet-cols: var(--fleet-c7, 7); }
   :root:not(.ir-fleet-open) .ir-fleet-box.is-folded .ir-fleet > li:nth-child(n + 22) { display: none; }
+  :root:not(.ir-fleet-open) .ir-fleet-box.is-folded[data-folds-short~='7'] .ir-fleet > li:nth-child(n + 19) { display: none; }
   .ir-fleet-box:not([data-folds~='7']) .ir-fleet-more { display: none; }
 }
 @container ir-fleet (658px <= width < 742px) {
   .ir-home .ir-fleet { --ir-fleet-cols: var(--fleet-c8, 8); }
   :root:not(.ir-fleet-open) .ir-fleet-box.is-folded .ir-fleet > li:nth-child(n + 25) { display: none; }
+  :root:not(.ir-fleet-open) .ir-fleet-box.is-folded[data-folds-short~='8'] .ir-fleet > li:nth-child(n + 22) { display: none; }
   .ir-fleet-box:not([data-folds~='8']) .ir-fleet-more { display: none; }
 }
 @container ir-fleet (742px <= width < 826px) {
   .ir-home .ir-fleet { --ir-fleet-cols: var(--fleet-c9, 9); }
   :root:not(.ir-fleet-open) .ir-fleet-box.is-folded .ir-fleet > li:nth-child(n + 28) { display: none; }
+  :root:not(.ir-fleet-open) .ir-fleet-box.is-folded[data-folds-short~='9'] .ir-fleet > li:nth-child(n + 25) { display: none; }
   .ir-fleet-box:not([data-folds~='9']) .ir-fleet-more { display: none; }
 }
 @container ir-fleet (826px <= width < 910px) {
   .ir-home .ir-fleet { --ir-fleet-cols: var(--fleet-c10, 10); }
   :root:not(.ir-fleet-open) .ir-fleet-box.is-folded .ir-fleet > li:nth-child(n + 31) { display: none; }
+  :root:not(.ir-fleet-open) .ir-fleet-box.is-folded[data-folds-short~='10'] .ir-fleet > li:nth-child(n + 28) { display: none; }
   .ir-fleet-box:not([data-folds~='10']) .ir-fleet-more { display: none; }
 }
 @container ir-fleet (910px <= width < 994px) {
   .ir-home .ir-fleet { --ir-fleet-cols: var(--fleet-c11, 11); }
   :root:not(.ir-fleet-open) .ir-fleet-box.is-folded .ir-fleet > li:nth-child(n + 34) { display: none; }
+  :root:not(.ir-fleet-open) .ir-fleet-box.is-folded[data-folds-short~='11'] .ir-fleet > li:nth-child(n + 31) { display: none; }
   .ir-fleet-box:not([data-folds~='11']) .ir-fleet-more { display: none; }
 }
 @container ir-fleet (width >= 994px) {
   .ir-home .ir-fleet { --ir-fleet-cols: var(--fleet-c12, 12); }
   :root:not(.ir-fleet-open) .ir-fleet-box.is-folded .ir-fleet > li:nth-child(n + 37) { display: none; }
+  :root:not(.ir-fleet-open) .ir-fleet-box.is-folded[data-folds-short~='12'] .ir-fleet > li:nth-child(n + 34) { display: none; }
   .ir-fleet-box:not([data-folds~='12']) .ir-fleet-more { display: none; }
 }
 /* Without JavaScript the toggle can't work: the whole fleet shows instead
    (the server renders it folded, so readers with JavaScript see no shift) */
 @media (scripting: none) {
-  .ir-fleet-box.is-folded .ir-fleet > li:nth-child(n) { display: block !important; }
+  .ir-fleet-box.is-folded .ir-fleet > li:nth-child(n) { display: grid !important; }
   .ir-home .ir-fleet-more { display: none !important; }
 }
 
@@ -538,11 +571,15 @@
   .ir-pagefoot--home, .ir-pagefoot--page { padding-top: 56px; padding-bottom: 32px; }
   .ir-home .ir-hero-title { font-size: clamp(44px, 15vw, 56px); }
   .ir-lede { font-size: 17px; }
-  .ir-principle, .ir-gap { grid-template-columns: minmax(0, 1fr); gap: 12px; padding: 24px; }
+  .ir-principle, .ir-gap { padding: 24px; }
   .ir-principle-quote { font-size: 30px; }
   .ir-gap-lead { font-size: 26px; }
   .ir-matrix thead th:first-child { width: 100px; }
   .ir-matrix th, .ir-matrix td { padding: 10px; }
+}
+/* The label goes over the text once the column is 560px or less */
+@container ir-main (width <= 560px) {
+  .ir-principle, .ir-gap { grid-template-columns: minmax(0, 1fr); gap: 12px; }
 }
 @media (max-width: 600px) {
   .ir-matrix-wide { display: none; }
@@ -595,8 +632,11 @@
   html, html.dark, body, .Layout, .VPContent {
     background: #fff !important; color: #000 !important;
   }
-  /* Black on white whatever the screen theme */
+  /* Black on white whatever the screen theme. The scheme too: VitePress sets
+     html.dark { color-scheme: dark }, and Chrome paints the page margins in
+     the dark scheme's canvas colour when background graphics are on. */
   :root, :root.dark {
+    color-scheme: light;
     --ir-bg: #fff;
     --ir-surface: #fff;
     --ir-text: #000;
@@ -633,12 +673,30 @@
   }
   [aria-pressed='true']:not(.ir-ledger-card) * { color: #000 !important; }
   /* The whole fleet, folded or not */
-  .ir-fleet-box.is-folded .ir-fleet > li:nth-child(n) { display: block !important; }
+  .ir-fleet-box.is-folded .ir-fleet > li:nth-child(n) { display: grid !important; }
   /* Frames, cards and table rows stay whole on a page; headings stay with
      what follows them */
   .ir-frame, .ir-rule, .ir-step, .ir-matrix tr, .ir-stat, .ir-fleet > li,
   .ir-principle, .ir-gap, .ir-quote, .ir-docfoot { break-inside: avoid; }
   h1, h2, h3, .ir-section-head { break-after: avoid; }
+  /* The rule cards each draw their own frame (an outline astride the edge,
+     so neighbours share one hairline), not the grid's border and inner
+     rules: a page break between rows then leaves no empty framed box, and
+     the section head moves on with the first row */
+  .ir-home .ir-rules { border: 0; }
+  .ir-home .ir-rules > .ir-rule:nth-child(n) {
+    border: 0; outline: 1px solid var(--ir-divider); outline-offset: -0.5px;
+  }
+  /* Registration marks: strokes drawn as borders, which print with
+     background graphics off, and set inside their frame's corners, so they
+     never cross a page edge (Chrome paints whatever pokes above a frame
+     that starts a page at the foot of the page before) */
+  :is(.ir-home, :root) .ir-frame > .corner::before { background: none; border-left: 1px solid currentColor; }
+  :is(.ir-home, :root) .ir-frame > .corner::after { background: none; border-top: 1px solid currentColor; }
+  :is(.ir-home, :root) .ir-frame > .corner.tl { top: 0; left: 0; }
+  :is(.ir-home, :root) .ir-frame > .corner.tr { top: 0; right: 0; }
+  :is(.ir-home, :root) .ir-frame > .corner.bl { bottom: 0; left: 0; }
+  :is(.ir-home, :root) .ir-frame > .corner.br { bottom: 0; right: 0; }
   /* Where a link leads, for links that go somewhere off the page: the
      footer's edit link and the rule cards' rule numbers are enough; tiles,
      buttons and in-page jumps are not worth an address each */
@@ -671,15 +729,19 @@
   .VPNavBarMenuLink.active, .VPNavScreenMenuLink.active,
   .VPSidebarItem.is-active > .item .link > .text,
   .VPDocAsideOutline .outline-link.active { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 4px; }
-  .VPSidebarItem .indicator, .VPDocAsideOutline .outline-marker { background: Highlight !important; }
+  /* and the current page's bar, only on the current page (every sidebar item
+     has an indicator, transparent unless current) */
+  .VPSidebarItem.is-active > .item > .indicator, .VPDocAsideOutline .outline-marker { background: Highlight !important; }
   /* Open matrix cells: the hatch is a background image the theme drops, so
      the cell gets a dashed rule of its own (and keeps its "Open" label) */
   .ir-matrix td.is-open { outline: 1px dashed CanvasText; outline-offset: -5px; }
   .ir-matrix td .ir-open { color: GrayText; }
   /* Pending portraits and unshown expressions: hatched the same way */
   .ir-portrait-pending, .ir-ledger-expr-opt.is-off { outline: 1px dashed GrayText; outline-offset: -4px; }
-  /* Filled buttons and the steel field keep a visible edge */
-  .ir-btn-primary, .ir-gap, .ir-tag-accent, .ir-tag-neutral, .VPSwitch .check { border: 1px solid CanvasText; }
+  /* Filled buttons, the steel fields (the landing's, the rule page's "Our
+     gap") and the rule page's tinted band keep a visible edge */
+  .ir-btn-primary, .ir-gap, .ir-band--steel, .ir-band--accent,
+  .ir-tag-accent, .ir-tag-neutral, .VPSwitch .check { border: 1px solid CanvasText; }
   .VPSwitch .check { background: CanvasText !important; }
   .VPSwitch .icon [class^='vpi-'] { color: Canvas !important; }
 }

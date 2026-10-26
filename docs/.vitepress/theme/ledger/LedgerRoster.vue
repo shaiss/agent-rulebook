@@ -19,7 +19,7 @@ import { GENDERS, type Agent, type Gender } from '../../data/parse'
 import LedgerEntry from './LedgerEntry.vue'
 import LedgerTallies from './LedgerTallies.vue'
 import { landsAtPlace, readEntry, writeEntry } from '../entry-state'
-import { RULES, ruleLink } from './links'
+import { RULES, ruleLink, sectionHref } from './links'
 
 // The ledger page (/ledger): roster cards with a gender filter, the selected
 // agent's entry (kept in step with location.hash, so /ledger#tide deep-links)
@@ -35,6 +35,8 @@ interface View {
 const agents = data.agents
 const rulesLink = withBase('/rules/avatars')
 const invented = ruleLink(...RULES.invented)
+// Every row in one table on the rule page, which needs no JavaScript (a native <details>)
+const ledgerTable = sectionHref(/^Ledger/i)
 
 const genderName = (a: Agent) => GENDERS.find((g) => g.key === a.gender)?.label ?? a.genderLabel
 const heritageOf = (a: Agent) => a.heritage || a.depicted
@@ -44,13 +46,15 @@ const plural = (n: number) => (n === 1 ? '1 agent' : `${n} agents`)
 
 // The card portrait's width in each layout of ledger.css: the viewport less
 // the gutters (24px, 32px from 768px: style.css --ir-gutter), the gaps
-// between cards and the cards' own borders, over the columns (the page stops
-// growing at 1280px). Each screen then gets the smallest file that is sharp
-// on it, whatever its pixel density.
+// between cards and the cards' own borders, over the columns (three up to
+// 719px, four from 720px while stacked, then three and four beside the
+// entry; the page stops growing at 1280px). Each screen then gets the
+// smallest file that is sharp on it, whatever its pixel density.
 const CARD_SIZES = [
   '(max-width: 639px) calc((100vw - 74px) / 3)',
-  '(max-width: 767px) calc((100vw - 94px) / 3)',
-  '(max-width: 959px) calc((100vw - 110px) / 3)',
+  '(max-width: 719px) calc((100vw - 94px) / 3)',
+  '(max-width: 767px) calc((100vw - 116px) / 4)',
+  '(max-width: 959px) calc((100vw - 132px) / 4)',
   '(max-width: 1179px) calc((100vw - 467px) / 3)',
   '(max-width: 1279px) calc((100vw - 549px) / 4)',
   '183px'
@@ -66,6 +70,13 @@ const filterMsg = (key: Filter) => {
   const f = filters.find((x) => x.key === key)!
   return `Filter: ${f.label}, ${plural(f.n)}.`
 }
+// Paper has no filter control (ledger.css), so a filtered printout says so
+const filterLabel = computed(() => filters.find((f) => f.key === filter.value)?.label ?? '')
+
+// The server renders the cards out of the tab order and marked unavailable:
+// without JavaScript choosing one does nothing (ledger.css hides the filter
+// and says so). They come alive as the page mounts.
+const live = ref(false)
 
 // SSR and hydration both start on the first agent; the hash is read on mount
 const selectedSlug = ref(agents[0]?.slug ?? '')
@@ -190,28 +201,31 @@ function wanted(): View | null {
 const RING = 16
 
 /**
- * Bring the entry into view after it changes. Side by side it is sticky, so
- * it already is, unless the end of the roster has pushed its head up under
- * the nav; it only scrolls back to its own top. Stacked below the roster,
- * scroll to its top and, with `focus`, move focus to its name: far enough
- * down, on a short phone, that the name shows whole with its focus ring
- * (the portrait and the expression switch come first).
+ * Bring the entry into view after it changes and, with `focus`, move focus to
+ * its name (tabindex -1), so the next Tab goes on through the entry and the
+ * keys scroll it. Side by side the entry is sticky, so it already is in
+ * view, unless the end of the roster has pushed its head up under the nav;
+ * it only scrolls back to its own top, where the name is. Stacked below the
+ * roster, scroll to its top: with focus on the name (now or already), far
+ * enough down on a short phone that it shows whole with its focus ring (the
+ * portrait and the expression switch come first).
  */
 async function reveal(behavior: ScrollBehavior, focus: boolean) {
   await nextTick()
   const el = entry.value
   if (!el) return
   const nav = navHeight()
+  const name = el.querySelector<HTMLElement>('#ir-ledger-name')
   if (wide()) {
     el.scrollTop = 0
     const top = el.getBoundingClientRect().top
     if (top < nav - 1) window.scrollBy({ top: top - nav, behavior })
-    return
+  } else {
+    let by = el.getBoundingClientRect().top - nav
+    if (name && (focus || document.activeElement === name))
+      by = Math.max(by, name.getBoundingClientRect().bottom + RING - innerHeight)
+    window.scrollBy({ top: by, behavior: Math.abs(by) > innerHeight * 2 ? 'auto' : behavior })
   }
-  const name = el.querySelector<HTMLElement>('#ir-ledger-name')
-  let by = el.getBoundingClientRect().top - nav
-  if (focus && name) by = Math.max(by, name.getBoundingClientRect().bottom + RING - innerHeight)
-  window.scrollBy({ top: by, behavior: Math.abs(by) > innerHeight * 2 ? 'auto' : behavior })
   if (focus) name?.focus({ preventScroll: true })
 }
 
@@ -232,13 +246,38 @@ function settled(fn: () => void) {
   document.fonts.ready.then(() => requestAnimationFrame(() => t === pending && fn()))
 }
 
+/**
+ * Whether the pending reveal also takes focus to the entry's name: the view
+ * came from a #hash naming someone (a link from the landing or the rule
+ * page, a typed or outside link, a new #hash on this page), so the reader
+ * starts at the entry they asked for. A Back, Forward or reload that puts
+ * the page back as it was leaves focus alone.
+ */
+let toName = false
+function revealWhenSettled(behavior: ScrollBehavior) {
+  settled(() => {
+    const focus = toName
+    toName = false
+    reveal(behavior, focus)
+  })
+}
+
 // ── Actions ──
-function choose(slug: string) {
+/**
+ * A card chosen. Stacked, the entry is far below, so focus follows it there.
+ * Side by side it is in view beside the card: a click leaves focus on the
+ * card, while Enter or Space (a click with no pointer: detail 0) takes it to
+ * the entry, which is otherwise the rest of the roster's Tabs away and only
+ * scrolls by key with focus inside it. "Back to the roster" returns to the
+ * card from there.
+ */
+function choose(slug: string, e?: MouseEvent) {
   pending++
+  toName = false
   selectedSlug.value = slug
   persist(true)
   announce(`Showing ${selected.value.name}'s ledger entry.`)
-  reveal(motion(), true)
+  reveal(motion(), !wide() || !e || e.detail === 0)
 }
 
 function setFilter(key: Filter) {
@@ -274,13 +313,17 @@ function followHistory() {
   if (!v) return
   const y = leftAt()
   const text = describe(view(), v)
+  // A new #hash naming another agent; popstate and hashchange both come
+  // here, and either may be the one that sees the change
+  if (y === undefined && v.slug !== selectedSlug.value) toName = true
   show(v)
   persist()
   if (text) announce(text)
-  if (y === undefined) settled(() => reveal(motion(), false))
+  if (y === undefined) revealWhenSettled(motion())
 }
 
 onMounted(() => {
+  live.value = true
   path = location.pathname
   const first = mounts++ === 0 && path.replace(/\.html$/, '') === loadedAt
   const remount = !first && last.path === path
@@ -307,8 +350,9 @@ onMounted(() => {
     // the selected entry, if the address names it, or else the top.
     if (!landsAtPlace() && agentFromHash()?.slug === selectedSlug.value) settled(land)
   } else if (v && !restored) {
-    // a link to someone's entry
-    settled(() => reveal('auto', false))
+    // a link to someone's entry: show it, and start the reader there
+    toName = true
+    revealWhenSettled('auto')
   }
   // otherwise Back or Forward from another page: VitePress restores the
   // scroll position just after this render, which already has the saved view
@@ -318,6 +362,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
   Object.assign(last, { path: location.pathname, ...view() })
   pending++
+  toName = false
   window.removeEventListener('popstate', followHistory)
   window.removeEventListener('hashchange', followHistory)
 })
@@ -360,6 +405,15 @@ onBeforeUnmount(() => {
       <div v-if="selected" class="ir-ledger-body">
         <section class="ir-ledger-roster" aria-labelledby="ir-ledger-roster-title">
           <h2 id="ir-ledger-roster-title" class="ir-sr">Roster</h2>
+          <!-- Shown only without JavaScript (ledger.css) -->
+          <p class="ir-ledger-nojs">
+            Choosing an agent needs JavaScript, so this page shows {{ agents[0].name }}'s entry only. Every
+            agent's row is in the <a :href="ledgerTable">ledger table on the rule page</a>.
+          </p>
+          <!-- Shown only in print, where the filter control isn't (ledger.css) -->
+          <p v-if="filter !== 'all'" class="ir-ledger-printnote">
+            Filtered to {{ filterLabel }}: {{ roster.length }} of {{ plural(agents.length) }}.
+          </p>
           <ul v-if="roster.length" class="ir-ledger-grid" role="list">
             <li v-for="a in roster" :key="a.slug">
               <button
@@ -368,9 +422,11 @@ onBeforeUnmount(() => {
                 :data-slug="a.slug"
                 :aria-pressed="a.slug === selectedSlug"
                 aria-controls="ir-ledger-entry"
-                @click="choose(a.slug)"
+                :tabindex="live ? undefined : -1"
+                :aria-disabled="live ? undefined : 'true'"
+                @click="choose(a.slug, $event)"
               >
-                <!-- From 87 to 278px wide: CARD_SIZES gives the width in each layout -->
+                <!-- From about 80 to 240px wide: CARD_SIZES gives the width in each layout -->
                 <span class="ir-ledger-card-img" aria-hidden="true">
                   <Portrait :agent="a" :framed="false" :sizes="CARD_SIZES" />
                 </span>

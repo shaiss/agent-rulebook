@@ -83,12 +83,13 @@ const otherNotes = computed(() => notes.value.filter((q) => !q.rule2))
   </div>
 
   <div class="ir-ledger-entry-media">
-    <!-- Full width on phones, 300px stacked from 640px, about 150px beside the roster -->
+    <!-- Full width on phones up to 360px (ledger.css caps it there: the largest
+         file is 720px), 300px stacked from 640px, about 150px beside the roster -->
     <Portrait
       :key="agent.slug"
       :agent="agent"
       eager
-      sizes="(max-width: 639px) calc(100vw - 48px), (max-width: 959px) 300px, 160px"
+      sizes="(max-width: 408px) calc(100vw - 48px), (max-width: 639px) 360px, (max-width: 959px) 300px, 160px"
     />
 
     <p v-if="agent.portraitStatus === 'mismatch'" class="ir-ledger-note">

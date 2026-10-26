@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { withBase } from 'vitepress'
 
-// The 404 page (Layout.vue's not-found slot), in the landing's grammar: a big
-// condensed numeral, one line, and the three places worth going instead.
+// The 404 page (Layout.vue's not-found slot, which puts the site's page foot
+// after it), in the landing's grammar: a big condensed numeral, one line, and
+// the three places worth going instead.
 const links = [
   { text: 'Home', href: withBase('/'), primary: true },
   { text: 'Avatar rules', href: withBase('/rules/avatars') },

@@ -12,9 +12,17 @@
   /* Where a native jump to #anchor stops: clear of the fixed nav, and from
      960px to 1279px also of the sticky "On this page" bar under it */
   --ir-rp-anchor: calc(var(--vp-nav-height) + 24px);
+  /* What is pinned over the top of the window, which focus has to clear
+     (style.css): below 960px the 48px local bar (Menu, On this page), stuck
+     to the top once the nav has scrolled away; from 960px the fixed nav,
+     with that bar under it up to 1279px */
+  --ir-bars: 48px;
+}
+@media (min-width: 960px) {
+  .ir-rulepage { --ir-bars: var(--vp-nav-height); }
 }
 @media (min-width: 960px) and (max-width: 1279px) {
-  .ir-rulepage { --ir-rp-anchor: calc(var(--vp-nav-height) + 72px); }
+  .ir-rulepage { --ir-rp-anchor: calc(var(--vp-nav-height) + 72px); --ir-bars: calc(var(--vp-nav-height) + 48px); }
   /* That bar renders .empty (display: none) on the server and fills in after
      hydration, which pushed the page down 48px on every load. This page
      always has an outline, so hold the bar's place from the first paint. */
@@ -50,10 +58,8 @@
 }
 .ir-rulepage .VPDoc .aside-curtain { width: 231px; margin-left: 1px; }
 /* The foot of the page is the site's own (SiteFooter.vue: edit link + last
-   updated, 2a); this page has no prev/next pager. Only once that footer has
-   rendered. */
-.ir-rulepage .VPDoc:has(.ir-docfoot) .VPDocFooter { display: none; }
-.ir-rulepage .VPDocFooter .prev-next { display: none; }
+   updated, 2a, in place of VitePress's doc footer and its prev/next pager:
+   style.css) */
 
 /* ── Doc typography ── */
 .ir-rulepage .vp-doc {

@@ -110,9 +110,8 @@ function transform(md: MarkdownIt, state: StateCore): Token[] {
     const cls = `ir-sec ir-sec--${esc(s.slug)}${s.kind ? ` ir-kind--${s.kind}` : ''}${framed ? ' ir-frame' : ''}`
     out.push(html(`<section class="${cls}">${framed ? CORNERS : ''}`), ...section(s.kind, s.body), html('</section>'))
   }
-  // 2a's page foot: the edit link and "Last updated" side by side, the site's
-  // one page foot (SiteFooter.vue, registered globally in index.ts)
-  out.push(html('<SiteFooter />'))
+  // 2a's page foot (the edit link and "Last updated") is the site's one page
+  // foot, which Layout.vue renders after the doc's <main> (SiteFooter.vue)
   markTextDates(out)
   return out
 

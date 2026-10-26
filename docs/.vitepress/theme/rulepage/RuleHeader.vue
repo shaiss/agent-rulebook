@@ -2,6 +2,7 @@
 import { defineComponent, onBeforeUnmount, onMounted } from 'vue'
 import { getScrollOffset } from 'vitepress'
 import { targetOf } from './restore'
+import { landsAtPlace } from '../entry-state'
 
 // Page-level behaviour for the rule page, mounted by Layout.vue ahead of the
 // content. It renders nothing: the header itself, breadcrumb included, comes
@@ -16,9 +17,9 @@ import { targetOf } from './restore'
 // scrolling meanwhile. The same happens for a hash change (an in-page link or
 // an outline click) that lands while the fonts are still loading.
 //
-// Not on Back or Forward to the page, though: VitePress then restores the
-// scroll position the reader left at (it keeps it in history.state), and
-// that wins over the hash.
+// Not when the page goes back to where the reader was instead (a Back or
+// Forward, a reload: entry-state.ts landsAtPlace): that place wins over the
+// hash.
 
 function align(el: HTMLElement) {
   const pad = parseInt(getComputedStyle(el).paddingTop, 10) || 0
@@ -60,7 +61,7 @@ export default defineComponent({
     onMounted(() => {
       // Always on mount: the fonts may have finished between VitePress's scroll
       // and hydration, and re-aligning a target already in place is a no-op
-      if (!(history.state?.scrollPosition > 0)) realignAfterFonts()
+      if (!landsAtPlace()) realignAfterFonts()
       addEventListener('hashchange', onHashChange)
     })
     onBeforeUnmount(() => {

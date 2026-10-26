@@ -88,7 +88,7 @@ const otherNotes = computed(() => notes.value.filter((q) => !q.rule2))
       :key="agent.slug"
       :agent="agent"
       eager
-      sizes="(max-width: 639px) calc(100vw - 32px), (max-width: 959px) 300px, 160px"
+      sizes="(max-width: 639px) calc(100vw - 48px), (max-width: 959px) 300px, 160px"
     />
 
     <p v-if="agent.portraitStatus === 'mismatch'" class="ir-ledger-note">

@@ -18,8 +18,7 @@ import { data } from '../../data/rulebook.data'
 import { GENDERS, type Agent, type Gender } from '../../data/parse'
 import LedgerEntry from './LedgerEntry.vue'
 import LedgerTallies from './LedgerTallies.vue'
-import SiteFooter from '../SiteFooter.vue'
-import { readEntry, writeEntry } from '../entry-state'
+import { landsAtPlace, readEntry, writeEntry } from '../entry-state'
 import { RULES, ruleLink } from './links'
 
 // The ledger page (/ledger): roster cards with a gender filter, the selected
@@ -32,12 +31,6 @@ interface View {
   filter: Filter
   slug: string
 }
-/** A history entry's view, with where the page was last scrolled and how wide the window was */
-interface Saved extends View {
-  y?: number
-  w?: number
-}
-type Place = Pick<Saved, 'y' | 'w'>
 
 const agents = data.agents
 const rulesLink = withBase('/rules/avatars')
@@ -50,13 +43,14 @@ const pendingNote = (a: Agent) =>
 const plural = (n: number) => (n === 1 ? '1 agent' : `${n} agents`)
 
 // The card portrait's width in each layout of ledger.css: the viewport less
-// the gutters, the gaps between cards and the cards' own borders, over the
-// columns (the page stops growing at 1280px). Each screen then gets the
-// smallest file that is sharp on it, whatever its pixel density.
+// the gutters (24px, 32px from 768px: style.css --ir-gutter), the gaps
+// between cards and the cards' own borders, over the columns (the page stops
+// growing at 1280px). Each screen then gets the smallest file that is sharp
+// on it, whatever its pixel density.
 const CARD_SIZES = [
-  '(max-width: 639px) calc((100vw - 58px) / 3)',
-  '(max-width: 768px) calc((100vw - 78px) / 3)',
-  '(max-width: 959px) calc((100vw - 126px) / 3)',
+  '(max-width: 639px) calc((100vw - 74px) / 3)',
+  '(max-width: 767px) calc((100vw - 94px) / 3)',
+  '(max-width: 959px) calc((100vw - 110px) / 3)',
   '(max-width: 1179px) calc((100vw - 467px) / 3)',
   '(max-width: 1279px) calc((100vw - 549px) / 4)',
   '183px'
@@ -142,53 +136,41 @@ watch(
 
 // ── History ──
 // The view is this history entry's UI state (history.state.ir.ledger,
-// entry-state.ts), always as last shown, with the scroll position as last
-// left; the selection is in the hash too. So Back, Forward and a reload
-// come back to the same roster at the same place. The position is also kept
-// as the entry's scrollPosition, VitePress's own record of where an entry
-// was left: it scrolls there on every Back and Forward, between two of the
-// ledger's #entries as well as from another page.
+// entry-state.ts), always as last shown; the selection is in the hash too.
+// The theme keeps where the reader was as the entry's scrollPosition and
+// puts them back there (entry-state.ts): VitePress on a Back or Forward
+// within the site, between two of the ledger's #entries as well as from
+// another page, and the theme itself on a reload or a Back from another
+// site. So all of them come back to the same roster at the same place.
 const ENTRY = 'ledger'
 const isFilter = (v: unknown): v is Filter => filters.some((f) => f.key === v)
 
-function savedState(): Saved | null {
-  const s = readEntry<Partial<Saved>>(ENTRY)
-  return s && isFilter(s.filter) && agents.some((a) => a.slug === s.slug) ? (s as Saved) : null
+function savedState(): View | null {
+  const s = readEntry<Partial<View>>(ENTRY)
+  return s && isFilter(s.filter) && typeof s.slug === 'string' && agents.some((a) => a.slug === s.slug)
+    ? { filter: s.filter, slug: s.slug }
+    : null
 }
 
-const currentPlace = (): Place => ({ y: Math.round(scrollY), w: innerWidth })
 /** Where VitePress will scroll this entry to on Back or Forward, if it has been here */
 const leftAt = (): number | undefined => {
   const y = history.state?.scrollPosition
   return typeof y === 'number' ? y : undefined
 }
 
-/** Record the view, and the scroll position, on the current entry; with `hash`, also point the URL at the selection */
-function persist(hash = false, place: Place = currentPlace()) {
-  try {
-    const url = hash ? `${location.pathname}${location.search}#${selectedSlug.value}` : undefined
-    history.replaceState({ ...history.state, scrollPosition: place.y }, '', url)
-  } catch {} // history blocked, or the browser's cap on history calls reached: the page works on
-  writeEntry<Saved>(ENTRY, { ...view(), ...place })
+/** Record the view on the current entry; with `hash`, also point the URL at the selection */
+function persist(hash = false) {
+  if (hash) {
+    try {
+      history.replaceState(history.state, '', `${location.pathname}${location.search}#${selectedSlug.value}`)
+    } catch {} // history blocked, or the browser's cap on history calls reached: the page works on
+  }
+  writeEntry<View>(ENTRY, view())
 }
 
-// The scroll position is recorded once the page comes to rest (as few
-// writes as will do: browsers cap how often a page may touch its history),
-// as a reload or a navigation away begins, and as the page is hidden, which
-// on a phone may be the last it hears before the tab is discarded
-let resting: ReturnType<typeof setTimeout> | undefined
 /** The ledger's path, from mount; the location leaves it as soon as the router heads for another page */
 let path = ''
 const stillHere = () => location.pathname === path
-const onScroll = () => {
-  clearTimeout(resting)
-  resting = setTimeout(() => stillHere() && persist(), 400)
-}
-const onLeave = () => {
-  clearTimeout(resting)
-  if (stillHere()) persist()
-}
-const onVisibility = () => document.visibilityState === 'hidden' && onLeave()
 
 /**
  * The view the current entry calls for: the one saved on it, unless its hash
@@ -250,41 +232,6 @@ function settled(fn: () => void) {
   document.fonts.ready.then(() => requestAnimationFrame(() => t === pending && fn()))
 }
 
-/**
- * A reload or a tab restore (a navigation of type 'reload' or 'back_forward';
- * a new one has no saved state): put the reader back where they were, at the
- * saved scroll position if the window is as wide as it was, or else at the
- * selected entry. The browser's own restoration can't be relied on here, so
- * the page turns it off (onMounted): it lands while the page still shows the
- * server-rendered roster, before the saved filter and selection re-render
- * it, and is often lost to that or to the router's scroll to the top.
- * Without a saved position or a chosen entry, the top of the page is right.
- */
-function restorePlace(at: Place) {
-  const y = typeof at.y === 'number' && at.w === innerWidth ? at.y : null
-  if (y === null && agentFromHash()?.slug !== selectedSlug.value) return
-  let moved = false
-  const stop = () => {
-    moved = true
-  }
-  const events = ['wheel', 'touchstart', 'keydown', 'mousedown']
-  for (const t of events) addEventListener(t, stop, { passive: true, once: true })
-  const place = () => {
-    if (moved) return
-    if (y === null) land()
-    else window.scrollTo({ top: y, behavior: 'auto' })
-  }
-  // as soon as the restored roster is laid out (in the metric-matched fallback
-  // faces if Barlow is still on its way), and again once the fonts have settled
-  nextTick(() => requestAnimationFrame(place))
-  document.fonts.ready.then(() =>
-    requestAnimationFrame(() => {
-      place()
-      for (const t of events) removeEventListener(t, stop)
-    })
-  )
-}
-
 // ── Actions ──
 function choose(slug: string) {
   pending++
@@ -328,7 +275,7 @@ function followHistory() {
   const y = leftAt()
   const text = describe(view(), v)
   show(v)
-  persist(false, y === undefined ? currentPlace() : { y, w: innerWidth })
+  persist()
   if (text) announce(text)
   if (y === undefined) settled(() => reveal(motion(), false))
 }
@@ -341,16 +288,9 @@ onMounted(() => {
   const v = wanted()
   if (v) show(v)
   const restored = !!saved && !!v && v.slug === saved.slug && v.filter === saved.filter
-  // Where the entry was left: VitePress's record (which it also updates as
-  // the reader follows a link away) or the page's own
+  persist()
+  // Where VitePress scrolls on an in-page Back or Forward, if it knows
   const y = leftAt()
-  const reopened = first && restored && saved ? { y: y ?? saved.y, w: saved.w } : null
-  // A reload keeps that place until the reader moves on from it; Back or
-  // Forward, VitePress is about to scroll there; a new visit starts at the top
-  persist(false, reopened ?? { y: first ? Math.round(scrollY) : (y ?? 0), w: innerWidth })
-  // This page puts the reader back itself (restorePlace; VitePress on Back
-  // and Forward), on every entry it makes or comes back to
-  if ('scrollRestoration' in history) history.scrollRestoration = 'manual'
   if (remount) {
     // An in-page Back or Forward that VitePress answered by putting up the
     // page anew. The status line carried over as it was (`status` above); say
@@ -360,8 +300,12 @@ onMounted(() => {
     const text = describe(last as View, view())
     if (text) setTimeout(() => announce(text), 100)
     if (y === undefined) settled(() => reveal(motion(), false))
-  } else if (reopened) {
-    restorePlace(reopened)
+  } else if (first && restored) {
+    // A reload or a tab restore (a new visit has no saved state): the theme
+    // puts the reader back where they were (entry-state.ts), unless the
+    // window has changed width since, which lays the page out anew. Then show
+    // the selected entry, if the address names it, or else the top.
+    if (!landsAtPlace() && agentFromHash()?.slug === selectedSlug.value) settled(land)
   } else if (v && !restored) {
     // a link to someone's entry
     settled(() => reveal('auto', false))
@@ -370,22 +314,12 @@ onMounted(() => {
   // scroll position just after this render, which already has the saved view
   window.addEventListener('popstate', followHistory)
   window.addEventListener('hashchange', followHistory)
-  window.addEventListener('scroll', onScroll, { passive: true })
-  // (never prompts: only a listener that cancels the event or sets returnValue does)
-  window.addEventListener('beforeunload', onLeave)
-  document.addEventListener('visibilitychange', onVisibility)
 })
 onBeforeUnmount(() => {
   Object.assign(last, { path: location.pathname, ...view() })
   pending++
-  clearTimeout(resting)
-  // the next page's entry (already current) restores as browsers do
-  if ('scrollRestoration' in history) history.scrollRestoration = 'auto'
   window.removeEventListener('popstate', followHistory)
   window.removeEventListener('hashchange', followHistory)
-  window.removeEventListener('scroll', onScroll)
-  window.removeEventListener('beforeunload', onLeave)
-  document.removeEventListener('visibilitychange', onVisibility)
 })
 </script>
 
@@ -468,9 +402,8 @@ onBeforeUnmount(() => {
 
       <LedgerTallies />
 
-      <SiteFooter />
-
       <p class="ir-sr" role="status">{{ status }}</p>
     </main>
+    <!-- The page foot comes after this (Layout.vue, SiteFooter.vue) -->
   </div>
 </template>

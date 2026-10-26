@@ -1,4 +1,5 @@
 import { getCurrentInstance, nextTick, onMounted } from 'vue'
+import { landsAtPlace } from '../entry-state'
 
 // Bringing the rule page's UI state back (the portrait strip's "Show all",
 // the ledger table's disclosure: this history entry's state, entry-state.ts)
@@ -28,14 +29,17 @@ export function targetOf(hash: string) {
  * where the section was before they opened. That pushed the page ~1240px
  * down the screen (CLS 0.56 at 1280px) and back. So on a full load the
  * section is held in place by hand: scrolled by whatever opened above it
- * before that frame paints, and once more after VitePress's scroll.
+ * before that frame paints, and once more after VitePress's scroll. Unless
+ * the reader is being put back where they were (a reload, or a Back from
+ * another site, at the same window width: entry-state.ts), which happens
+ * once these have opened.
  */
 export function onRestore(restore: () => boolean) {
   // Hydrating the server's HTML (a full load), not a client-side render:
   // Vue has already matched this component to its server-rendered element
   const fullLoad = !!getCurrentInstance()?.vnode.el
   onMounted(async () => {
-    const target = fullLoad ? targetOf(location.hash) : null
+    const target = fullLoad && !landsAtPlace() ? targetOf(location.hash) : null
     const top = target?.getBoundingClientRect().top
     if (!restore() || !target || top === undefined) return
     const hold = () => {

@@ -116,8 +116,8 @@
   background: transparent;
   cursor: pointer;
   transition: background-color 0.15s;
-  /* keyboard focus never lands under the fixed nav */
-  scroll-margin: calc(var(--vp-nav-height) + 16px) 0 16px;
+  /* keyboard focus never lands under the fixed nav (style.css --ir-bars) */
+  scroll-margin: calc(var(--ir-bars) + 16px) 0 16px;
 }
 .ir-ledger-card:hover { background: var(--ir-surface); }
 .ir-ledger-card:active { background: color-mix(in srgb, var(--ir-text) 10%, transparent); }
@@ -146,9 +146,8 @@
   min-width: 0;
   padding: 28px 32px 40px;
   display: flex; flex-direction: column; gap: 22px;
-  /* clears the fixed nav side by side, and VitePress's 48px "Return to top"
-     bar (fixed below 960px once scrolled) when stacked */
-  scroll-margin-top: var(--vp-nav-height);
+  /* clears the fixed nav side by side; stacked, nothing is pinned over it */
+  scroll-margin-top: var(--ir-bars);
 }
 .ir-ledger-entry-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
 .ir-ledger-entry-media, .ir-ledger-entry-info { display: flex; flex-direction: column; gap: 22px; min-width: 0; }
@@ -161,7 +160,7 @@
 
 .ir-ledger-ident { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
 .ir-ledger .ir-ledger-name { font-size: 36px; line-height: 1.05; overflow-wrap: anywhere; }
-.ir-ledger-name { scroll-margin-top: calc(var(--vp-nav-height) + 16px); }
+.ir-ledger-name { scroll-margin-top: calc(var(--ir-bars) + 16px); }
 .ir-ledger-name:focus-visible { outline-offset: 4px; }
 .ir-ledger-ident-heritage { font-size: 12.5px; line-height: 1.4; color: var(--ir-neutral-700); overflow-wrap: anywhere; }
 
@@ -323,10 +322,12 @@
 .ir-ledger-gaps li::marker { color: var(--ir-accent); }
 .ir-ledger-tally .ir-meta { margin-top: 4px; }
 
-/* ── Page foot (SiteFooter.vue, styled in style.css): the ledger's gutters ── */
-.ir-ledger .ir-docfoot { padding: 20px 40px 40px; }
-.ir-ledger .ir-docfoot > p { line-height: 1.55; }
-.ir-ledger .ir-docfoot-edit { text-decoration-thickness: auto; }
+/* ── Page foot (SiteFooter.vue after the ledger's <main>, styled in
+   style.css): its rule runs the ledger's full width, as the others do, and
+   its text sits on the ledger's gutters ── */
+.ir-pagefoot--ledger { max-width: 1280px; margin: 0 auto; }
+.ir-pagefoot--ledger .ir-docfoot { padding: 20px 40px 40px; }
+.ir-pagefoot--ledger .ir-docfoot > p { line-height: 1.55; }
 
 /* ── Responsive ── */
 @media (max-width: 1179px) {
@@ -342,8 +343,14 @@
 @media (max-width: 959px) {
   .ir-ledger-body { grid-template-columns: minmax(0, 1fr); }
   .ir-ledger-roster { border-right: 0; }
-  /* stacked, the entry lines up with the header and roster */
-  .ir-ledger-entry { border-top: 1px solid var(--ir-divider); padding-inline: 40px; }
+  .ir-ledger-entry { border-top: 1px solid var(--ir-divider); }
+  /* One gutter, lined up with the nav bar's brand (style.css --ir-gutter):
+     the header, the roster, the entry stacked under it, the tallies' outer
+     edges and the page foot */
+  .ir-ledger-head, .ir-ledger-roster, .ir-ledger-entry, .ir-ledger-empty,
+  .ir-pagefoot--ledger .ir-docfoot { padding-inline: var(--ir-gutter); }
+  .ir-ledger-tally:nth-of-type(odd) { padding-left: var(--ir-gutter); }
+  .ir-ledger-tally:nth-of-type(even) { padding-right: var(--ir-gutter); }
 }
 @media (min-width: 640px) and (max-width: 959px) {
   .ir-ledger-entry {
@@ -352,13 +359,15 @@
   .ir-ledger-entry-top { grid-column: 1 / -1; }
 }
 @media (max-width: 768px) {
-  .ir-ledger-head { padding: 28px 16px 20px; }
+  .ir-ledger-head { padding-block: 28px 20px; }
   .ir-ledger .ir-ledger-title { font-size: 44px; }
-  .ir-ledger-roster { padding: 20px 16px 28px; }
-  .ir-ledger-entry { padding: 24px 16px 32px; }
-  .ir-ledger-empty { padding: 20px 16px; }
+  .ir-ledger-roster { padding-block: 20px 28px; }
+  .ir-ledger-entry { padding-block: 24px 32px; }
+  .ir-ledger-empty { padding-block: 20px; }
   .ir-ledger-tally:nth-of-type(n) { padding: 20px 16px 24px; }
-  .ir-ledger .ir-docfoot { padding: 20px 16px 32px; }
+  .ir-ledger-tally:nth-of-type(odd) { padding-left: var(--ir-gutter); }
+  .ir-ledger-tally:nth-of-type(even) { padding-right: var(--ir-gutter); }
+  .ir-pagefoot--ledger .ir-docfoot { padding-block: 20px 32px; }
 }
 /* Phones: three compact cards across (portrait, name, then gender and age in
    small type), so the roster stays short and the entry close */
@@ -375,7 +384,7 @@
   .ir-ledger-card-heritage { display: none; }
   .ir-ledger .ir-ledger-name { font-size: 32px; }
   .ir-ledger-tallies { grid-template-columns: minmax(0, 1fr); }
-  .ir-ledger-tally:nth-of-type(n) { border-left: 0; }
+  .ir-ledger-tally:nth-of-type(n) { border-left: 0; padding-inline: var(--ir-gutter); }
   .ir-ledger-tally:nth-of-type(n + 2) { border-top: 1px solid var(--ir-divider); }
 }
 /* Too narrow for the filter on one line: two by two, full width */

@@ -149,15 +149,44 @@
   }
 }
 
+/* ── What VitePress pins over the top of the window, and the page gutter ──
+   --ir-bars: the height of what is fixed or stuck at the top of the window,
+   which focus has to clear: the nav bar from 960px (fixed); below that,
+   nothing on a page without a sidebar or an outline (their empty local bar
+   is hidden, below). The rule page adds its local bar (rulepage.css).
+   --ir-gutter: every page's side gutter below 960px, lined up with the nav
+   bar's brand (VitePress sets it 24px in, 32px from 768px). */
+:root { --ir-bars: 0px; --ir-gutter: 24px; }
+@media (min-width: 768px) { :root { --ir-gutter: 32px; } }
+@media (min-width: 960px) { :root { --ir-bars: var(--vp-nav-height); } }
+
+/* Keyboard focus never lands under those bars (WCAG 2.4.11): whatever is
+   focusable in the page keeps their height, and some air, clear above it
+   when the browser scrolls it into view, by Tab or by Shift+Tab (which
+   stops it at the top edge of the window). No specificity, so a control's
+   own scroll margin (fleet tiles, ledger cards, strip tiles) wins. Not
+   html { scroll-padding-top }: that would add to the headings' own scroll
+   margin on #anchor jumps. */
+:where(.VPContent) :where(a[href], area[href], button, input, select, textarea, summary, iframe, [tabindex], [contenteditable]) {
+  scroll-margin-top: calc(var(--ir-bars) + 16px);
+}
+
+/* A page with neither a sidebar nor an outline (the landing, the ledger, the
+   404): below 960px VitePress pins its local bar to the top of the window
+   once the reader scrolls, 48px holding nothing but "Return to top". Neither
+   design has it; the rule page keeps its bar (Menu, On this page). */
+.VPLocalNav.fixed { display: none; }
+
 /* ── Page foot, every page: "Edit this page on GitHub" and "Last updated" on
-   one ruled line (SiteFooter.vue; the ledger adds its gutters in ledger.css) ── */
+   one ruled line (SiteFooter.vue, which Layout.vue puts after each page's
+   <main>), under that page's column: .ir-pagefoot--<kind> here, the
+   ledger's in ledger.css ── */
 .ir-docfoot {
   display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 24px;
   margin: 0; padding-top: 20px; border-top: 1px solid var(--ir-divider);
   font-size: 13px; line-height: 1.45; color: var(--ir-neutral-700);
 }
-/* in the rule page's doc column, over VitePress's own .vp-doc p margins */
-.ir-docfoot > *, .vp-doc .ir-docfoot > * { margin: 0; }
+.ir-docfoot > * { margin: 0; }
 .ir-docfoot .ir-docfoot-edit {
   font-weight: 500; color: var(--ir-accent-700);
   text-decoration: underline; text-underline-offset: 3px;
@@ -165,6 +194,16 @@
 .ir-docfoot .ir-docfoot-edit:hover { color: var(--ir-accent-900); }
 /* A second line under the row (the landing's credit) */
 .ir-docfoot-note { flex-basis: 100%; }
+/* The landing and the 404: under the page's column, its section gap above
+   (.ir-home, .ir-nf) and the page's bottom padding below */
+.ir-pagefoot--home, .ir-pagefoot--nf, .ir-pagefoot--page {
+  max-width: 1280px; margin: 0 auto; padding: 72px 48px 40px;
+}
+/* A doc page (the rule page): one section gap (48px, rulepage.css) under the
+   doc, in its leading; VitePress's own doc footer gives way to it */
+.ir-pagefoot--doc { margin-top: 48px; }
+.ir-pagefoot--doc .ir-docfoot > p { line-height: 1.55; }
+.VPDoc:has(.ir-pagefoot) .VPDocFooter { display: none; }
 
 /* ── Frame (.ir-frame): hairline box with "+" registration marks ── */
 .ir-home .ir-frame { position: relative; border: 1px solid var(--ir-divider); }
@@ -185,7 +224,8 @@
 .ir-home {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 56px 48px 40px;
+  /* the page foot that follows (.ir-pagefoot--home) brings the bottom padding */
+  padding: 56px 48px 0;
   display: flex;
   flex-direction: column;
   gap: 72px;
@@ -306,8 +346,8 @@
 .ir-home .ir-fleet > li { margin: 0; padding: 0; min-width: 0; }
 .ir-home .ir-fleet-item {
   display: flex; flex-direction: column; gap: 8px; color: var(--ir-text); text-decoration: none;
-  /* focus after "Show all" lands clear of the nav */
-  scroll-margin: calc(var(--vp-nav-height) + 16px) 0 24px;
+  /* focus after "Show all" lands clear of the nav (--ir-bars) */
+  scroll-margin: calc(var(--ir-bars) + 16px) 0 24px;
 }
 .ir-home .ir-fleet-item:hover { color: var(--ir-text); }
 .ir-home .ir-fleet-item .ir-portrait { transition: border-color 0.15s; }
@@ -319,7 +359,7 @@
 .ir-fleet-foot { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px 16px; }
 .ir-fleet-note { font-size: 13px; color: var(--ir-neutral-700); max-width: 720px; }
 .ir-home .ir-fleet-note a { text-decoration: underline; }
-.ir-home .ir-fleet-more { scroll-margin: calc(var(--vp-nav-height) + 16px) 0 24px; }
+.ir-home .ir-fleet-more { scroll-margin: calc(var(--ir-bars) + 16px) 0 24px; }
 
 /* Per width: the column count, the rows hidden while folded (past the
    third), and the toggle, shown only where this fleet folds. A fleet Back
@@ -489,8 +529,13 @@
   .ir-hero { grid-template-columns: minmax(0, 1fr); gap: 40px; }
   .ir-balance { grid-template-columns: minmax(0, 1fr); gap: 24px; }
 }
+/* Below 960px the page's gutter lines up with the nav bar's brand (--ir-gutter) */
+@media (max-width: 959px) {
+  .ir-home, .ir-pagefoot--home, .ir-pagefoot--page { padding-inline: var(--ir-gutter); }
+}
 @media (max-width: 768px) {
-  .ir-home { padding: 32px 16px 32px; gap: 56px; }
+  .ir-home { padding-top: 32px; gap: 56px; }
+  .ir-pagefoot--home, .ir-pagefoot--page { padding-top: 56px; padding-bottom: 32px; }
   .ir-home .ir-hero-title { font-size: clamp(44px, 15vw, 56px); }
   .ir-lede { font-size: 17px; }
   .ir-principle, .ir-gap { grid-template-columns: minmax(0, 1fr); gap: 12px; padding: 24px; }
@@ -510,7 +555,7 @@
 
 /* ── 404 (SiteNotFound.vue) ── */
 .ir-nf {
-  max-width: 1280px; margin: 0 auto; padding: 72px 48px 120px;
+  max-width: 1280px; margin: 0 auto; padding: 72px 48px 0;
   display: flex; flex-direction: column; align-items: flex-start; gap: 28px;
   color: var(--ir-text); font-family: var(--ir-font-body); font-size: 15px; line-height: 1.55;
 }
@@ -524,8 +569,12 @@
 .ir-nf-text { font-size: 40px; line-height: 1.05; letter-spacing: -0.015em; }
 .ir-nf-lede { margin: 0; max-width: 560px; font-size: 17px; color: var(--ir-neutral-800); text-wrap: pretty; }
 .ir-nf-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+@media (max-width: 959px) {
+  .ir-nf, .ir-pagefoot--nf { padding-inline: var(--ir-gutter); }
+}
 @media (max-width: 768px) {
-  .ir-nf { padding: 40px 16px 72px; gap: 24px; }
+  .ir-nf { padding-top: 40px; gap: 24px; }
+  .ir-pagefoot--nf { padding-top: 56px; padding-bottom: 32px; }
   .ir-nf-plate { padding: 20px 22px 22px; }
   .ir-nf-code { font-size: 120px; }
   .ir-nf-text { font-size: 32px; }
@@ -569,6 +618,7 @@
   }
   .ir-home { padding: 0; gap: 32px; }
   .ir-home-main { gap: 32px; }
+  .ir-pagefoot--home, .ir-pagefoot--nf, .ir-pagefoot--page { padding: 32px 0 0; }
   /* The steel field (the landing's "Why this exists", the rule page's "Our
      gap") prints as a ruled box, black ink on white (the steel tokens
      above), so it reads the same with background graphics on or off */
@@ -592,12 +642,8 @@
   /* Where a link leads, for links that go somewhere off the page: the
      footer's edit link and the rule cards' rule numbers are enough; tiles,
      buttons and in-page jumps are not worth an address each */
-  :root .ir-docfoot .ir-docfoot-edit.ir-docfoot-edit::after {
+  .ir-docfoot .ir-docfoot-edit::after {
     content: ' (' attr(href) ')';
-    /* in .vp-doc the link's ::after is VitePress's 11px external-link icon
-       (whose selector this one has to outweigh) */
-    display: inline; width: auto; height: auto; margin: 0; background: none; color: inherit;
-    -webkit-mask-image: none; mask-image: none;
     font-weight: 400; overflow-wrap: anywhere;
   }
   .ir-docfoot .ir-docfoot-edit .ir-sr { display: none; }

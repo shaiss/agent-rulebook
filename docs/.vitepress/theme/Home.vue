@@ -3,7 +3,6 @@ import { nextTick, onMounted, ref } from 'vue'
 import { withBase } from 'vitepress'
 import { data } from '../data/rulebook.data'
 import { balance, AGE_BANDS, type Agent, type Rule } from '../data/parse'
-import SiteFooter from './SiteFooter.vue'
 import { readEntry, writeEntry } from './entry-state'
 
 // Everything below is read at build time from docs/rules/avatars.md (see
@@ -18,7 +17,7 @@ const agentLink = (a: Agent) => withBase(`/ledger#${a.slug}`)
 const plural = (n: number, one: string, many: string) => (n === 1 ? one : many)
 const pad = (n: number) => String(n).padStart(2, '0')
 
-const { agents, rules, principle, rollout, setDate, refinedDate, updatedDate, hasHeritageColumn } = data
+const { agents, rules, principle, rollout, updatedDate, hasHeritageColumn } = data
 const { matrix, open, ungrouped, genderTally, ageTally } = balance(agents)
 
 const draftCount = rules.filter((r) => r.status === 'draft').length
@@ -32,10 +31,6 @@ const stats = [
     : { n: lockedCount, label: plural(lockedCount, 'locked rule', 'locked rules') },
   { n: open.length, label: plural(open.length, 'open gender × age cell', 'open gender × age cells') }
 ]
-
-const credit = setDate
-  ? `Rules set by Shai, ${setDate}${refinedDate && refinedDate !== setDate ? ` · refined ${refinedDate}` : ''}`
-  : ''
 
 const ruleCount = [
   `${rules.length} ${plural(rules.length, 'rule', 'rules')}`,
@@ -389,7 +384,6 @@ onMounted(() => {
         </div>
       </section>
     </main>
-
-    <SiteFooter :note="credit" />
+    <!-- The page foot, with who set the rules and when, comes after this (Layout.vue, SiteFooter.vue) -->
   </div>
 </template>

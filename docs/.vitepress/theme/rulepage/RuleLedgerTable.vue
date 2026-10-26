@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import { readEntry, writeEntry } from '../entry-state'
-import { onRestore } from './restore'
+import { ENTRY, followDocument, onRestore, type RulepageUi } from './restore'
 
 // The canonical ledger table behind a disclosure, under the portrait strip
 // (rulepage/markdown.ts wraps the markdown table in this). The table is wider
@@ -9,10 +9,8 @@ import { onRestore } from './restore'
 // scroll it too) with its header row and Agent column held in place
 // (rulepage.css). Whether it is open is this history entry's UI state, so
 // Back brings it back open (entry-state.ts), and it opens for printing.
+// Back and Forward within the page leave it as it is (restore.ts).
 const props = defineProps<{ rows: number }>()
-/** The rule page's UI state, shared with LedgerStrip.vue: history.state.ir.rulepage */
-const ENTRY = 'rulepage'
-type RulepageUi = { strip?: boolean; table?: boolean }
 const open = ref(false)
 const details = ref<HTMLDetailsElement>()
 /** The reader's state while a print has the table forced open */
@@ -41,6 +39,7 @@ onRestore(() => {
   open.value = true
   return true
 })
+followDocument('table', () => beforePrint ?? open.value)
 onMounted(() => {
   addEventListener('beforeprint', printOpen)
   addEventListener('afterprint', printDone)

@@ -2,6 +2,7 @@ import type MarkdownIt from 'markdown-it'
 import type StateCore from 'markdown-it/lib/rules_core/state_core.mjs'
 import type Token from 'markdown-it/lib/token.mjs'
 import { headingSlug, parseRuleText, parseRulebook, type Rule } from '../../data/parse'
+import { rolloutHeads } from './steps'
 
 // Gives docs/rules/avatars.md its rule-page structure (Claude Design mockup 2a)
 // by rearranging the token stream; the markdown itself never changes. Each h2
@@ -236,7 +237,8 @@ function transform(md: MarkdownIt, state: StateCore): Token[] {
     const tags = [
       r.status === 'draft' ? tag('outline', 'Draft') : '',
       r.status === 'draft' && r.statusNote ? tag('neutral', cap(r.statusNote)) : '',
-      r.status === 'locked' ? tag('accent', 'Locked') : ''
+      // Neutral, as on the landing's rule cards and in the ledger entry (2a's note tags)
+      r.status === 'locked' ? tag('neutral', 'Locked') : ''
     ].join('')
     let h = ruleTop(r.n, tags, r.lead)
     if (r.body) h += `<p class="ir-cell-body">${txt(r.body)}</p>`
@@ -322,12 +324,27 @@ function transform(md: MarkdownIt, state: StateCore): Token[] {
         const start = Number(t.attrGet('start') ?? 1)
         t.attrJoin('class', 'ir-stepcards')
         t.attrSet('role', 'list')
+        const items = listItems(ts, i)
+        // 2a's heads (who acts, a title), while the steps are still 2a's three (steps.ts)
+        const heads = rolloutHeads(items.map(([a, b]) => ts.slice(a, b).filter((x) => x.type === 'inline').map((x) => x.content).join(' ')))
         let at = i
-        for (const [k, [a, b]] of listItems(ts, i).entries()) {
+        for (const [k, [a, b]] of items.entries()) {
           res.push(...ts.slice(at, a))
           ts[a].attrJoin('class', 'ir-stepcard ir-frame')
           const n = Number(ts[a].info) || start + k
-          res.push(ts[a], html(`${CORNERS}<span class="ir-stepcard-n"><span class="ir-sr">Step </span>${n}</span>`))
+          const head = heads?.[k]
+          // As in a rule cell: the h3 comes first, so the heading reads "Step 1:
+          // Describe"; CSS draws the numeral row (numeral, who acts) above it
+          res.push(
+            ts[a],
+            html(
+              head
+                ? `${CORNERS}<h3 class="ir-stepcard-title"><span class="ir-sr">Step ${n}: </span>${txt(head.title)}</h3>` +
+                    `<div class="ir-stepcard-top"><span class="ir-stepcard-n" aria-hidden="true">${n}</span>` +
+                    `<span class="ir-tag ir-tag-${head.tag}"><span class="ir-sr">By </span>${txt(head.actor)}</span></div>`
+                : `${CORNERS}<span class="ir-stepcard-n"><span class="ir-sr">Step </span>${n}</span>`
+            )
+          )
           for (const x of ts.slice(a + 1, b)) {
             if (x.type.startsWith('paragraph_')) x.hidden = false
             res.push(x)

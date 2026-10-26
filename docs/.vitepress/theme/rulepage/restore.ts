@@ -1,9 +1,13 @@
-import { getCurrentInstance, nextTick, onMounted } from 'vue'
-import { landsAtPlace } from '../entry-state'
+import { getCurrentInstance, nextTick, onBeforeUnmount, onMounted } from 'vue'
+import { landsAtPlace, readEntry, writeEntry } from '../entry-state'
 
 // Bringing the rule page's UI state back (the portrait strip's "Show all",
 // the ledger table's disclosure: this history entry's state, entry-state.ts)
 // without moving what the reader is looking at.
+
+/** The rule page's UI state, shared by LedgerStrip.vue and RuleLedgerTable.vue: history.state.ir.rulepage */
+export const ENTRY = 'rulepage'
+export type RulepageUi = { strip?: boolean; table?: boolean }
 
 /** The element a #hash names, if it is on this page */
 export function targetOf(hash: string) {
@@ -13,6 +17,20 @@ export function targetOf(hash: string) {
   } catch {
     return null // a malformed escape: not one of ours
   }
+}
+
+/**
+ * Move focus to `el` without scrolling, as following a link to it would: the
+ * next Tab goes on from there. Headings already take focus (VitePress gives
+ * them tabindex="-1"); anything else, a rule cell, takes it for as long as it
+ * holds it, as VitePress's skip link does with the content.
+ */
+export function focusTarget(el: HTMLElement) {
+  if (el.tabIndex < 0 && !el.hasAttribute('tabindex')) {
+    el.setAttribute('tabindex', '-1')
+    el.addEventListener('blur', () => el.removeAttribute('tabindex'), { once: true })
+  }
+  el.focus({ preventScroll: true })
 }
 
 /**
@@ -49,5 +67,37 @@ export function onRestore(restore: () => boolean) {
     await nextTick()
     hold()
     requestAnimationFrame(hold)
+  })
+}
+
+/**
+ * Call from a component's setup, with what it shows now under `key`: a Back
+ * or Forward between two of the page's own #entries, or a #hash typed into
+ * the address bar, leaves the strip and the table as they are, as the
+ * browser's own jumps within a page leave a disclosure, and records them on
+ * the entry arrived at, so that entry says what the page shows. A Back from
+ * another page later finds them as the reader left them.
+ *
+ * VitePress puts the content up anew on the first such Back or Forward (it
+ * swaps the page's hydration-only build for the full one), once it has
+ * fetched that build: by then the entry says what was open, so the new
+ * strip and table open the same (onRestore).
+ */
+export function followDocument(key: keyof RulepageUi, now: () => boolean) {
+  let path = ''
+  const keep = () => {
+    // Back or Forward to another page: the entry is that page's
+    if (location.pathname !== path) return
+    const ui = readEntry<RulepageUi>(ENTRY)
+    if ((ui?.[key] === true) !== now()) writeEntry<RulepageUi>(ENTRY, { ...ui, [key]: now() })
+  }
+  onMounted(() => {
+    path = location.pathname
+    addEventListener('popstate', keep)
+    addEventListener('hashchange', keep)
+  })
+  onBeforeUnmount(() => {
+    removeEventListener('popstate', keep)
+    removeEventListener('hashchange', keep)
   })
 }

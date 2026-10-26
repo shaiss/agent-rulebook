@@ -46,6 +46,37 @@
 @media (min-width: 960px) {
   .ir-rulepage .VPSidebar { border-right: 1px solid var(--ir-divider); }
 }
+/* The nav bar's layout beside the sidebar (VitePress's .VPNavBar.has-sidebar
+   rules) from the first paint: VitePress adds .has-sidebar only once the page
+   is running, so on every load the bar was laid out for a page without a
+   sidebar and then re-laid out (its title rail, its links and its rule moved
+   over; CLS 0.011 to 0.020 from 960px). The current page's sidebar link is
+   marked (.is-active, below) only then too. */
+@media (min-width: 960px) {
+  .ir-rulepage .VPNavBar .wrapper { padding: 0; }
+  .ir-rulepage .VPNavBar .container { max-width: 100%; }
+  .ir-rulepage .VPNavBar .title {
+    position: absolute; top: 0; left: 0; z-index: 2;
+    padding: 0 32px; width: var(--vp-sidebar-width); height: var(--vp-nav-height);
+    background-color: transparent;
+  }
+  .ir-rulepage .VPNavBar .content { position: relative; z-index: 1; padding-right: 32px; padding-left: var(--vp-sidebar-width); }
+  .ir-rulepage .VPNavBar .divider { padding-left: var(--vp-sidebar-width); }
+  .Layout.ir-rulepage .VPNavBar:not(.has-sidebar):not(.home.top) { background-color: transparent; }
+  .Layout.ir-rulepage .VPNavBar:not(.has-sidebar):not(.home.top) .content-body { background-color: var(--vp-nav-bg-color); }
+  .Layout.ir-rulepage .VPNavBar:not(.has-sidebar):not(.home.top) .divider { background-color: transparent; }
+}
+@media (min-width: 1440px) {
+  .ir-rulepage .VPNavBar .title {
+    padding-left: max(32px, calc((100% - (var(--vp-layout-max-width) - 64px)) / 2));
+    width: calc((100% - (var(--vp-layout-max-width) - 64px)) / 2 + var(--vp-sidebar-width) - 32px);
+  }
+  .ir-rulepage .VPNavBar .content {
+    padding-right: calc((100vw - var(--vp-layout-max-width)) / 2 + 32px);
+    padding-left: calc((100vw - var(--vp-layout-max-width)) / 2 + var(--vp-sidebar-width));
+  }
+  .ir-rulepage .VPNavBar .divider { padding-left: calc((100vw - var(--vp-layout-max-width)) / 2 + var(--vp-sidebar-width)); }
+}
 /* The aside column runs the page's full height but holds only fixed boxes,
    and it comes first in the markup, so from 1280px it was the browser's
    scroll anchor: anything opening above the reading position (the strip and
@@ -237,6 +268,9 @@
   .ir-rulepage .vp-doc .ir-cells > .ir-cell:last-child { --ir-cell-b: 0; }
 }
 .ir-rulepage .vp-doc .ir-cell:target { background: var(--ir-accent-100); }
+/* A link to a rule moves focus to its cell (RuleHeader.vue): the ring sits
+   inside the cell, clear of its neighbours' rules */
+.ir-rulepage .vp-doc .ir-cell:focus-visible { outline-offset: -2px; }
 .ir-rulepage .vp-doc .ir-cell > * { margin: 0; }
 /* The h3 comes first in the markup (heading, then tags); the numeral row draws above it */
 .ir-rulepage .ir-cell-top { order: -1; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
@@ -296,6 +330,10 @@
   font-family: var(--ir-font-heading); font-weight: 400; font-size: 28px; line-height: 1;
   color: var(--ir-accent);
 }
+/* 2a's head on each step (markdown.ts, steps.ts): the numeral and who acts,
+   drawn above the title that comes first in the markup */
+.ir-rulepage .ir-stepcard-top { order: -1; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.ir-rulepage .vp-doc .ir-stepcard-title { font-size: 17px; line-height: 1.2; letter-spacing: normal; text-wrap: balance; }
 .ir-rulepage .vp-doc .ir-stepcard > p { margin: 0; font-size: 13.5px; text-wrap: pretty; }
 
 /* ── Ledger: fleet line (FleetLine.vue), portrait strip (LedgerStrip.vue),
@@ -349,17 +387,19 @@
 /* The portrait's own pending note has no room at strip size; the caption carries it */
 .ir-rulepage .ir-strip .ir-portrait-note { display: none; }
 
-/* A fleet over a dozen: one framed contact sheet, 8 / 6 / 4 columns by the
-   content width (below), its first two rows until "Show all" */
+/* A fleet over a dozen: one framed contact sheet, about 8 / 6 / 4 columns by
+   the content width (below; LedgerStrip.vue counts them, so the last row
+   isn't left with a tile or two), its first two rows until "Show all" */
 .ir-rulepage .ir-strip-sheet { padding: 16px; }
 .ir-rulepage .vp-doc .ir-strip.is-dense .ir-strip-grid {
-  grid-template-columns: repeat(8, minmax(0, 1fr)); column-gap: 10px; margin-bottom: -16px;
+  grid-template-columns: repeat(var(--ir-sheet-wide, 8), minmax(0, 1fr)); column-gap: 10px; margin-bottom: -16px;
 }
 .ir-rulepage .vp-doc .ir-strip.is-dense .ir-strip-grid > li { padding-bottom: 16px; }
 /* Sheet tiles run 54–96px, so an age line may need two; the subgrid still
    keeps each row of captions even */
 .ir-rulepage .ir-strip.is-dense .ir-strip-age { white-space: normal; }
-.ir-rulepage .ir-strip.is-collapsed .ir-strip-grid > li:nth-child(n + 17) { display: none; }
+.ir-rulepage .ir-strip.is-collapsed[data-wide="8"] .ir-strip-grid > li:nth-child(n + 17),
+.ir-rulepage .ir-strip.is-collapsed[data-wide="7"] .ir-strip-grid > li:nth-child(n + 15) { display: none; }
 .ir-rulepage .ir-strip.is-dense .ir-strip-item:hover .ir-portrait { outline: 1px solid var(--ir-accent); }
 .ir-rulepage .ir-strip.is-dense .ir-strip-item:active .ir-portrait { outline-color: var(--ir-accent-800); }
 .ir-rulepage .ir-strip-foot {
@@ -571,10 +611,13 @@
   padding-left: 12px; color: var(--ir-text); font-weight: 400;
 }
 .ir-rulepage .VPSidebar .VPSidebarItem.level-1.is-link > .item > .link:hover > .text { color: var(--ir-accent-700); }
-.ir-rulepage .VPSidebar .VPSidebarItem.level-1.is-active > .item > .indicator {
+/* The current page's link (this page's: marked before VitePress sets .is-active) */
+.ir-rulepage .VPSidebar .VPSidebarItem.level-1.is-active > .item > .indicator,
+.ir-rulepage .VPSidebar .VPSidebarItem.level-1 > .item:has(> .link[href$="/rules/avatars"]) > .indicator {
   left: 0; top: 4px; bottom: 4px; border-radius: 0; background-color: var(--ir-accent);
 }
-.ir-rulepage .VPSidebar .VPSidebarItem.level-1.is-active > .item .link > .text { color: var(--ir-accent-700); font-weight: 500; }
+.ir-rulepage .VPSidebar .VPSidebarItem.level-1.is-active > .item .link > .text,
+.ir-rulepage .VPSidebar .VPSidebarItem.level-1 > .item > .link[href$="/rules/avatars"] > .text { color: var(--ir-accent-700); font-weight: 500; }
 
 /* ── Responsive: layouts follow the content column's width ── */
 @container irdoc (max-width: 640px) {
@@ -583,13 +626,15 @@
 }
 /* The contact sheet's columns, and its first two rows while collapsed */
 @container irdoc (max-width: 600px) {
-  .ir-rulepage .vp-doc .ir-strip.is-dense .ir-strip-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
-  .ir-rulepage .ir-strip.is-collapsed .ir-strip-grid > li:nth-child(n + 13) { display: none; }
+  .ir-rulepage .vp-doc .ir-strip.is-dense .ir-strip-grid { grid-template-columns: repeat(var(--ir-sheet-mid, 6), minmax(0, 1fr)); }
+  .ir-rulepage .ir-strip.is-collapsed[data-mid="6"] .ir-strip-grid > li:nth-child(n + 13),
+  .ir-rulepage .ir-strip.is-collapsed[data-mid="5"] .ir-strip-grid > li:nth-child(n + 11) { display: none; }
 }
 @container irdoc (max-width: 440px) {
   .ir-rulepage .ir-strip-sheet { padding: 12px; }
-  .ir-rulepage .vp-doc .ir-strip.is-dense .ir-strip-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-  .ir-rulepage .ir-strip.is-collapsed .ir-strip-grid > li:nth-child(n + 9) { display: none; }
+  .ir-rulepage .vp-doc .ir-strip.is-dense .ir-strip-grid { grid-template-columns: repeat(var(--ir-sheet-narrow, 4), minmax(0, 1fr)); }
+  .ir-rulepage .ir-strip.is-collapsed[data-narrow="4"] .ir-strip-grid > li:nth-child(n + 9),
+  .ir-rulepage .ir-strip.is-collapsed[data-narrow="3"] .ir-strip-grid > li:nth-child(n + 7) { display: none; }
 }
 @container irdoc (max-width: 560px) {
   .ir-rulepage .vp-doc h1 { font-size: 44px; }
@@ -623,7 +668,20 @@
     .ir-cell, .ir-stepcard, .ir-band, .ir-kind--principle, .ir-pull,
     .ir-strip-grid > li, .ir-col, .ir-log > li, tr
   ) { break-inside: avoid; }
-  .ir-rulepage .ir-ledger-table > summary::before { content: none; }
+  /* No "+" or "−" on paper, closed or open (printing opens the table) */
+  .ir-rulepage .ir-ledger-table > summary::before,
+  .ir-rulepage .ir-ledger-table[open] > summary::before { content: none; }
+  /* The rules grid: a page can break between any two rows of cells, so each
+     cell draws its own frame (the grid's outer frame and the cells' inner
+     rules left an empty framed box and loose rules down the rest of a page),
+     and tighter insets let a row fit what is left of a page more often */
+  .ir-rulepage .vp-doc .ir-cells { border: 0; }
+  .ir-rulepage .vp-doc .ir-cell {
+    padding: 0 14px 14px; border-top-width: 14px; min-height: 0; gap: 6px;
+    outline: 1px solid var(--ir-divider); outline-offset: -0.5px;
+  }
+  .ir-rulepage .vp-doc .ir-cell::before,
+  .ir-rulepage .vp-doc .ir-cell::after { content: none; }
   .ir-rulepage .vp-doc .ir-table-scroll { max-height: none; overflow: visible; background: none; }
   .ir-rulepage .vp-doc .ir-table-scroll > table { width: 100%; }
   .ir-rulepage .vp-doc .ir-table-scroll :is(th, td):nth-child(n) {

@@ -171,6 +171,13 @@
 .VPNavBar .VPFlyout > .button:focus-visible,
 .VPLocalNav .menu:focus-visible,
 .VPLocalNavOutlineDropdown .top-link:focus-visible { outline-offset: -4px; }
+/* The title link is only as wide as its words except on the rule page's
+   rail (960px up), so the inset ring would cross the first and last letters:
+   8px of room each side, without moving the text */
+.Layout:not(.ir-rulepage) .VPNavBar .VPNavBarTitle .title { width: auto; padding-inline: 8px; margin-inline: -8px; }
+@media (max-width: 959px) {
+  .VPNavBar .VPNavBarTitle .title { width: auto; padding-inline: 8px; margin-inline: -8px; }
+}
 /* The outline links in that list: when Tab scrolls the list, a ring clear of
    its top and bottom edges */
 .VPLocalNavOutlineDropdown .items a { scroll-margin-block: 8px; }

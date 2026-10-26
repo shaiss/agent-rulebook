@@ -88,6 +88,13 @@
     padding-left: max(32px, calc((100% - (var(--vp-layout-max-width) - 64px)) / 2));
     width: calc((100% - (var(--vp-layout-max-width) - 64px)) / 2 + var(--vp-sidebar-width) - 32px);
   }
+  /* The rule above also matches the title link inside that wrapper, where
+     100% is the wrapper's width, not the window's: the link fills the rail
+     and puts its text where the wrapper's padding would */
+  .ir-rulepage .VPNavBar .VPNavBarTitle .title {
+    width: 100%;
+    padding-left: max(32px, calc(100% - var(--vp-sidebar-width) + 32px));
+  }
   .ir-rulepage .VPNavBar .content {
     padding-right: calc((100vw - var(--vp-layout-max-width)) / 2 + 32px);
     padding-left: calc((100vw - var(--vp-layout-max-width)) / 2 + var(--vp-sidebar-width));

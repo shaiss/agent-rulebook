@@ -163,10 +163,14 @@ function savedState(): View | null {
     : null
 }
 
-/** Where VitePress will scroll this entry to on Back or Forward, if it has been here */
+/**
+ * Where VitePress will scroll this entry to on Back or Forward, if it has been
+ * here. Its 0 means "not known" (the theme writes the very top as AT_TOP, just
+ * above 0; see entry-state.ts), so that is no place, as in landsAtPlace().
+ */
 const leftAt = (): number | undefined => {
   const y = history.state?.scrollPosition
-  return typeof y === 'number' ? y : undefined
+  return typeof y === 'number' && y > 0 ? y : undefined
 }
 
 /** Record the view on the current entry; with `hash`, also point the URL at the selection */

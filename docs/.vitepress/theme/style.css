@@ -47,7 +47,11 @@
   --vp-c-text-1: var(--ir-text);
   --vp-c-text-2: var(--ir-neutral-700);
   --vp-c-divider: var(--ir-divider);
-  --vp-c-gutter: var(--ir-divider);
+  /* The hairline VitePress draws as a background showing through a 1px gap
+     (the "On this page" dropdown's) or over the scrolling page (the nav
+     bar's rule): opaque, so nothing under it shows through, and the same
+     grey as --ir-divider on the ground */
+  --vp-c-gutter: color-mix(in srgb, var(--ir-text) 16%, var(--ir-bg));
   --vp-c-brand-1: var(--ir-accent-700);
   --vp-c-brand-2: var(--ir-accent-800);
   --vp-c-brand-3: var(--ir-accent-700);
@@ -113,6 +117,13 @@
 .vp-doc h2 { font-size: 32px; border-top-color: var(--ir-divider); }
 .vp-doc h3 { font-size: 24px; }
 
+/* Display text never ends on a lone word ("Notes from the / rollout",
+   "… Rather than u / assigning.”"): headings, card and step titles, the
+   steel field's lead and the pull quotes break into even lines, the same
+   on the landing and the rule page */
+.vp-doc :is(h1, h2, h3, h4), .ir-home :is(h2, .ir-rule-title), .ir-gap-lead,
+.ir-quote > span:first-child, .ir-pull blockquote p { text-wrap: balance; }
+
 /* ── VitePress chrome, Industry style: square corners, hairline borders, no
    shadows (the shadow tokens above are off), the themed focus ring ── */
 :root :focus-visible { outline: 2px solid var(--ir-accent); outline-offset: 2px; }
@@ -125,9 +136,13 @@
 .VPSwitch.VPSwitch .icon { border-radius: 0; }
 .VPSwitch.VPSwitch .check { background-color: var(--ir-primary-fill); }
 .VPSwitch.VPSwitch .icon [class^='vpi-'] { color: var(--ir-bg); }
-/* The "…" flyout and its menu, the rule page's "On this page" dropdown */
+/* The "…" flyout and its menu, the rule page's "On this page" dropdown. The
+   menu's own ground shows through its border; the dropdown's ground is its
+   hairline (--vp-c-gutter), so its border is that opaque grey too. */
 .VPMenu.VPMenu,
-.VPLocalNavOutlineDropdown .items.items { border-radius: 0; border-color: var(--ir-divider); }
+.VPLocalNavOutlineDropdown .items.items { border-radius: 0; }
+.VPMenu.VPMenu { border-color: var(--ir-divider); }
+.VPLocalNavOutlineDropdown .items.items { border-color: var(--vp-c-gutter); }
 .VPMenu.VPMenu .link { border-radius: 0; }
 .VPMenu.VPMenu .link:hover { background-color: color-mix(in srgb, var(--ir-text) 7%, transparent); }
 .VPMenu.VPMenu .link:active { background-color: color-mix(in srgb, var(--ir-text) 14%, transparent); }
@@ -138,6 +153,18 @@
 .VPSkipLink.VPSkipLink { border-radius: 0; border: 1px solid var(--ir-divider); }
 .VPSidebarItem .indicator.indicator,
 .VPDocAsideOutline .outline-marker.outline-marker { border-radius: 0; }
+/* The aside's outline links ran to the edge of the aside, which clips what
+   overflows it: the focus ring (2px, 2px out) lost its right side. They stop
+   that much short of it. */
+.VPDocAsideOutline .outline-link { margin-right: 4px; }
+
+/* A page without a sidebar (the landing, the ledger, the 404) stops at
+   1280px; VitePress's nav bar went on to 1376px, so above 1280 its brand and
+   its last item drifted out from the page's edges as the window widened.
+   Capped at the page's width less the bar's 32px sides, they keep the
+   places they have at 1280 at any width. (The nav's rule still runs the
+   window's width.) */
+.VPNavBar:not(.has-sidebar) .container { max-width: 1216px; }
 
 /* Below 960px the closed sidebar is only faded out and slid off-canvas, so
    its links stayed in the tab order. Hide it for real once the slide-out
@@ -259,13 +286,15 @@
 .ir-home :focus-visible { outline: 2px solid var(--ir-accent); outline-offset: 2px; }
 
 .ir-meta { font-size: 11px; color: var(--ir-neutral-700); }
-.ir-count { font-size: 13px; color: var(--ir-neutral-700); }
+.ir-count { font-size: 13px; color: var(--ir-neutral-700); white-space: nowrap; }
 .ir-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 
 /* Each section is the container its grids answer to, as the rule page's
    grids answer to its content column */
 .ir-section { display: flex; flex-direction: column; gap: 20px; container: ir-sec / inline-size; }
-.ir-section-head { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; }
+/* Too narrow for both on one line (320px), the count or button goes under
+   the heading rather than squeeze it, as on the rule page */
+.ir-section-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 8px 16px; }
 
 /* ── Buttons & tags ── one size site-wide: 10px 18px, 15px condensed, 40px tall */
 :is(.ir-home, .ir-nf) .ir-btn {
@@ -656,7 +685,10 @@
     --ir-on-steel: #000;
     --ir-on-steel-label: #1d2d3d;
   }
+  /* The paper's margins are the gutters: the landing, the 404 and their
+     feet start at the left edge of the sheet, on one line */
   .ir-home { padding: 0; gap: 32px; }
+  .ir-nf { padding-inline: 0; }
   .ir-home-main { gap: 32px; }
   .ir-pagefoot--home, .ir-pagefoot--nf, .ir-pagefoot--page { padding: 32px 0 0; }
   /* The steel field (the landing's "Why this exists", the rule page's "Our
@@ -679,6 +711,23 @@
   .ir-frame, .ir-rule, .ir-step, .ir-matrix tr, .ir-stat, .ir-fleet > li,
   .ir-principle, .ir-gap, .ir-quote, .ir-docfoot { break-inside: avoid; }
   h1, h2, h3, .ir-section-head { break-after: avoid; }
+  /* ...and so does what stands between a heading and its figure: the pull
+     quotes over the rollout's steps (the landing's and the rule page's) and
+     the balance grid's introduction, which holds its heading. The rollout is
+     short enough to keep whole. The balance grid may run on to the next
+     sheet (its header repeats), but not without its introduction: that
+     needs block layout, as Chrome doesn't keep a grid item with the next. */
+  .ir-quote, .ir-pull, .ir-balance-intro { break-after: avoid; }
+  .ir-home .ir-rollout, .ir-balance-intro { break-inside: avoid; }
+  .ir-home .ir-balance { display: block; }
+  .ir-balance-intro { margin-bottom: 24px; }
+  .ir-matrix-wrap { overflow: visible; }
+  /* Not the labels set beside their text in a framed or steel box (the
+     landing's Principle and "Why this exists"): the box is whole anyway, and
+     a grid passes its items' break-after on to its own end. The steel
+     field's then held on to the page foot under it, so a sheet broke inside
+     the foot instead and printed the credit line alone on the last one. */
+  .ir-home :is(.ir-gap, .ir-principle) > h2 { break-after: auto; }
   /* The rule cards each draw their own frame (an outline astride the edge,
      so neighbours share one hairline), not the grid's border and inner
      rules: a page break between rows then leaves no empty framed box, and
@@ -697,6 +746,11 @@
   :is(.ir-home, :root) .ir-frame > .corner.tr { top: 0; right: 0; }
   :is(.ir-home, :root) .ir-frame > .corner.bl { bottom: 0; left: 0; }
   :is(.ir-home, :root) .ir-frame > .corner.br { bottom: 0; right: 0; }
+  /* A card's marks land in its blank padding; a portrait has none, so on
+     paper it gets a white mat inside its hairline, wide enough to hold them
+     clear of the photograph (each stroke is 5px in, 11px long) */
+  .ir-portrait.ir-frame { padding: 8px; }
+  .ir-portrait.ir-frame > .ir-portrait-pending { inset: 8px; }
   /* Where a link leads, for links that go somewhere off the page: the
      footer's edit link and the rule cards' rule numbers are enough; tiles,
      buttons and in-page jumps are not worth an address each */

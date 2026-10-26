@@ -305,12 +305,15 @@ function backToRoster() {
  * step between two entries with the same hash counts too): show the view
  * that entry calls for, record it there, and say what changed. Back or
  * Forward, VitePress then scrolls to where the entry was left; a new #hash
- * brings its entry into view.
+ * brings its entry into view. A #hash that names no agent (the skip link's
+ * #VPContent, say) is someone else's: its entry carries the view over as it
+ * was, so unless that view differs, the page stays where the jump put it.
  */
 function followHistory() {
   if (!stillHere()) return
   const v = wanted()
   if (!v) return
+  if (!agentFromHash() && v.slug === selectedSlug.value && v.filter === filter.value) return
   const y = leftAt()
   const text = describe(view(), v)
   // A new #hash naming another agent; popstate and hashchange both come
@@ -330,6 +333,8 @@ onMounted(() => {
   const saved = savedState()
   const v = wanted()
   if (v) show(v)
+  // The entry the address names is up: let it show (ledger.css, ledger.md)
+  nextTick(() => document.documentElement.classList.remove('ir-ledger-pending'))
   const restored = !!saved && !!v && v.slug === saved.slug && v.filter === saved.filter
   persist()
   // Where VitePress scrolls on an in-page Back or Forward, if it knows

@@ -89,6 +89,9 @@
   font-variant-numeric: tabular-nums;
   color: var(--ir-neutral-700);
 }
+/* Held down, a segment's ground darkens past what the muted count can carry
+   at 4.5:1 (light theme); the count steps up the ramp for that moment */
+.ir-ledger-seg-btn:not([aria-pressed='true']):active .ir-ledger-seg-n { color: var(--ir-neutral-800); }
 .ir-ledger .ir-ledger-seg-btn[aria-pressed='true'] { background: var(--ir-primary-fill); color: var(--ir-bg); }
 .ir-ledger .ir-ledger-seg-btn[aria-pressed='true']:hover { background: var(--ir-primary-fill-hover); }
 .ir-ledger .ir-ledger-seg-btn[aria-pressed='true']:active { background: var(--ir-primary-fill-active); }
@@ -413,7 +416,11 @@
      sizes follows) */
   .ir-ledger-entry-media { max-width: 360px; }
   .ir-ledger-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px 10px; }
-  .ir-ledger-card-text { gap: 2px; padding: 6px 8px 8px; }
+  /* The cards in a row are one height; the gender and age sit at the foot
+     of each, so a name that takes two lines ("Chief of Staff" at 320px)
+     doesn't push its card's down out of line with the rest of the row */
+  .ir-ledger-card-text { flex: 1; gap: 2px; padding: 6px 8px 8px; }
+  .ir-ledger-card .ir-ledger-tags { margin-top: auto; }
   .ir-ledger-card-name { font-size: 15px; line-height: 1.15; }
   .ir-ledger-card .ir-ledger-tags { gap: 0; }
   .ir-ledger-card .ir-tag {
@@ -442,6 +449,14 @@
   .ir-ledger-seg-btn:nth-child(even) { border-left: 1px solid var(--ir-divider); }
   .ir-ledger-seg-btn:nth-child(n + 3) { border-top: 1px solid var(--ir-divider); }
 }
+
+/* ── A full load of /ledger#<name> (a shared link, a new tab, a reload): the
+   server's page shows the first agent's entry and card, which the page's
+   script swaps for the named agent's as it starts. Until then (ledger.md's
+   first-paint script, LedgerRoster.vue) the entry and the selected card's
+   frame are held back, so the wrong agent's entry is never on screen. ── */
+:root.ir-ledger-pending .ir-ledger-entry > *,
+:root.ir-ledger-pending .ir-ledger-card[aria-pressed='true']::after { visibility: hidden; }
 
 /* ── Without JavaScript: the filter and "Back to the roster" can't work, so
    they go, and the note over the roster shows instead (LedgerRoster.vue) ── */
@@ -479,6 +494,17 @@
   .ir-ledger-entry, .ir-ledger-grid > li, .ir-ledger-tally, .ir-ledger-quote, .ir-ledger-check,
   .ir-ledger-dl > div { break-inside: avoid; }
   .ir-ledger-head, .ir-ledger-ident, .ir-ledger-entry-top { break-after: avoid; }
+  /* The paper's margins are the gutters, as on the other pages' printouts:
+     the screen's side insets come off, and the foot's bottom padding, which
+     put a short ledger's foot alone on a last sheet */
+  .ir-ledger-head, .ir-ledger-roster, .ir-ledger-entry, .ir-ledger-empty,
+  .ir-ledger-tally:nth-of-type(n), .ir-pagefoot--ledger .ir-docfoot { padding-inline: 0; }
+  .ir-pagefoot--ledger .ir-docfoot { padding-bottom: 0; }
   /* the tally bars are fills, which printers drop by default */
   .ir-ledger-bar > span { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+/* Two tallies across: space either side of the rule between them */
+@media print and (min-width: 640px) {
+  .ir-ledger-tally:nth-of-type(odd) { padding-right: 16px; }
+  .ir-ledger-tally:nth-of-type(even) { padding-left: 16px; }
 }

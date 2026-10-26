@@ -387,7 +387,7 @@ onMounted(() => {
       </section>
 
       <!-- Rollout -->
-      <section class="ir-section">
+      <section class="ir-section ir-rollout">
         <div class="ir-section-head">
           <h2>Self-identification first</h2>
         </div>

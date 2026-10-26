@@ -157,6 +157,23 @@
    overflows it: the focus ring (2px, 2px out) lost its right side. They stop
    that much short of it. */
 .VPDocAsideOutline .outline-link { margin-right: 4px; }
+/* Controls that fill their box to an edge something clips, where a ring
+   outside them lost sides: the nav bar's links and buttons run its full
+   height from the top of the window (the title, from 960px on the rule page,
+   from its left edge too); the local bar's "Menu" starts at the window's left
+   edge, under the nav bar; "On this page"'s "Return to top" fills the top of
+   its scrolling list on three sides, and the outline under it covers the
+   fourth. Their ring goes inside them, as the rule cells' and the ledger
+   table summary's do, clear of the edge. */
+.VPNavBar .VPNavBarTitle .title:focus-visible,
+.VPNavBar .VPNavBarMenuLink:focus-visible,
+.VPNavBar .VPNavBarHamburger:focus-visible,
+.VPNavBar .VPFlyout > .button:focus-visible,
+.VPLocalNav .menu:focus-visible,
+.VPLocalNavOutlineDropdown .top-link:focus-visible { outline-offset: -4px; }
+/* The outline links in that list: when Tab scrolls the list, a ring clear of
+   its top and bottom edges */
+.VPLocalNavOutlineDropdown .items a { scroll-margin-block: 8px; }
 
 /* A page without a sidebar (the landing, the ledger, the 404) stops at
    1280px; VitePress's nav bar went on to 1376px, so above 1280 its brand and
@@ -190,12 +207,15 @@
 /* Keyboard focus never lands under those bars (WCAG 2.4.11): whatever is
    focusable in the page keeps their height, and some air, clear above it
    when the browser scrolls it into view, by Tab or by Shift+Tab (which
-   stops it at the top edge of the window). No specificity, so a control's
-   own scroll margin (fleet tiles, ledger cards, strip tiles) wins. Not
-   html { scroll-padding-top }: that would add to the headings' own scroll
-   margin on #anchor jumps. */
+   stops it at the top edge of the window). Tab stops it at the bottom edge
+   of the window (or of a box that scrolls: the ledger entry, the aside),
+   where its ring, outside it, went past the edge: some air there too. No
+   specificity, so a control's own scroll margin (fleet tiles, ledger cards,
+   strip tiles) wins. Not html { scroll-padding-top }: that would add to the
+   headings' own scroll margin on #anchor jumps. */
 :where(.VPContent) :where(a[href], area[href], button, input, select, textarea, summary, iframe, [tabindex], [contenteditable]) {
   scroll-margin-top: calc(var(--ir-bars) + 16px);
+  scroll-margin-bottom: 16px;
 }
 
 /* A page with neither a sidebar nor an outline (the landing, the ledger, the
@@ -288,6 +308,8 @@
 .ir-meta { font-size: 11px; color: var(--ir-neutral-700); }
 .ir-count { font-size: 13px; color: var(--ir-neutral-700); white-space: nowrap; }
 .ir-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+/* An ISO date never breaks at its hyphens (Dated.ts, markdown.ts) */
+.ir-date { white-space: nowrap; }
 
 /* Each section is the container its grids answer to, as the rule page's
    grids answer to its content column */
@@ -617,6 +639,17 @@
   .ir-matrix thead th { letter-spacing: 0.05em; }
   .ir-matrix thead th:first-child { width: 60px; }
   .ir-matrix td { height: 64px; }
+}
+/* Under 360px a gender column had about 53px inside 8px gutters: too narrow
+   for the longer names ("Integrator," split as "Integrato" / "r,") and for
+   the tracked "Nonbinary" and "Masculine" heads, which ran into the rules.
+   Narrower gutters and tracking, and a narrower age column (its "13 faces"
+   still fits), give each name and head its line, with room to spare at
+   320px. */
+@media (max-width: 359px) {
+  .ir-matrix th, .ir-matrix td { padding-inline: 5px; }
+  .ir-matrix thead th { letter-spacing: 0.01em; }
+  .ir-matrix thead th:first-child { width: 52px; }
 }
 
 /* ── 404 (SiteNotFound.vue) ── */

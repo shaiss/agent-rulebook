@@ -172,7 +172,24 @@ function onKey(e: KeyboardEvent) {
   el.click()
 }
 
-const onNarrow = () => syncOverlay()
+// The drawer, still open as the window widens past 960px (a tablet turned,
+// a window resized), becomes the static sidebar, and VitePress keeps it
+// "open": its scroll lock stays on the page, and up to 1279px its backdrop
+// still dims everything, until the backdrop is clicked. It closes the way
+// the backdrop closes it (its click works while it is hidden, from 1280px),
+// and focus stays where it is, in the sidebar now in view. The other way,
+// focus in the static sidebar as the window narrows past 960px would go
+// with it, off-canvas and hidden (style.css): it goes to "Menu", which
+// brings the sidebar back.
+function onNarrow() {
+  const sidebar = document.querySelector<HTMLElement>('.VPSidebar')
+  if (!narrow?.matches) {
+    if (sidebar?.classList.contains('open')) document.querySelector<HTMLElement>('.VPBackdrop')?.click()
+  } else if (sidebar && !sidebar.classList.contains('open') && sidebar.contains(document.activeElement)) {
+    document.querySelector<HTMLElement>('.VPLocalNav .menu')?.focus({ preventScroll: true })
+  }
+  syncOverlay()
+}
 
 let observer: MutationObserver | undefined
 onMounted(() => {

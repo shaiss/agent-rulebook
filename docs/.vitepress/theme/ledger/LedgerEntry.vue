@@ -4,13 +4,15 @@ import { data } from '../../data/rulebook.data'
 import { GENDERS, type Agent } from '../../data/parse'
 import { RULES, ruleLink, sectionHref } from './links'
 import { heritageMatch, notesFor } from './notes'
+import Dated from '../Dated'
 
 // One ledger row in full: portrait and name, the rule-09 expression switch,
 // the rule-02 check against agents in the same gender × age cell (with the
 // ledger's own notes on documented exceptions), then the row's fields as
 // written. Side by side with the roster (ledger.css) the portrait and name
 // share a row and the fields pack two to a line, so the entry fits beside
-// the roster on common screens.
+// the roster on common screens. Dates in it ("Set", the notes) stay on one
+// line (Dated.ts).
 
 const props = defineProps<{ agent: Agent }>()
 defineEmits<{ back: [] }>()
@@ -79,7 +81,7 @@ const otherNotes = computed(() => notes.value.filter((q) => !q.rule2))
 <template>
   <div class="ir-ledger-entry-top">
     <span class="ir-label">Ledger entry</span>
-    <span v-if="setDate" class="ir-meta">Set {{ setDate }}</span>
+    <span v-if="setDate" class="ir-meta">Set <Dated :text="setDate" /></span>
   </div>
 
   <div class="ir-ledger-entry-media">
@@ -164,7 +166,7 @@ const otherNotes = computed(() => notes.value.filter((q) => !q.rule2))
       </p>
 
       <figure v-for="(q, i) in rule2Notes" :key="i" class="ir-ledger-quote">
-        <blockquote><p>{{ q.text }}</p></blockquote>
+        <blockquote><p><Dated :text="q.text" /></p></blockquote>
         <figcaption>From the <a :href="ledgerHref">ledger notes</a></figcaption>
       </figure>
     </div>
@@ -172,12 +174,12 @@ const otherNotes = computed(() => notes.value.filter((q) => !q.rule2))
     <dl class="ir-ledger-dl">
       <div v-for="f in fields" :key="f.k" :class="{ 'is-long': f.long }">
         <dt>{{ f.k }} <span v-if="f.q" class="ir-ledger-dt-q">({{ f.q }})</span></dt>
-        <dd>{{ f.v }}</dd>
+        <dd><Dated :text="f.v" /></dd>
       </div>
     </dl>
 
     <figure v-for="(q, i) in otherNotes" :key="i" class="ir-ledger-quote">
-      <blockquote><p>{{ q.text }}</p></blockquote>
+      <blockquote><p><Dated :text="q.text" /></p></blockquote>
       <figcaption>From the <a :href="ledgerHref">ledger notes</a></figcaption>
     </figure>
 

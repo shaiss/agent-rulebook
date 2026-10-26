@@ -2,6 +2,7 @@
 import { data } from '../../data/rulebook.data'
 import { balance } from '../../data/parse'
 import { RULES, ruleLink, sectionHref } from './links'
+import Dated from '../Dated'
 
 // Balance tallies under the roster. Heritage is never counted or rolled up
 // into regional groups here: the page links to the rule page's own fleet
@@ -46,7 +47,7 @@ const heritageLink = fleetTally
           Each entry names race/ethnicity as its portrait depicts it. This page doesn't count or group them.
         </template>
       </p>
-      <a class="ir-ledger-tally-link" :href="heritageLink.href">{{ heritageLink.text }} →</a>
+      <a class="ir-ledger-tally-link" :href="heritageLink.href"><Dated :text="heritageLink.text" /> →</a>
     </div>
 
     <div class="ir-ledger-tally">

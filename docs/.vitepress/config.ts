@@ -28,7 +28,7 @@ const notFoundFallback = (base: string, updated: string | null) => {
   const corners = '<i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>'
   const foot = updated
     ? `<div class="ir-pagefoot ir-pagefoot--nf"><footer class="ir-docfoot">
-<p class="ir-docfoot-updated">Last updated <time datetime="${updated}">${updated}</time></p>
+<p class="ir-docfoot-updated">Last updated <time class="ir-date" datetime="${updated}">${updated}</time></p>
 </footer></div>`
     : ''
   return `<noscript><main class="ir-nf">

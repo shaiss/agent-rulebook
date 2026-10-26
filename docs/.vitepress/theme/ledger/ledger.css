@@ -83,7 +83,12 @@
 .ir-ledger-seg-btn + .ir-ledger-seg-btn { border-left: 1px solid var(--ir-divider); }
 .ir-ledger-seg-btn:hover { background: color-mix(in srgb, var(--ir-text) 7%, transparent); }
 .ir-ledger-seg-btn:active { background: color-mix(in srgb, var(--ir-text) 14%, transparent); }
-.ir-ledger-seg-btn:focus-visible { z-index: 1; }
+/* The segments share their hairlines, and the pressed one is filled in the
+   ring's own colour in the dark theme: a ring outside a segment ran over
+   its neighbours, and beside the pressed one lost that side. It goes inside
+   the segment, clear of its edges, in the ground's colour on the fill. */
+.ir-ledger .ir-ledger-seg-btn:focus-visible { outline-offset: -4px; }
+.ir-ledger .ir-ledger-seg-btn[aria-pressed='true']:focus-visible { outline-color: var(--ir-bg); }
 .ir-ledger-seg-n {
   font-family: var(--ir-font-body); font-weight: 400; font-size: 12px; line-height: 1;
   font-variant-numeric: tabular-nums;
@@ -473,6 +478,7 @@
     background: Highlight; color: HighlightText;
   }
   .ir-ledger .ir-ledger-seg-btn[aria-pressed='true'] .ir-ledger-seg-n { color: HighlightText; }
+  .ir-ledger .ir-ledger-seg-btn[aria-pressed='true']:focus-visible { outline-color: HighlightText; }
   .ir-ledger-card[aria-pressed='true']::after {
     forced-color-adjust: none;
     inset: -2px; border: 4px solid Highlight;

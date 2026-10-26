@@ -4,9 +4,11 @@ import { withBase } from 'vitepress'
 import { data } from '../data/rulebook.data'
 import { balance, AGE_BANDS, type Agent, type Rule } from '../data/parse'
 import { readEntry, writeEntry } from './entry-state'
+import Dated from './Dated'
 
 // Everything below is read at build time from docs/rules/avatars.md (see
 // data/parse.ts), so the landing page follows the rulebook without edits.
+// The dates in it stay on one line wherever they fall (Dated.ts).
 
 const rulesLink = withBase('/rules/avatars')
 const ledgerLink = withBase('/ledger')
@@ -61,13 +63,10 @@ function clip(text: string, max: number) {
   return cut.slice(0, cut.lastIndexOf(' ')).replace(/[\s,;:]+$/, '') + '…'
 }
 
-// Word joiners keep ISO dates on one line ("2026-10-23", not "2026-" / "10-23")
-const keepDates = (s: string) => s.replace(/\b(\d{4})-(\d{2})-(\d{2})\b/g, '$1-\u2060$2-\u2060$3')
-
 function excerptBody(text: string) {
   let s = firstSentence(capitalize(text))
   if (s.length > BODY_MAX) s = s.replace(/\s*\([^()]*\)/g, '')
-  return keepDates(clip(s, BODY_MAX))
+  return clip(s, BODY_MAX)
 }
 
 const ruleCards = rules.map((r: Rule) => ({
@@ -226,7 +225,7 @@ onMounted(() => {
           <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
           <div class="ir-plate-head">
             <span id="ir-spec-label" class="ir-label">Spec sheet</span>
-            <span v-if="updatedDate" class="ir-meta">Updated {{ updatedDate }}</span>
+            <span v-if="updatedDate" class="ir-meta">Updated <Dated :text="updatedDate" /></span>
           </div>
           <dl class="ir-stats">
             <div v-for="s in stats" :key="s.label" class="ir-stat">
@@ -287,7 +286,7 @@ onMounted(() => {
         <h2 class="ir-label">Principle</h2>
         <div class="ir-principle-body">
           <p class="ir-principle-quote">{{ principle.text }}</p>
-          <span v-if="principle.attribution" class="ir-meta">{{ principle.attribution }}</span>
+          <span v-if="principle.attribution" class="ir-meta"><Dated :text="principle.attribution" /></span>
         </div>
       </section>
 
@@ -308,7 +307,7 @@ onMounted(() => {
               >{{ r.status }}</span>
             </div>
             <h3 class="ir-rule-title">{{ r.title }}</h3>
-            <p>{{ r.body }}</p>
+            <p><Dated :text="r.body" /></p>
           </a>
         </div>
       </section>
@@ -393,7 +392,7 @@ onMounted(() => {
         </div>
         <blockquote v-if="rollout.quote" class="ir-quote">
           <span>“{{ rollout.quote.text }}”</span>
-          <span class="ir-meta">{{ rollout.quote.attribution }}</span>
+          <span class="ir-meta"><Dated :text="rollout.quote.attribution" /></span>
         </blockquote>
         <div class="ir-steps">
           <div class="ir-step ir-frame">

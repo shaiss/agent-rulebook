@@ -28,6 +28,15 @@
      always has an outline, so hold the bar's place from the first paint. */
   .ir-rulepage .VPLocalNav.has-sidebar.empty { display: block; }
 }
+/* With JavaScript, VitePress (and RuleHeader.vue after it) puts a #anchor's
+   target at its scroll offset, 134px down the window (its default), at every
+   width. The browser's own jump on a full load (a shared link, a reload) ran
+   first and stopped at the values above, so the page moved by 46px once the
+   app was up. It stops where VitePress will. (The values above stay for a
+   reader without JavaScript, whose jump is the only one.) */
+@media (scripting: enabled) {
+  .ir-rulepage { --ir-rp-anchor: 134px; }
+}
 /* Its outline button, too, renders on the server as "Return to top" (VitePress
    reads the headings only once mounted) and becomes "On this page ›" on
    hydration, so the bar's label swapped on every load below 1280px. Until
@@ -672,6 +681,18 @@
   .ir-rulepage .VPContent { padding-top: 0 !important; }
   .ir-rulepage .ir-strip.is-collapsed .ir-strip-grid > li { display: grid !important; }
   .ir-rulepage .vp-doc :is(h2, h3, h4, .ir-sec-head) { break-after: avoid; }
+  /* Not the side labels of the label-column sections (Principle, "Notes
+     from the rollout"): the section is a grid, which passes its items'
+     break-after on to its own end, and that took away the one break before
+     the next section, so a sheet broke after the next head instead ("Prior
+     art" alone at the foot of a sheet, its columns on the next). The
+     Principle box is whole anyway; the notes' label stays with its first
+     note through the row they share. */
+  .ir-rulepage .vp-doc :is(.ir-kind--principle, .ir-kind--notes) > h2 { break-after: auto; }
+  /* The ledger table's summary (its title and row count) stays with the
+     table, and "Prior art" with its columns (one short block) */
+  .ir-rulepage .ir-ledger-table > summary { break-after: avoid; }
+  .ir-rulepage .vp-doc .ir-sec:has(> .ir-cols) { break-inside: avoid; }
   .ir-rulepage .vp-doc :is(
     .ir-cell, .ir-stepcard, .ir-band, .ir-kind--principle, .ir-pull,
     .ir-strip-grid > li, .ir-col, .ir-log > li, tr

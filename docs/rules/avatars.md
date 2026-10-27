@@ -95,33 +95,48 @@ Required-change recasts: Shai, 6:12 PM ET 2026-10-24: "Require one agent per cro
 | Anchor | Latino (Salvadoran-American, San Miguel) | Salvadoran (San Miguel) | masculine | 60s+ (about 63) | thick silver combed back, clean-shaven | oatmeal cable-knit cardigan over white collar, pen on placket, town plaza under ceiba tree, church wall; expression: listening hard, inner brows lifted, holding back reassurance | 2026-10-24 (wave 5) |
 | Cass | Black (Ethiopian, Amhara) | Ethiopian (Amhara) | feminine | 30s (about 37) | short tapered natural afro, single gold stud | dusty-rose cotton overshirt (open, as depicted; brief said buttoned) over off-white tee, eucalyptus grove; expression: patient scrutiny, lids tightened, chin raised | 2026-10-24 (wave 5) |
 | Helm | Latina (Guatemalan ladina, Quetzaltenango) | Guatemalan (ladina, Quetzaltenango) | feminine | 50s (about 54) | short dense black pixie, broad silver streak (at right temple as depicted), gold studs | dove-grey wool peacoat over white collar, black notebook, sugar maples, yellow leaves, overcast; expression: brows starting to knit, chin lifted, mouth neutral | 2026-10-24 (wave 5) |
-| Cheech | Latina (Honduran) | Honduran | feminine | 30s (about 35) | thick dark-brown wavy shag, curtain bangs, gold studs | apricot / peach-orange corduroy jacket over white tee, hillside town steps, golden hour; expression: interested surprise, brows lifted, "ooh" pucker | 2026-10-24 (wave 5) |
+| Cheech | South Asian (Nepali, Newar) | Nepali (Newar, Kathmandu) | feminine | 20s (about 28) | long black, low ponytail | powder-blue camp-collar shirt over black tee, concrete rooftop at blue hour, string lights, city lights reduced; expression: mid-laugh, nose scrunched, eyes narrowed | 2026-10-25 (voluntary recast, wave 6; was Honduran, feminine, 30s) |
 | Relay | Middle Eastern (Turkish, Istanbul) | Turkish (Istanbul) | masculine | 40s (about 44) | dark, short sides, length on top, short beard greying at chin (goatee-style as depicted) | worn black leather jacket over light-grey tee, headphones around neck, parking-garage roof deck with antennas, early sun; expression: listening for a signal, lids tightened, one brow lifted | 2026-10-24 (wave 5) |
 | Ripple | Southeast Asian (Thai-American, Bangkok-born) | Thai | feminine | 30s (about 34) | glossy black loose low ponytail, strands across face, silver studs | heather-grey plain-knit cardigan over white tee, canvas tote strap, green summer birch path; expression: checking the answer before saying it, lips slightly parted, faint brow crease | 2026-10-24 (wave 5) |
 | Migrator | Black (Ethiopian, Amhara) | Ethiopian (Amhara) | androgynous / nonbinary (leans soft as depicted) | 40s (about 45) | short cropped natural, faint grey at hairline, one gold stud | undyed ecru canvas field jacket over pale butter-yellow chambray buttoned to collar, clipboard, freight-depot crate yard; expression: held breath before signing off, chin puckered (mentalis) | 2026-10-24 (wave 5) |
 | Orin | Middle Eastern / North African (Egyptian, Alexandria) | Egyptian (Alexandria) | feminine (strongly) | 60s+ (about 61) | dark brown-black with a few grey streaks, low loose bun, wisps at temples, thin gold-rim glasses worn, small gold stud | black-and-white fine pinstripe cotton shirt buttoned to collarbone, sleeves rolled, cloth tape measure over one shoulder, Zan'et el-Settat outdoor fabric market, Alexandria, late-afternoon light, bolts of cloth and curtain fabric behind; expression: braced, lower lids tightened, faint chin-dimple tension, chin lifted, mouth level | 2026-10-24 (required-change recast; was Guatemalan, feminine, 60s+) |
 | Stamp | Pakistani (Punjabi, from Lahore) | Pakistani: Punjabi (Lahore) | masculine | 20s (about 27) | thick black, short at the sides with length on top, full beard trimmed close and squared at the jaw, no glasses or jewelry | plain white cotton kurta under black wool waistcoat (sadri), black leather pencil pouch clipped at the waistcoat pocket, brick-kiln yard outside Lahore at dawn, stacked fired bricks, kiln chimney, low smoke haze, cool side light; expression: one more look at the evidence, narrowed checking squint (mild as depicted), brow slightly drawn, jaw set, mouth level, looks off-camera (as depicted) | 2026-10-24 (required-change recast; was Ethiopian (Amhara), masculine, 60s+) |
+| Haggle Bot | Armenian | Armenian | feminine | 20s | dark-brown waves, low bun | scarlet crew-neck knit, outdoor craft and flea market, copperware, rugs; expression: jaw set, lips still, outer-eye tightening | 2026-10-25 (wave 6) |
+| Crest | Black (Nigerian, Yoruba) | Nigerian (Yoruba) | masculine | 50s | cropped salt-and-pepper, beard greying at chin | burgundy/wine kaftan-style shirt, savanna ridge, acacias; expression: faint eye squint, one corner lifted, lips pressed | 2026-10-25 (wave 6) |
+| Anvil | White (Icelandic) | Icelandic | feminine | 40s | dark-blonde braid | undyed cream/ivory lopapeysa knit, black basalt lava field, overcast; expression: brows drawn, corner pulled in, chin lowered | 2026-10-25 (wave 6) |
+| Gleam | Southeast Asian (Indonesian, Minangkabau) | Indonesian (Minangkabau) | masculine | 20s | short black | mustard/ochre crew-neck knit, rice-terrace overlook, early morning; expression: lids tight, left brow lifted, one corner drawn in | 2026-10-25 (wave 6) |
+| Compass | Indigenous Latin American (Quechua, Cusco) | Quechua (Cusco) | masculine | 50s | long black with silver strands, low tie | bright true-cobalt crewneck, Andean cloud-forest trail edge, moss, ferns, mist; expression: lids tight, left corner in, brows drawn | 2026-10-25 (wave 6) |
+| Vera | Gulf Arab (Omani) | Omani | feminine | 30s (about 33) | dark, under loose white headscarf | crisp white linen dress and white headscarf, Omani wadi, limestone walls; expression: inner brows down, lips flat, chin up | 2026-10-25 (wave 6) |
+| Folio | Latino (Dominican) | Dominican | masculine | 50s | close-cropped salt-and-pepper, trimmed beard | short-sleeved white linen guayabera, limestone coastal overlook, morning; expression: lids tight, brow lifted, lips flat | 2026-10-25 (wave 6) |
+| Integrator | Black (South African, Xhosa) | South African Xhosa | feminine | 40s | shoulder-length locs, tied back loosely | bright mid-teal structured cotton wrap top, coastal fynbos slope, soft morning light; expression: left brow lifted, pressed lips, dimple | 2026-10-25 (wave 6) |
+| Wrench | Central Asian (Kazakh) | Kazakh | masculine | 40s | short black, trimmed moustache | deep chocolate/espresso-brown ribbed crewneck, cream tee collar, steppe plateau, dry grass; expression: squint, corner drawn in, slight tilt | 2026-10-25 (wave 6) |
+| Remy | Aboriginal Australian | Aboriginal Australian, nation unspecified (agent's choice) | masculine | 20s | dark curly, pushed back | lavender windbreaker, red-rock gorge, dry creek; expression: squint, brow lifted, corner pressed | 2026-10-25 (wave 6) |
 
 Earlier exceptions to rule 2's distinct-setting clause: Haven and Chief of Staff share an overcast street (both set 2026-10-23, before rule 2 was refined; Chief of Staff's self-ID redo moves to a train platform). Nova's garden and Luna's garden porch are close; accepted, since Nova is seated in an open garden and Luna stands on a porch with a mug, and the faces, ages and clothing differ.
 
-## Fleet tally (taxonomy v2, 2026-10-24)
-Built by Haven from the ledger. A two-heritage face counts as 1 face in the gender and age tables and as 0.5 in each heritage row, so the heritage column still sums to the face count. No regional rollups: Shai rejected bulk groupings.
+Documented echoes in wave 6 (rule 10), accepted by the agents: Anvil's cream knit echoes Luna's knit wrap and Anchor's cable-knit cardigan; Folio's white guayabera echoes Vera's white linen; Compass's cobalt crewneck echoes Dial's cobalt linen shirt (colour only); Integrator's teal wrap top echoes Bell's knit crewneck and Wire's chore coat (colour only). Setting echo: Cheech's rooftop city view echoes Signal's skyline, so the city lights in Cheech's portrait are reduced.
 
-- **Faces:** 51. **Heritage labels:** 41: 38 named specific heritages, plus 3 broad labels where the agent chose not to name a country or island (East Asian, West African, Black Caribbean).
-- **Gender:** 22 feminine, 19 masculine, 10 nonbinary.
-- **Age:** 20s 9, 30s 12, 40s 11, 50s 11, 60s+ 8. The even share would be 10.2 per band.
+Rule 2 check in wave 6: Compass and Assay share the masculine 50s cell. Compass's specific heritage is Quechua (Cusco); Assay's is Bolivian, and his Quechua heritage is a note on his row, not a counted heritage, so they don't share a specific heritage. Compass's first draft was redone before it was set because its setting was too near Assay's.
+
+## Fleet tally (taxonomy v2, 2026-10-25)
+Built from the ledger. A two-heritage face counts as 1 face in the gender and age tables and as 0.5 in each heritage row, so the heritage column still sums to the face count. No regional rollups: Shai rejected bulk groupings.
+
+- **Faces:** 61. **Heritage labels:** 50: 46 named specific heritages, plus 4 broad labels where the agent chose not to name a country, island or nation (East Asian, West African, Black Caribbean, Aboriginal Australian).
+- **Gender:** 26 feminine, 25 masculine, 10 nonbinary.
+- **Age:** 20s 13, 30s 12, 40s 14, 50s 14, 60s+ 8. The even share would be 12.2 per band.
 
 | Age band | F | M | NB |
 |---|---|---|---|
-| 20s | 4 | 4 | 1 |
+| 20s | 6 | 6 | 1 |
 | 30s | 6 | 4 | 2 |
-| 40s | 3 | 5 | 3 |
-| 50s | 6 | 2 | 3 |
+| 40s | 5 | 6 | 3 |
+| 50s | 6 | 5 | 3 |
 | 60s+ | 3 | 4 | 1 |
 
 ### By specific heritage
 | Faces | Heritage | F | M | NB | Who |
 |---|---|---|---|---|---|
+| 2 | Armenian | 1 | 1 | 0 | Wright, Haggle Bot |
 | 2 | Black American | 0 | 2 | 0 | Closer*, Bloom*, Scout |
 | 2 | Brazilian | 0 | 0 | 2 | Dial, Signal |
 | 2 | Chilean | 1 | 0 | 1 | Snap, Kai |
@@ -135,26 +150,34 @@ Built by Haven from the ledger. A two-heritage face counts as 1 face in the gend
 | 2 | Vietnamese | 0 | 1 | 1 | Press, Ink |
 | 1.5 | Korean | 0.5 | 1 | 0 | Receipts, Nadia* |
 | 1.5 | Tamil | 1 | 0 | 0.5 | Nova, Quilltone* |
+| 1 | Aboriginal Australian (nation unspecified, agent's choice) | 0 | 1 | 0 | Remy |
 | 1 | Amazigh (Moroccan) | 1 | 0 | 0 | Ovi |
 | 1 | Argentine | 0 | 0 | 1 | Herald |
-| 1 | Armenian | 0 | 1 | 0 | Wright |
 | 1 | Bangladeshi | 1 | 0 | 0 | Lark |
 | 1 | Bolivian | 0 | 1 | 0 | Assay |
 | 1 | Chinese | 1 | 0 | 0 | Bell |
 | 1 | Colombian | 0 | 1 | 0 | Sage |
+| 1 | Dominican | 0 | 1 | 0 | Folio |
 | 1 | East Asian (country unspecified, agent's choice) | 1 | 0 | 0 | Cipher |
 | 1 | Egyptian | 1 | 0 | 0 | Orin |
 | 1 | Filipino | 1 | 0 | 0 | Luna |
 | 1 | Ghanaian | 1 | 0 | 0 | Reeve |
 | 1 | Guatemalan | 1 | 0 | 0 | Helm |
-| 1 | Honduran | 1 | 0 | 0 | Cheech |
+| 1 | Icelandic | 1 | 0 | 0 | Anvil |
+| 1 | Indonesian (Minangkabau) | 0 | 1 | 0 | Gleam |
+| 1 | Kazakh | 0 | 1 | 0 | Wrench |
 | 1 | Kurdish | 0 | 0 | 1 | Wire |
 | 1 | Lebanese | 1 | 0 | 0 | Haven*, Chief of Staff* |
 | 1 | Lenape | 1 | 0 | 0 | Hearth |
+| 1 | Nepali (Newar) | 1 | 0 | 0 | Cheech |
+| 1 | Nigerian (Yoruba) | 0 | 1 | 0 | Crest |
+| 1 | Omani | 1 | 0 | 0 | Vera |
 | 1 | Pakistani | 0 | 1 | 0 | Stamp |
 | 1 | Persian/Iranian | 0 | 1 | 0 | Quill |
 | 1 | Polish | 0 | 1 | 0 | Thrift |
+| 1 | Quechua | 0 | 1 | 0 | Compass |
 | 1 | Samoan | 0 | 0 | 1 | Tide |
+| 1 | South African (Xhosa) | 1 | 0 | 0 | Integrator |
 | 1 | Thai | 1 | 0 | 0 | Ripple |
 | 1 | Turkish | 0 | 1 | 0 | Relay |
 | 1 | Uzbek | 0 | 1 | 0 | Bevel |
@@ -183,19 +206,22 @@ Built by Haven from the ledger. A two-heritage face counts as 1 face in the gend
 | Cipher | East Asian | country |
 | Lens | West African | country |
 | Nadia (half) | Black Caribbean | island |
+| Remy | Aboriginal Australian | nation |
 
-No NO DATA rows remain. Notes kept on rows but not counted separately: Assay's Quechua heritage, and the Afro-Latino overlays on Lantern and Dial. Chief of Staff's Lebanese side is self-ID but not visible in her portrait.
+No NO DATA rows remain. Notes kept on rows but not counted separately: Assay's Quechua heritage, and the Afro-Latino overlays on Lantern and Dial. Compass's face is Quechua and is counted as Quechua; Assay's note still doesn't add a second Quechua count. Chief of Staff's Lebanese side is self-ID but not visible in her portrait.
 
 ### Duplicates and concentrations
 - **Heritages with 3 or more faces:** none. Ethiopian (Amhara) dropped from 3 to 2 after Stamp's recast.
-- **Heritages with 2 to 2.9 faces:** Black American 2; Brazilian 2; Chilean 2; Ethiopian (Amhara) 2; Gujarati 2; Japanese 2; Mexican 2; Puerto Rican 2; Salvadoran 2; Syrian 2; Vietnamese 2.
+- **Heritages with 2 to 2.9 faces:** Armenian 2; Black American 2; Brazilian 2; Chilean 2; Ethiopian (Amhara) 2; Gujarati 2; Japanese 2; Mexican 2; Puerto Rican 2; Salvadoran 2; Syrian 2; Vietnamese 2.
 - **Duplicate heritage × gender × age cells:** none.
-- **Largest gender × age cells:** F 30s and F 50s have 6 each. The largest masculine cell is M 40s with 5 (Car Guru, Thrift, Tern, Scout, Relay). Masculine 60s+ dropped from 5 to 4 (Keel, Bloom, Bevel, Anchor).
-- **Zero-face heritages from the recast brief, still open:** Gulf Arab, Dominican, Southern African, Indonesian, Nigerian, Aboriginal Australian, Indigenous Latin American. Now filled: Colombian (Sage), Chinese (Bell), Egyptian (Orin), Pakistani (Stamp). Nigerian is still open: Reeve is Ghanaian, and Lens left the country unspecified by choice. Indigenous Latin American is still open by count: Assay's Quechua heritage is noted on his row but not counted as a separate face.
+- **Largest gender × age cells:** F 20s, F 30s, F 50s, M 20s and M 40s have 6 each. Masculine 60s+ stays at 4 (Keel, Bloom, Bevel, Anchor). The smallest cells are NB 20s (Lens) and NB 60s+ (Herald), with 1 each.
+- **Zero-face heritages from the recast brief:** wave 6 gives all seven a face: Gulf Arab (Vera, Omani), Dominican (Folio), Southern African (Integrator, Xhosa), Indonesian (Gleam, Minangkabau), Nigerian (Crest, Yoruba), Indigenous Latin American (Compass, Quechua) and Aboriginal Australian (Remy, nation unspecified, agent's choice). Six of them name a specific country or people. Aboriginal Australian has a face but no named nation, by Remy's choice, so under the invite-area rule below it is not filled by a named nation. Filled earlier: Colombian (Sage), Chinese (Bell), Egyptian (Orin), Pakistani (Stamp). Newly at zero: Honduran, after Cheech's voluntary recast.
+- **Open gaps after wave 6:** age bands below the even share of 12.2: 60s+ (8) and 30s (12). Nonbinary: 10 of 61 faces.
 - **Invite areas, not labels:** family or regional gap names (Gulf Arab, Southern African, Indigenous Latin American, Aboriginal Australian) are invite areas only. A face that fills one names a specific country or people in the ledger, for example Gulf Arab: Emirati, Saudi, Omani…; Southern African: Zulu, Xhosa, Sotho, Tswana…; Indigenous Latin American: Quechua, Aymara, K'iche' Maya, Mapuche…; Aboriginal Australian: a nation such as Wiradjuri, Yolŋu, Noongar… (see taxonomy v2)
 
 ## Notes from the rollout
 - First self-IDs (2026-10-24): agents tend to pick under-represented identities. Of the first four self-IDs (Lens, Tide, Luna, Reeve), three first chose Black; Luna adjusted after colliding with Reeve, who came first. In the redo round, three of five picked Middle Eastern or part-Middle Eastern women or men in their 60s after Haven named those gaps, which caused one exact collision (Hearth adjusted) and one lookalike pair (Chief of Staff adjusted). Name gaps as a list, not a nudge, and expect a rush toward them. The generator also leans androgynous descriptions masculine, so call out softer features explicitly.
+- Wave 6 (2026-10-25): Shai delegated the wave in his own words at 1:04 AM ET ("Proceed with wave 6."), so under rule 11 each agent approved and set its portrait on that quote, and Haven verified each one between 1:26 and 1:34 AM ET. Six drafts, from five agents, were redone after the side-by-side and colour checks, before any was set: Compass (setting too near Assay's), Folio (rust colour family, and too near Assay), Integrator (twice: magenta matched Deck, then a meadow matched Wire), Vera (dusty rose matched Cass) and Wrench (a tan canvas work jacket matched Keel and Scout). At 1:08 AM ET Shai asked Haven to "invite one to re-pick voluntarily", and Cheech made a voluntary recast: Nepali (Newar), feminine, 20s, replacing Honduran, feminine, 30s.
 
 ## Prior art
 Borrow: agents.md (cite and contrast), OpenClaw IDENTITY.md (map our avatar record to its fields), soul.md by rokoss21 (persona structure, CC BY 4.0), the OpenAI model spec and Anthropic's constitution (honesty basis), pixel-agents (state model for rule 9), SillyTavern expression packs (variant naming). Reuse: deepface verify to automate the no-lookalike check, but never its race or gender classifiers. Cite only: FairFace.
@@ -203,6 +229,8 @@ Borrow: agents.md (cite and contrast), OpenClaw IDENTITY.md (map our avatar reco
 Our gap: no public rulebook from a real multi-agent org on how agents present to humans. Nothing combines race, gender and age spectrums with a no-lookalike check, and nothing ties photo-real expressions to work status.
 
 ## Changelog
+- 2026-10-25: Wave 6 added to the ledger: Haggle Bot, Crest, Anvil, Gleam, Compass, Vera, Folio, Integrator, Wrench and Remy (61 live faces). It gives a face to all seven zero-face heritages from the recast brief; six name a specific country or people, and Remy left his nation unspecified by choice.
+- 2026-10-25: Voluntary recast for Cheech: Nepali (Newar), feminine, 20s (was Honduran, feminine, 30s).
 - 2026-10-24: Taxonomy v2 replaces v1. MENA and Mixed are removed as group labels from the taxonomy and the specific-heritage column; each ledger row names its specific heritage, or a pair such as "Irish + Lebanese".
 - 2026-10-24: Added "Balance: no per-heritage cap" (cross-team heritage × gender × age collision checks plus gap invites).
 - 2026-10-24: Added rule 10 (colour record) and rule 11 (no re-asking Shai once he delegates in his own words).

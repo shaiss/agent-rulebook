@@ -12,34 +12,109 @@
   /* Where a native jump to #anchor stops: clear of the fixed nav, and from
      960px to 1279px also of the sticky "On this page" bar under it */
   --ir-rp-anchor: calc(var(--vp-nav-height) + 24px);
+  /* What is pinned over the top of the window, which focus has to clear
+     (style.css): below 960px the 48px local bar (Menu, On this page), stuck
+     to the top once the nav has scrolled away; from 960px the fixed nav,
+     with that bar under it up to 1279px */
+  --ir-bars: 48px;
+}
+@media (min-width: 960px) {
+  .ir-rulepage { --ir-bars: var(--vp-nav-height); }
 }
 @media (min-width: 960px) and (max-width: 1279px) {
-  .ir-rulepage { --ir-rp-anchor: calc(var(--vp-nav-height) + 72px); }
+  .ir-rulepage { --ir-rp-anchor: calc(var(--vp-nav-height) + 72px); --ir-bars: calc(var(--vp-nav-height) + 48px); }
   /* That bar renders .empty (display: none) on the server and fills in after
      hydration, which pushed the page down 48px on every load. This page
      always has an outline, so hold the bar's place from the first paint. */
   .ir-rulepage .VPLocalNav.has-sidebar.empty { display: block; }
 }
+/* With JavaScript, VitePress (and RuleHeader.vue after it) puts a #anchor's
+   target at its scroll offset, 134px down the window (its default), at every
+   width. The browser's own jump on a full load (a shared link, a reload) ran
+   first and stopped at the values above, so the page moved by 46px once the
+   app was up. It stops where VitePress will. (The values above stay for a
+   reader without JavaScript, whose jump is the only one.) */
+@media (scripting: enabled) {
+  .ir-rulepage { --ir-rp-anchor: 134px; }
+}
+/* Its outline button, too, renders on the server as "Return to top" (VitePress
+   reads the headings only once mounted) and becomes "On this page ›" on
+   hydration, so the bar's label swapped on every load below 1280px. Until
+   then the button keeps its place blank: it can't do anything before the
+   page runs either. */
+@media (scripting: enabled) {
+  .ir-rulepage .VPLocalNavOutlineDropdown > button:not(:has(.menu-text)) { visibility: hidden; }
+}
+/* Without JavaScript the bar ("Menu", "Return to top") never fills in, and
+   neither of its buttons can do anything: the sidebar "Menu" opens can't
+   open, and from 768px the nav bar's plain links stand in for it. So it is
+   hidden at every width, not only where the rule above holds its place:
+   below 960px VitePress sticks it to the top of the screen, which would be
+   48px of dead buttons over the page for the whole read. Anchor jumps then
+   only need to clear the nav. */
 @media (scripting: none) {
-  /* Without JavaScript it stays empty, and its button can't work */
   .ir-rulepage .VPLocalNav.has-sidebar.empty { display: none; }
+}
+@media (scripting: none) and (min-width: 960px) and (max-width: 1279px) {
+  .ir-rulepage { --ir-rp-anchor: calc(var(--vp-nav-height) + 24px); }
 }
 
 /* ── Page chrome: 2a's hairline rails beside the sidebar and the aside ── */
 @media (min-width: 960px) {
   .ir-rulepage .VPSidebar { border-right: 1px solid var(--ir-divider); }
 }
-.ir-rulepage .VPDoc .aside { padding-left: 0; max-width: 232px; }
+/* The nav bar's layout beside the sidebar (VitePress's .VPNavBar.has-sidebar
+   rules) from the first paint: VitePress adds .has-sidebar only once the page
+   is running, so on every load the bar was laid out for a page without a
+   sidebar and then re-laid out (its title rail, its links and its rule moved
+   over; CLS 0.011 to 0.020 from 960px). The current page's sidebar link is
+   marked (.is-active, below) only then too. */
+@media (min-width: 960px) {
+  .ir-rulepage .VPNavBar .wrapper { padding: 0; }
+  .ir-rulepage .VPNavBar .container { max-width: 100%; }
+  .ir-rulepage .VPNavBar .title {
+    position: absolute; top: 0; left: 0; z-index: 2;
+    padding: 0 32px; width: var(--vp-sidebar-width); height: var(--vp-nav-height);
+    background-color: transparent;
+  }
+  .ir-rulepage .VPNavBar .content { position: relative; z-index: 1; padding-right: 32px; padding-left: var(--vp-sidebar-width); }
+  .ir-rulepage .VPNavBar .divider { padding-left: var(--vp-sidebar-width); }
+  .Layout.ir-rulepage .VPNavBar:not(.has-sidebar):not(.home.top) { background-color: transparent; }
+  .Layout.ir-rulepage .VPNavBar:not(.has-sidebar):not(.home.top) .content-body { background-color: var(--vp-nav-bg-color); }
+  .Layout.ir-rulepage .VPNavBar:not(.has-sidebar):not(.home.top) .divider { background-color: transparent; }
+}
+@media (min-width: 1440px) {
+  .ir-rulepage .VPNavBar .title {
+    padding-left: max(32px, calc((100% - (var(--vp-layout-max-width) - 64px)) / 2));
+    width: calc((100% - (var(--vp-layout-max-width) - 64px)) / 2 + var(--vp-sidebar-width) - 32px);
+  }
+  /* The rule above also matches the title link inside that wrapper, where
+     100% is the wrapper's width, not the window's: the link fills the rail
+     and puts its text where the wrapper's padding would */
+  .ir-rulepage .VPNavBar .VPNavBarTitle .title {
+    width: 100%;
+    padding-left: max(32px, calc(100% - var(--vp-sidebar-width) + 32px));
+  }
+  .ir-rulepage .VPNavBar .content {
+    padding-right: calc((100vw - var(--vp-layout-max-width)) / 2 + 32px);
+    padding-left: calc((100vw - var(--vp-layout-max-width)) / 2 + var(--vp-sidebar-width));
+  }
+  .ir-rulepage .VPNavBar .divider { padding-left: calc((100vw - var(--vp-layout-max-width)) / 2 + var(--vp-sidebar-width)); }
+}
+/* The aside column runs the page's full height but holds only fixed boxes,
+   and it comes first in the markup, so from 1280px it was the browser's
+   scroll anchor: anything opening above the reading position (the strip and
+   table restored on Back to a #section, web fonts swapping in) pushed the
+   text down the screen instead of the browser holding it in place. */
+.ir-rulepage .VPDoc .aside { padding-left: 0; max-width: 232px; overflow-anchor: none; }
 .ir-rulepage .VPDoc .aside-container {
   width: 232px; padding-left: 24px;
   border-left: 1px solid var(--ir-divider);
 }
 .ir-rulepage .VPDoc .aside-curtain { width: 231px; margin-left: 1px; }
 /* The foot of the page is the site's own (SiteFooter.vue: edit link + last
-   updated, 2a); this page has no prev/next pager. Only once that footer has
-   rendered. */
-.ir-rulepage .VPDoc:has(.ir-docfoot) .VPDocFooter { display: none; }
-.ir-rulepage .VPDocFooter .prev-next { display: none; }
+   updated, 2a, in place of VitePress's doc footer and its prev/next pager:
+   style.css) */
 
 /* ── Doc typography ── */
 .ir-rulepage .vp-doc {
@@ -70,11 +145,21 @@
 .ir-rulepage .vp-doc h3 { font-size: 24px; line-height: 1.15; }
 .ir-rulepage .vp-doc h4 { font-size: 19px; line-height: 1.2; }
 .ir-rulepage .vp-doc h2 .header-anchor { top: 0; }
-/* Without the sidebar the gutter is 24–32px, too narrow for the "#" VitePress
-   hangs left of the heading (it and its focus ring fell off the canvas), so
-   it follows the heading text instead */
+/* Below 960px the page gutter is 24px, too narrow for the "#" VitePress hangs
+   left of the heading (it and its focus ring fell off the canvas), so it
+   follows the heading's last word instead. It is out of flow, at its static
+   position (top/left auto: just after the last word, on the last line), so
+   it can never wrap onto a line of its own or make a heading taller. A full
+   last line leaves it the right gutter: at 20px at most, the "#" with its
+   6px gap and focus ring (drawn round the glyph itself) takes 21.5px of
+   that gutter's 24. */
 @media (max-width: 959px) {
-  .ir-rulepage .vp-doc .header-anchor { position: relative; top: 0; left: 0; margin-left: 0.2em; }
+  .ir-rulepage .vp-doc :is(h1, h2, h3, h4) .header-anchor {
+    position: absolute; top: auto; left: auto; margin-left: 6px;
+  }
+  .ir-rulepage .vp-doc .header-anchor::before { font-size: min(1em, 20px); }
+  .ir-rulepage .vp-doc .header-anchor:focus-visible { outline: none; }
+  .ir-rulepage .vp-doc .header-anchor:focus-visible::before { outline: 2px solid var(--ir-accent); outline-offset: 2px; }
 }
 /* The outline's copy of a heading date (markdown.ts) is for VitePress only */
 .ir-rulepage .vp-doc .ir-outline-text { display: none; }
@@ -117,6 +202,10 @@
 .ir-rulepage .vp-doc .ir-sec > h4 { margin-top: 8px; }
 .ir-rulepage .ir-sec-head {
   display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 8px 16px;
+}
+/* Below 960px, room for the heading's "#" (above) before its count or button */
+@media (max-width: 959px) {
+  .ir-rulepage .ir-sec-head { column-gap: 24px; }
 }
 .ir-rulepage .ir-sec-body { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
 
@@ -203,6 +292,9 @@
   .ir-rulepage .vp-doc .ir-cells > .ir-cell:last-child { --ir-cell-b: 0; }
 }
 .ir-rulepage .vp-doc .ir-cell:target { background: var(--ir-accent-100); }
+/* A link to a rule moves focus to its cell (RuleHeader.vue): the ring sits
+   inside the cell, clear of its neighbours' rules */
+.ir-rulepage .vp-doc .ir-cell:focus-visible { outline-offset: -2px; }
 .ir-rulepage .vp-doc .ir-cell > * { margin: 0; }
 /* The h3 comes first in the markup (heading, then tags); the numeral row draws above it */
 .ir-rulepage .ir-cell-top { order: -1; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
@@ -262,6 +354,10 @@
   font-family: var(--ir-font-heading); font-weight: 400; font-size: 28px; line-height: 1;
   color: var(--ir-accent);
 }
+/* 2a's head on each step (markdown.ts, steps.ts): the numeral and who acts,
+   drawn above the title that comes first in the markup */
+.ir-rulepage .ir-stepcard-top { order: -1; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.ir-rulepage .vp-doc .ir-stepcard-title { font-size: 17px; line-height: 1.2; letter-spacing: normal; text-wrap: balance; }
 .ir-rulepage .vp-doc .ir-stepcard > p { margin: 0; font-size: 13.5px; text-wrap: pretty; }
 
 /* ── Ledger: fleet line (FleetLine.vue), portrait strip (LedgerStrip.vue),
@@ -315,17 +411,19 @@
 /* The portrait's own pending note has no room at strip size; the caption carries it */
 .ir-rulepage .ir-strip .ir-portrait-note { display: none; }
 
-/* A fleet over a dozen: one framed contact sheet, 8 / 6 / 4 columns by the
-   content width (below), its first two rows until "Show all" */
+/* A fleet over a dozen: one framed contact sheet, about 8 / 6 / 4 columns by
+   the content width (below; LedgerStrip.vue counts them, so the last row
+   isn't left with a tile or two), its first two rows until "Show all" */
 .ir-rulepage .ir-strip-sheet { padding: 16px; }
 .ir-rulepage .vp-doc .ir-strip.is-dense .ir-strip-grid {
-  grid-template-columns: repeat(8, minmax(0, 1fr)); column-gap: 10px; margin-bottom: -16px;
+  grid-template-columns: repeat(var(--ir-sheet-wide, 8), minmax(0, 1fr)); column-gap: 10px; margin-bottom: -16px;
 }
 .ir-rulepage .vp-doc .ir-strip.is-dense .ir-strip-grid > li { padding-bottom: 16px; }
 /* Sheet tiles run 54–96px, so an age line may need two; the subgrid still
    keeps each row of captions even */
 .ir-rulepage .ir-strip.is-dense .ir-strip-age { white-space: normal; }
-.ir-rulepage .ir-strip.is-collapsed .ir-strip-grid > li:nth-child(n + 17) { display: none; }
+.ir-rulepage .ir-strip.is-collapsed[data-wide="8"] .ir-strip-grid > li:nth-child(n + 17),
+.ir-rulepage .ir-strip.is-collapsed[data-wide="7"] .ir-strip-grid > li:nth-child(n + 15) { display: none; }
 .ir-rulepage .ir-strip.is-dense .ir-strip-item:hover .ir-portrait { outline: 1px solid var(--ir-accent); }
 .ir-rulepage .ir-strip.is-dense .ir-strip-item:active .ir-portrait { outline-color: var(--ir-accent-800); }
 .ir-rulepage .ir-strip-foot {
@@ -471,7 +569,7 @@
 .ir-rulepage .ir-log-date {
   position: absolute; left: 0; top: 11px;
   font-family: var(--ir-font-heading); font-weight: 600; font-size: 15px;
-  font-variant-numeric: tabular-nums; color: var(--ir-accent-700);
+  font-variant-numeric: tabular-nums; color: var(--ir-accent-700); white-space: nowrap;
 }
 
 /* ── Buttons: the site's one size (40px: 10px 18px around 15px × 1.2) ── */
@@ -490,6 +588,13 @@
   /* side margins keep the corner marks inside the aside's overflow clip */
   margin: 28px 6px 6px; padding: 14px;
   display: flex; flex-direction: column; gap: 6px;
+}
+/* VitePress fills the outline above it in from the page's headings once the
+   page is running, which pushed the box ~370px down the aside on every load
+   (CLS 0.04 at 1280px). It waits, unseen, and appears with the outline.
+   Without JavaScript there is no outline to wait for. */
+@media (scripting: enabled) {
+  .ir-rulepage .VPDocAsideOutline:not(.has-outline) ~ .ir-fleetbox { visibility: hidden; }
 }
 .ir-rulepage .ir-fleetbox-count { font-size: 13px; color: var(--ir-text); }
 .ir-rulepage .ir-fleetbox-n {
@@ -530,10 +635,13 @@
   padding-left: 12px; color: var(--ir-text); font-weight: 400;
 }
 .ir-rulepage .VPSidebar .VPSidebarItem.level-1.is-link > .item > .link:hover > .text { color: var(--ir-accent-700); }
-.ir-rulepage .VPSidebar .VPSidebarItem.level-1.is-active > .item > .indicator {
+/* The current page's link (this page's: marked before VitePress sets .is-active) */
+.ir-rulepage .VPSidebar .VPSidebarItem.level-1.is-active > .item > .indicator,
+.ir-rulepage .VPSidebar .VPSidebarItem.level-1 > .item:has(> .link[href$="/rules/avatars"]) > .indicator {
   left: 0; top: 4px; bottom: 4px; border-radius: 0; background-color: var(--ir-accent);
 }
-.ir-rulepage .VPSidebar .VPSidebarItem.level-1.is-active > .item .link > .text { color: var(--ir-accent-700); font-weight: 500; }
+.ir-rulepage .VPSidebar .VPSidebarItem.level-1.is-active > .item .link > .text,
+.ir-rulepage .VPSidebar .VPSidebarItem.level-1 > .item > .link[href$="/rules/avatars"] > .text { color: var(--ir-accent-700); font-weight: 500; }
 
 /* ── Responsive: layouts follow the content column's width ── */
 @container irdoc (max-width: 640px) {
@@ -542,13 +650,15 @@
 }
 /* The contact sheet's columns, and its first two rows while collapsed */
 @container irdoc (max-width: 600px) {
-  .ir-rulepage .vp-doc .ir-strip.is-dense .ir-strip-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
-  .ir-rulepage .ir-strip.is-collapsed .ir-strip-grid > li:nth-child(n + 13) { display: none; }
+  .ir-rulepage .vp-doc .ir-strip.is-dense .ir-strip-grid { grid-template-columns: repeat(var(--ir-sheet-mid, 6), minmax(0, 1fr)); }
+  .ir-rulepage .ir-strip.is-collapsed[data-mid="6"] .ir-strip-grid > li:nth-child(n + 13),
+  .ir-rulepage .ir-strip.is-collapsed[data-mid="5"] .ir-strip-grid > li:nth-child(n + 11) { display: none; }
 }
 @container irdoc (max-width: 440px) {
   .ir-rulepage .ir-strip-sheet { padding: 12px; }
-  .ir-rulepage .vp-doc .ir-strip.is-dense .ir-strip-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-  .ir-rulepage .ir-strip.is-collapsed .ir-strip-grid > li:nth-child(n + 9) { display: none; }
+  .ir-rulepage .vp-doc .ir-strip.is-dense .ir-strip-grid { grid-template-columns: repeat(var(--ir-sheet-narrow, 4), minmax(0, 1fr)); }
+  .ir-rulepage .ir-strip.is-collapsed[data-narrow="4"] .ir-strip-grid > li:nth-child(n + 9),
+  .ir-rulepage .ir-strip.is-collapsed[data-narrow="3"] .ir-strip-grid > li:nth-child(n + 7) { display: none; }
 }
 @container irdoc (max-width: 560px) {
   .ir-rulepage .vp-doc h1 { font-size: 44px; }
@@ -578,11 +688,36 @@
   .ir-rulepage .VPContent { padding-top: 0 !important; }
   .ir-rulepage .ir-strip.is-collapsed .ir-strip-grid > li { display: grid !important; }
   .ir-rulepage .vp-doc :is(h2, h3, h4, .ir-sec-head) { break-after: avoid; }
+  /* Not the side labels of the label-column sections (Principle, "Notes
+     from the rollout"): the section is a grid, which passes its items'
+     break-after on to its own end, and that took away the one break before
+     the next section, so a sheet broke after the next head instead ("Prior
+     art" alone at the foot of a sheet, its columns on the next). The
+     Principle box is whole anyway; the notes' label stays with its first
+     note through the row they share. */
+  .ir-rulepage .vp-doc :is(.ir-kind--principle, .ir-kind--notes) > h2 { break-after: auto; }
+  /* The ledger table's summary (its title and row count) stays with the
+     table, and "Prior art" with its columns (one short block) */
+  .ir-rulepage .ir-ledger-table > summary { break-after: avoid; }
+  .ir-rulepage .vp-doc .ir-sec:has(> .ir-cols) { break-inside: avoid; }
   .ir-rulepage .vp-doc :is(
     .ir-cell, .ir-stepcard, .ir-band, .ir-kind--principle, .ir-pull,
     .ir-strip-grid > li, .ir-col, .ir-log > li, tr
   ) { break-inside: avoid; }
-  .ir-rulepage .ir-ledger-table > summary::before { content: none; }
+  /* No "+" or "−" on paper, closed or open (printing opens the table) */
+  .ir-rulepage .ir-ledger-table > summary::before,
+  .ir-rulepage .ir-ledger-table[open] > summary::before { content: none; }
+  /* The rules grid: a page can break between any two rows of cells, so each
+     cell draws its own frame (the grid's outer frame and the cells' inner
+     rules left an empty framed box and loose rules down the rest of a page),
+     and tighter insets let a row fit what is left of a page more often */
+  .ir-rulepage .vp-doc .ir-cells { border: 0; }
+  .ir-rulepage .vp-doc .ir-cell {
+    padding: 0 14px 14px; border-top-width: 14px; min-height: 0; gap: 6px;
+    outline: 1px solid var(--ir-divider); outline-offset: -0.5px;
+  }
+  .ir-rulepage .vp-doc .ir-cell::before,
+  .ir-rulepage .vp-doc .ir-cell::after { content: none; }
   .ir-rulepage .vp-doc .ir-table-scroll { max-height: none; overflow: visible; background: none; }
   .ir-rulepage .vp-doc .ir-table-scroll > table { width: 100%; }
   .ir-rulepage .vp-doc .ir-table-scroll :is(th, td):nth-child(n) {

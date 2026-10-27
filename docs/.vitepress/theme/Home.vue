@@ -3,11 +3,12 @@ import { nextTick, onMounted, ref } from 'vue'
 import { withBase } from 'vitepress'
 import { data } from '../data/rulebook.data'
 import { balance, AGE_BANDS, type Agent, type Rule } from '../data/parse'
-import SiteFooter from './SiteFooter.vue'
 import { readEntry, writeEntry } from './entry-state'
+import Dated from './Dated'
 
 // Everything below is read at build time from docs/rules/avatars.md (see
 // data/parse.ts), so the landing page follows the rulebook without edits.
+// The dates in it stay on one line wherever they fall (Dated.ts).
 
 const rulesLink = withBase('/rules/avatars')
 const ledgerLink = withBase('/ledger')
@@ -18,7 +19,7 @@ const agentLink = (a: Agent) => withBase(`/ledger#${a.slug}`)
 const plural = (n: number, one: string, many: string) => (n === 1 ? one : many)
 const pad = (n: number) => String(n).padStart(2, '0')
 
-const { agents, rules, principle, rollout, setDate, refinedDate, updatedDate, hasHeritageColumn } = data
+const { agents, rules, principle, rollout, updatedDate, hasHeritageColumn } = data
 const { matrix, open, ungrouped, genderTally, ageTally } = balance(agents)
 
 const draftCount = rules.filter((r) => r.status === 'draft').length
@@ -32,10 +33,6 @@ const stats = [
     : { n: lockedCount, label: plural(lockedCount, 'locked rule', 'locked rules') },
   { n: open.length, label: plural(open.length, 'open gender × age cell', 'open gender × age cells') }
 ]
-
-const credit = setDate
-  ? `Rules set by Shai, ${setDate}${refinedDate && refinedDate !== setDate ? ` · refined ${refinedDate}` : ''}`
-  : ''
 
 const ruleCount = [
   `${rules.length} ${plural(rules.length, 'rule', 'rules')}`,
@@ -66,13 +63,10 @@ function clip(text: string, max: number) {
   return cut.slice(0, cut.lastIndexOf(' ')).replace(/[\s,;:]+$/, '') + '…'
 }
 
-// Word joiners keep ISO dates on one line ("2026-10-23", not "2026-" / "10-23")
-const keepDates = (s: string) => s.replace(/\b(\d{4})-(\d{2})-(\d{2})\b/g, '$1-\u2060$2-\u2060$3')
-
 function excerptBody(text: string) {
   let s = firstSentence(capitalize(text))
   if (s.length > BODY_MAX) s = s.replace(/\s*\([^()]*\)/g, '')
-  return keepDates(clip(s, BODY_MAX))
+  return clip(s, BODY_MAX)
 }
 
 const ruleCards = rules.map((r: Rule) => ({
@@ -112,20 +106,67 @@ const pendingNote = [
 // style.css works out how many 70px-and-up tiles fit the fleet's width (4 to
 // 12, by container query) and reads the column count to use from
 // --fleet-c<that many>. A fleet that fits in three rows there is spread as
-// evenly as it allows (11 tiles: one row of 11, or 6 + 5, never 9 + 2); a
-// bigger one fills every column and, from 13 tiles, shows its first three
-// rows until the reader asks for all of them. Every tile is in the HTML
-// either way: the rows past the third are hidden by style.css, and shown
-// again without JavaScript, in print, or when Back returns to an open fleet.
+// evenly as it allows (11 tiles: one row of 11, or 6 + 5, never 9 + 2). A
+// bigger one shows its first three rows until the reader asks for all of
+// them, in every column or one fewer, whichever leaves the fuller last row
+// once it is open (51 tiles where 10 fit: 9 × 5 + 6, not 10 × 5 + 1). Every
+// tile is in the HTML either way: the rows past the third are hidden by
+// style.css, and shown again without JavaScript, in print, or when Back
+// returns to an open fleet.
 const FOLD_ROWS = 3
+const MIN_COLS = 4
 const fleetSizes = [4, 5, 6, 7, 8, 9, 10, 11, 12]
 const n = agents.length
 const foldsAt = (max: number) => n > FOLD_ROWS * max
-const fleetCols = (max: number) => (foldsAt(max) ? max : Math.ceil(n / Math.ceil(n / max)))
+/** How full the open fleet's last row is, in this many columns (1 = full) */
+const lastRowFill = (cols: number) => (n % cols || cols) / cols
+function fleetCols(max: number) {
+  if (!foldsAt(max)) return Math.ceil(n / Math.ceil(n / max))
+  return max > MIN_COLS && lastRowFill(max - 1) > lastRowFill(max) ? max - 1 : max
+}
 const fleetVars = Object.fromEntries(fleetSizes.map((k) => [`--fleet-c${k}`, String(fleetCols(k))]))
 /** The tile counts per row at which the fleet folds: the toggle shows at those widths only */
 const fleetFolds = fleetSizes.filter(foldsAt).join(' ')
+/** ...and those at which it folds in one column fewer (style.css hides from the 3 × (k − 1) + 1st tile) */
+const fleetFoldsShort = fleetSizes.filter((k) => foldsAt(k) && fleetCols(k) < k).join(' ')
 const fleetFoldable = fleetFolds !== ''
+
+// The portrait's real width at each window width, for its sizes, so a 3x
+// screen takes the 480px file once a portrait is wider than 80px (and only
+// then). The fleet's width (style.css): the page is 1280px at most, inside a
+// 48px gutter from 960px, 32px from 768px and 24px below that; the tile
+// count per row steps up at every 84px of fleet width from 406px; tiles
+// share the row with 14px gaps and stop growing at 120px; the image is the
+// tile less its frame's 1px border each side.
+const GAP = 14
+const TILE_MAX = 120
+const FRAME = 2
+const PAGE_MAX = 1280
+const sideAt = (vw: number) => (vw >= 960 ? 48 : vw >= 768 ? 32 : 24)
+const bandAt = (fleet: number) => Math.min(12, fleet < 406 ? 4 : 5 + Math.floor((fleet - 406) / 84))
+/** The image's width at this window width, as a sizes length */
+function portraitSize(vw: number) {
+  const side = sideAt(vw)
+  const fleet = Math.min(vw, PAGE_MAX) - 2 * side
+  const c = fleetCols(bandAt(fleet))
+  const room = fleet - GAP * (c - 1)
+  if (room >= TILE_MAX * c) return `${TILE_MAX - FRAME}px`
+  if (vw >= PAGE_MAX) return `${Math.floor((room / c - FRAME) * 10) / 10}px`
+  return `calc((100vw - ${2 * side + GAP * (c - 1)}px) / ${c} - ${FRAME}px)`
+}
+/** One entry per run of window widths with the same length, the widest last */
+function fleetPortraitSizes() {
+  const parts: string[] = []
+  let size = portraitSize(0)
+  for (let vw = 1; vw <= PAGE_MAX; vw++) {
+    const next = portraitSize(vw)
+    if (next === size) continue
+    parts.push(`(max-width: ${vw - 0.02}px) ${size}`)
+    size = next
+  }
+  return [...parts, size].join(', ')
+}
+const fleetImageSizes = fleetPortraitSizes()
 
 const fleetOpen = ref(false)
 const fleetList = ref<HTMLUListElement>()
@@ -184,7 +225,7 @@ onMounted(() => {
           <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
           <div class="ir-plate-head">
             <span id="ir-spec-label" class="ir-label">Spec sheet</span>
-            <span v-if="updatedDate" class="ir-meta">Updated {{ updatedDate }}</span>
+            <span v-if="updatedDate" class="ir-meta">Updated <Dated :text="updatedDate" /></span>
           </div>
           <dl class="ir-stats">
             <div v-for="s in stats" :key="s.label" class="ir-stat">
@@ -206,11 +247,12 @@ onMounted(() => {
           :class="{ 'is-folded': fleetFoldable && !fleetOpen }"
           :style="fleetVars"
           :data-folds="fleetFolds || undefined"
+          :data-folds-short="fleetFoldsShort || undefined"
         >
           <ul id="ir-fleet-list" ref="fleetList" class="ir-fleet" role="list">
             <li v-for="(a, i) in agents" :key="`${i}-${a.slug}`">
               <a class="ir-fleet-item" :href="agentLink(a)" :aria-label="fleetLabel(a)">
-                <Portrait :agent="a" sizes="80px" />
+                <Portrait :agent="a" :sizes="fleetImageSizes" />
                 <span class="ir-fleet-caption">
                   <span class="ir-fleet-name">{{ a.name }}</span>
                   <span v-if="a.age">{{ a.age }}</span>
@@ -244,7 +286,7 @@ onMounted(() => {
         <h2 class="ir-label">Principle</h2>
         <div class="ir-principle-body">
           <p class="ir-principle-quote">{{ principle.text }}</p>
-          <span v-if="principle.attribution" class="ir-meta">{{ principle.attribution }}</span>
+          <span v-if="principle.attribution" class="ir-meta"><Dated :text="principle.attribution" /></span>
         </div>
       </section>
 
@@ -265,7 +307,7 @@ onMounted(() => {
               >{{ r.status }}</span>
             </div>
             <h3 class="ir-rule-title">{{ r.title }}</h3>
-            <p>{{ r.body }}</p>
+            <p><Dated :text="r.body" /></p>
           </a>
         </div>
       </section>
@@ -344,13 +386,13 @@ onMounted(() => {
       </section>
 
       <!-- Rollout -->
-      <section class="ir-section">
+      <section class="ir-section ir-rollout">
         <div class="ir-section-head">
           <h2>Self-identification first</h2>
         </div>
         <blockquote v-if="rollout.quote" class="ir-quote">
           <span>“{{ rollout.quote.text }}”</span>
-          <span class="ir-meta">{{ rollout.quote.attribution }}</span>
+          <span class="ir-meta"><Dated :text="rollout.quote.attribution" /></span>
         </blockquote>
         <div class="ir-steps">
           <div class="ir-step ir-frame">
@@ -389,7 +431,6 @@ onMounted(() => {
         </div>
       </section>
     </main>
-
-    <SiteFooter :note="credit" />
+    <!-- The page foot, with who set the rules and when, comes after this (Layout.vue, SiteFooter.vue) -->
   </div>
 </template>

@@ -83,12 +83,20 @@
 .ir-ledger-seg-btn + .ir-ledger-seg-btn { border-left: 1px solid var(--ir-divider); }
 .ir-ledger-seg-btn:hover { background: color-mix(in srgb, var(--ir-text) 7%, transparent); }
 .ir-ledger-seg-btn:active { background: color-mix(in srgb, var(--ir-text) 14%, transparent); }
-.ir-ledger-seg-btn:focus-visible { z-index: 1; }
+/* The segments share their hairlines, and the pressed one is filled in the
+   ring's own colour in the dark theme: a ring outside a segment ran over
+   its neighbours, and beside the pressed one lost that side. It goes inside
+   the segment, clear of its edges, in the ground's colour on the fill. */
+.ir-ledger .ir-ledger-seg-btn:focus-visible { outline-offset: -4px; }
+.ir-ledger .ir-ledger-seg-btn[aria-pressed='true']:focus-visible { outline-color: var(--ir-bg); }
 .ir-ledger-seg-n {
   font-family: var(--ir-font-body); font-weight: 400; font-size: 12px; line-height: 1;
   font-variant-numeric: tabular-nums;
   color: var(--ir-neutral-700);
 }
+/* Held down, a segment's ground darkens past what the muted count can carry
+   at 4.5:1 (light theme); the count steps up the ramp for that moment */
+.ir-ledger-seg-btn:not([aria-pressed='true']):active .ir-ledger-seg-n { color: var(--ir-neutral-800); }
 .ir-ledger .ir-ledger-seg-btn[aria-pressed='true'] { background: var(--ir-primary-fill); color: var(--ir-bg); }
 .ir-ledger .ir-ledger-seg-btn[aria-pressed='true']:hover { background: var(--ir-primary-fill-hover); }
 .ir-ledger .ir-ledger-seg-btn[aria-pressed='true']:active { background: var(--ir-primary-fill-active); }
@@ -106,6 +114,15 @@
   margin: 0; padding: 0; list-style: none;
 }
 .ir-ledger-grid > li { display: flex; min-width: 0; }
+/* Notes over the roster, each shown only where it applies: without
+   JavaScript (nothing can be chosen, so the page says where every row is),
+   and on paper for a filtered roster (the filter control doesn't print) */
+.ir-ledger .ir-ledger-nojs, .ir-ledger .ir-ledger-printnote {
+  margin: 0 0 20px;
+  padding-left: 10px; border-left: 2px solid var(--ir-accent);
+  font-size: 13px; line-height: 1.45; color: var(--ir-neutral-800);
+}
+.ir-ledger-nojs, .ir-ledger-printnote { display: none; }
 
 .ir-ledger-card {
   position: relative;
@@ -116,11 +133,15 @@
   background: transparent;
   cursor: pointer;
   transition: background-color 0.15s;
-  /* keyboard focus never lands under the fixed nav */
-  scroll-margin: calc(var(--vp-nav-height) + 16px) 0 16px;
+  /* keyboard focus never lands under the fixed nav (style.css --ir-bars) */
+  scroll-margin: calc(var(--ir-bars) + 16px) 0 16px;
 }
 .ir-ledger-card:hover { background: var(--ir-surface); }
 .ir-ledger-card:active { background: color-mix(in srgb, var(--ir-text) 10%, transparent); }
+/* Until the page's script runs (never, without JavaScript), a card can't be
+   chosen (LedgerRoster.vue): no pointer, no hover or pressed ground */
+.ir-ledger-card[aria-disabled='true'] { cursor: default; }
+.ir-ledger-card[aria-disabled='true']:is(:hover, :active) { background: transparent; }
 /* Selected: a 2px accent frame drawn over the hairline (focus keeps its own outer ring) */
 .ir-ledger-card[aria-pressed='true']::after {
   content: '';
@@ -146,9 +167,8 @@
   min-width: 0;
   padding: 28px 32px 40px;
   display: flex; flex-direction: column; gap: 22px;
-  /* clears the fixed nav side by side, and VitePress's 48px "Return to top"
-     bar (fixed below 960px once scrolled) when stacked */
-  scroll-margin-top: var(--vp-nav-height);
+  /* clears the fixed nav side by side; stacked, nothing is pinned over it */
+  scroll-margin-top: var(--ir-bars);
 }
 .ir-ledger-entry-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
 .ir-ledger-entry-media, .ir-ledger-entry-info { display: flex; flex-direction: column; gap: 22px; min-width: 0; }
@@ -161,13 +181,18 @@
 
 .ir-ledger-ident { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
 .ir-ledger .ir-ledger-name { font-size: 36px; line-height: 1.05; overflow-wrap: anywhere; }
-.ir-ledger-name { scroll-margin-top: calc(var(--vp-nav-height) + 16px); }
+.ir-ledger-name { scroll-margin-top: calc(var(--ir-bars) + 16px); }
 .ir-ledger-name:focus-visible { outline-offset: 4px; }
 .ir-ledger-ident-heritage { font-size: 12.5px; line-height: 1.4; color: var(--ir-neutral-700); overflow-wrap: anywhere; }
 
 /* Expression switch: four cells on one line, two by two when narrow. The
    switch's own width decides, never its labels', so a font swap can't
-   rearrange it. */
+   rearrange it. Four across from 22em (330px): the labels are centred in
+   cells with no side padding, so even the longest, "Quietly proud", has
+   about 10px to spare at that width, in Barlow Condensed or its wider
+   fallback, and the threshold grows with the text if the reader enlarges it.
+   Spaced wider than that (a reader's own letter or word spacing), a label
+   takes two lines in its cell rather than lose letters. */
 .ir-ledger-expr { display: flex; flex-direction: column; gap: 6px; container-type: inline-size; }
 .ir-ledger-expr-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 .ir-ledger-expr-opts {
@@ -175,15 +200,16 @@
   border: 1px solid var(--ir-divider);
 }
 .ir-ledger-expr-opt {
-  display: flex; justify-content: center;
+  display: flex; justify-content: center; align-items: center;
   min-width: 0;
-  padding-inline: 6px;
+  padding-inline: 0;
   text-align: center;
+  white-space: normal;
 }
-.ir-ledger-expr-text { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.ir-ledger-expr-text { min-width: 0; overflow-wrap: anywhere; }
 .ir-ledger-expr-opt:nth-child(even) { border-left: 1px solid var(--ir-divider); }
 .ir-ledger-expr-opt:nth-child(n + 3) { border-top: 1px solid var(--ir-divider); }
-@container (min-width: 330px) {
+@container (min-width: 22em) {
   .ir-ledger-expr-opts { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .ir-ledger-expr-opt:nth-child(n + 3) { border-top: 0; }
   .ir-ledger-expr-opt + .ir-ledger-expr-opt { border-left: 1px solid var(--ir-divider); }
@@ -237,7 +263,8 @@
 }
 .ir-ledger-quote figcaption { font-size: 11px; line-height: 1.4; color: var(--ir-neutral-700); }
 
-/* Only while the entry is stacked under the roster */
+/* Stacked under the roster, at the entry's end; side by side, only while
+   focus is in the entry (a card chosen by key takes it there) */
 .ir-ledger-back {
   display: inline-flex;
   align-self: flex-start;
@@ -276,9 +303,10 @@
   .ir-ledger .ir-ledger-name { font-size: 30px; }
   .ir-ledger-note { margin-top: 0; }
   .ir-ledger-check { padding-top: 14px; }
-  /* dense: a short field after a long one fills the gap beside the one before */
+  /* In the ledger's own order, entry to entry: a short field before a long
+     one keeps its line to itself rather than trade places with a later one */
   .ir-ledger-dl {
-    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-flow: row dense; gap: 10px 16px;
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 16px;
     padding-top: 14px; border-top: 1px solid var(--ir-divider);
     font-size: 13px; line-height: 1.4;
   }
@@ -286,7 +314,8 @@
   .ir-ledger-dl > .is-long { grid-column: 1 / -1; }
   .ir-ledger-dl dt { font-size: 12px; }
   .ir-ledger-dt-q { display: inline; font-size: inherit; }
-  .ir-ledger-back { display: none; }
+  .ir-ledger-back { display: none; justify-self: start; }
+  .ir-ledger-entry:focus-within .ir-ledger-back { display: inline-flex; }
 }
 
 /* ── Tallies ── */
@@ -319,10 +348,24 @@
 .ir-ledger-gaps li::marker { color: var(--ir-accent); }
 .ir-ledger-tally .ir-meta { margin-top: 4px; }
 
-/* ── Page foot (SiteFooter.vue, styled in style.css): the ledger's gutters ── */
-.ir-ledger .ir-docfoot { padding: 20px 40px 40px; }
-.ir-ledger .ir-docfoot > p { line-height: 1.55; }
-.ir-ledger .ir-docfoot-edit { text-decoration-thickness: auto; }
+/* ── Page foot (SiteFooter.vue after the ledger's <main>, styled in
+   style.css): its rule runs the ledger's full width, as the others do, and
+   its text sits on the ledger's gutters ── */
+.ir-pagefoot--ledger { max-width: 1280px; margin: 0 auto; }
+.ir-pagefoot--ledger .ir-docfoot { padding: 20px 40px 40px; }
+.ir-pagefoot--ledger .ir-docfoot > p { line-height: 1.55; }
+
+/* Wider than the page (1280px), the ledger's ruled rows (under the header,
+   over the tallies and the foot) run the window's width, as the nav bar's
+   rule does, instead of stopping in mid-air: each border drawn as a border
+   image, carried out to both sides of the window. That reach is ink, not
+   layout: the page doesn't scroll to it. (Forced colours keep the plain
+   borders.) */
+@media (min-width: 1281px) and (forced-colors: none) {
+  .ir-ledger-body, .ir-ledger-tallies, .ir-pagefoot--ledger .ir-docfoot {
+    border-image: linear-gradient(var(--ir-divider), var(--ir-divider)) 1 0 0 0 / 1px 0 0 0 / 0 100vmax;
+  }
+}
 
 /* ── Responsive ── */
 @media (max-width: 1179px) {
@@ -338,8 +381,14 @@
 @media (max-width: 959px) {
   .ir-ledger-body { grid-template-columns: minmax(0, 1fr); }
   .ir-ledger-roster { border-right: 0; }
-  /* stacked, the entry lines up with the header and roster */
-  .ir-ledger-entry { border-top: 1px solid var(--ir-divider); padding-inline: 40px; }
+  .ir-ledger-entry { border-top: 1px solid var(--ir-divider); }
+  /* One gutter, lined up with the nav bar's brand (style.css --ir-gutter):
+     the header, the roster, the entry stacked under it, the tallies' outer
+     edges and the page foot */
+  .ir-ledger-head, .ir-ledger-roster, .ir-ledger-entry, .ir-ledger-empty,
+  .ir-pagefoot--ledger .ir-docfoot { padding-inline: var(--ir-gutter); }
+  .ir-ledger-tally:nth-of-type(odd) { padding-left: var(--ir-gutter); }
+  .ir-ledger-tally:nth-of-type(even) { padding-right: var(--ir-gutter); }
 }
 @media (min-width: 640px) and (max-width: 959px) {
   .ir-ledger-entry {
@@ -347,32 +396,55 @@
   }
   .ir-ledger-entry-top { grid-column: 1 / -1; }
 }
+/* Stacked from 720px: four cards across, near the size they are beside the
+   entry (about 150 to 210px), not half as big again (LedgerRoster.vue's
+   CARD_SIZES follows) */
+@media (min-width: 720px) and (max-width: 959px) {
+  .ir-ledger-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
 @media (max-width: 768px) {
-  .ir-ledger-head { padding: 28px 16px 20px; }
+  .ir-ledger-head { padding-block: 28px 20px; }
   .ir-ledger .ir-ledger-title { font-size: 44px; }
-  .ir-ledger-roster { padding: 20px 16px 28px; }
-  .ir-ledger-entry { padding: 24px 16px 32px; }
-  .ir-ledger-empty { padding: 20px 16px; }
+  .ir-ledger-roster { padding-block: 20px 28px; }
+  .ir-ledger-entry { padding-block: 24px 32px; }
+  .ir-ledger-empty { padding-block: 20px; }
   .ir-ledger-tally:nth-of-type(n) { padding: 20px 16px 24px; }
-  .ir-ledger .ir-docfoot { padding: 20px 16px 32px; }
+  .ir-ledger-tally:nth-of-type(odd) { padding-left: var(--ir-gutter); }
+  .ir-ledger-tally:nth-of-type(even) { padding-right: var(--ir-gutter); }
+  .ir-pagefoot--ledger .ir-docfoot { padding-block: 20px 32px; }
 }
 /* Phones: three compact cards across (portrait, name, then gender and age in
    small type), so the roster stays short and the entry close */
 @media (max-width: 639px) {
+  /* The entry's portrait (with the switch under it) stops at 360px: the
+     largest file is 720px, two device pixels to each (LedgerEntry.vue's
+     sizes follows) */
+  .ir-ledger-entry-media { max-width: 360px; }
   .ir-ledger-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px 10px; }
-  .ir-ledger-card-text { gap: 2px; padding: 6px 8px 8px; }
+  /* The cards in a row are one height; the gender and age sit at the foot
+     of each, so a name that takes two lines ("Chief of Staff" at 320px)
+     doesn't push its card's down out of line with the rest of the row */
+  .ir-ledger-card-text { flex: 1; gap: 2px; padding: 6px 8px 8px; }
+  .ir-ledger-card .ir-ledger-tags { margin-top: auto; }
   .ir-ledger-card-name { font-size: 15px; line-height: 1.15; }
   .ir-ledger-card .ir-ledger-tags { gap: 0; }
   .ir-ledger-card .ir-tag {
     padding: 0; background: none;
     font-size: 11px; line-height: 1.35; letter-spacing: normal; color: var(--ir-neutral-700);
   }
-  .ir-ledger-card .ir-tag + .ir-tag::before { content: '·'; content: '·' / ''; margin: 0 4px; }
+  /* The dot ends the gender, so an age that wraps never starts its line with it */
+  .ir-ledger-card .ir-tag:not(:last-child)::after { content: '·'; content: '·' / ''; margin: 0 4px; }
   .ir-ledger-card-heritage { display: none; }
   .ir-ledger .ir-ledger-name { font-size: 32px; }
   .ir-ledger-tallies { grid-template-columns: minmax(0, 1fr); }
-  .ir-ledger-tally:nth-of-type(n) { border-left: 0; }
+  .ir-ledger-tally:nth-of-type(n) { border-left: 0; padding-inline: var(--ir-gutter); }
   .ir-ledger-tally:nth-of-type(n + 2) { border-top: 1px solid var(--ir-divider); }
+}
+/* Narrow phones, where a gender and age pair no longer fits on one line
+   of a card: gender over age on every card, so the captions in a row match */
+@media (max-width: 379px) {
+  .ir-ledger-card .ir-ledger-tags { flex-direction: column; align-items: flex-start; }
+  .ir-ledger-card .ir-tag:not(:last-child)::after { content: none; }
 }
 /* Too narrow for the filter on one line: two by two, full width */
 @media (max-width: 559px) {
@@ -383,6 +455,21 @@
   .ir-ledger-seg-btn:nth-child(n + 3) { border-top: 1px solid var(--ir-divider); }
 }
 
+/* ── A full load of /ledger#<name> (a shared link, a new tab, a reload): the
+   server's page shows the first agent's entry and card, which the page's
+   script swaps for the named agent's as it starts. Until then (ledger.md's
+   first-paint script, LedgerRoster.vue) the entry and the selected card's
+   frame are held back, so the wrong agent's entry is never on screen. ── */
+:root.ir-ledger-pending .ir-ledger-entry > *,
+:root.ir-ledger-pending .ir-ledger-card[aria-pressed='true']::after { visibility: hidden; }
+
+/* ── Without JavaScript: the filter and "Back to the roster" can't work, so
+   they go, and the note over the roster shows instead (LedgerRoster.vue) ── */
+@media (scripting: none) {
+  .ir-ledger-seg, .ir-ledger-back { display: none !important; }
+  .ir-ledger .ir-ledger-nojs { display: block; }
+}
+
 /* ── Forced colours: states drawn with system colours, not fills that get stripped ── */
 @media (forced-colors: active) {
   .ir-ledger .ir-ledger-seg-btn[aria-pressed='true'],
@@ -391,6 +478,7 @@
     background: Highlight; color: HighlightText;
   }
   .ir-ledger .ir-ledger-seg-btn[aria-pressed='true'] .ir-ledger-seg-n { color: HighlightText; }
+  .ir-ledger .ir-ledger-seg-btn[aria-pressed='true']:focus-visible { outline-color: HighlightText; }
   .ir-ledger-card[aria-pressed='true']::after {
     forced-color-adjust: none;
     inset: -2px; border: 4px solid Highlight;
@@ -403,10 +491,26 @@
    and "Back to the roster" go with the site's other controls, style.css) ── */
 @media print {
   .ir-ledger-expr { display: none; }
+  /* Four cards across, as on a screen the paper's width (three would print
+     two rows to a sheet and leave a quarter of it blank) */
+  .ir-ledger-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px 12px; }
+  /* A filtered roster says so */
+  .ir-ledger .ir-ledger-printnote { display: block; }
   .ir-ledger-entry { position: static; max-height: none; overflow: visible; background: none; }
   .ir-ledger-entry, .ir-ledger-grid > li, .ir-ledger-tally, .ir-ledger-quote, .ir-ledger-check,
   .ir-ledger-dl > div { break-inside: avoid; }
   .ir-ledger-head, .ir-ledger-ident, .ir-ledger-entry-top { break-after: avoid; }
+  /* The paper's margins are the gutters, as on the other pages' printouts:
+     the screen's side insets come off, and the foot's bottom padding, which
+     put a short ledger's foot alone on a last sheet */
+  .ir-ledger-head, .ir-ledger-roster, .ir-ledger-entry, .ir-ledger-empty,
+  .ir-ledger-tally:nth-of-type(n), .ir-pagefoot--ledger .ir-docfoot { padding-inline: 0; }
+  .ir-pagefoot--ledger .ir-docfoot { padding-bottom: 0; }
   /* the tally bars are fills, which printers drop by default */
   .ir-ledger-bar > span { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+/* Two tallies across: space either side of the rule between them */
+@media print and (min-width: 640px) {
+  .ir-ledger-tally:nth-of-type(odd) { padding-right: 16px; }
+  .ir-ledger-tally:nth-of-type(even) { padding-left: 16px; }
 }
